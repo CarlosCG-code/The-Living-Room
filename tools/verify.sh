@@ -15,12 +15,12 @@ rm -f build/TheLivingRoom.exe build/TheLivingRoom.pck build/check.zip "$LOG"
 "$GODOT" --headless --path . --import >build/import.log 2>&1 || fail "importación (build/import.log)"
 ! grep -q 'ERROR' build/import.log || fail "líneas ERROR en build/import.log"
 
-# Comprobación 2. Tests GUT: deben ejecutarse los 6 scripts de test y pasar todos.
+# Comprobación 2. Tests GUT: deben ejecutarse los 11 scripts de test y pasar todos.
 # TLR_NO_SAVE=1: el autoload Game no toca la partida real (GUT rechaza argumentos que no conoce).
 TLR_NO_SAVE=1 "$GODOT" --headless --path . -s addons/gut/gut_cmdln.gd >build/gut.log 2>&1 \
 	|| fail "tests GUT (build/gut.log)"
 grep -q -F -- '---- All tests passed! ----' build/gut.log || fail "no pasaron todos los tests (build/gut.log)"
-grep -q -E 'Scripts +6$' build/gut.log || fail "GUT no ejecutó los 6 scripts de test (build/gut.log)"
+grep -q -E 'Scripts +11$' build/gut.log || fail "GUT no ejecutó los 11 scripts de test (build/gut.log)"
 ! grep -q -E 'SCRIPT ERROR|Parse Error' build/gut.log || fail "errores de script en build/gut.log"
 
 # Comprobación 3. Exportación release, y un .zip con el mismo preset para listar sus archivos.
@@ -34,8 +34,8 @@ grep -q -E 'Scripts +6$' build/gut.log || fail "GUT no ejecutó los 6 scripts de
 # de Godot mencionan el addon aunque sus archivos no estén.
 unzip -Z1 build/check.zip >build/pack.txt || fail "no se puede listar build/check.zip"
 grep -q '^presentation/main\.tscn' build/pack.txt || fail "el paquete no contiene la escena principal"
-! grep -q -E '^(addons/godot_mcp_runtime|addons/gut|tests)/|^\.gutconfig\.json$' build/pack.txt \
-	|| fail "el paquete contiene el addon, GUT o los tests (build/pack.txt)"
+! grep -q -E '^(addons/godot_mcp_runtime|addons/gut|tests|tools|art_source)/|^\.gutconfig\.json$' build/pack.txt \
+	|| fail "el paquete contiene el addon, GUT, los tests o herramientas (build/pack.txt)"
 
 # Comprobación 5. Arranque (D7).
 TLR_NO_SAVE=1 ./build/TheLivingRoom.exe --headless --quit-after 120 --log-file "$LOG" >/dev/null 2>&1 \

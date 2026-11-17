@@ -11,6 +11,10 @@ EventBus="*res://autoload/event_bus.gd"
 Game="*res://autoload/game.gd"
 GameClock="*res://autoload/game_clock.gd"
 
+[display]
+window/size/viewport_width=1920
+window/size/viewport_height=1080
+
 [internationalization]
 locale/translations=PackedStringArray("res://locale/strings.es.translation")
 locale/fallback="es"

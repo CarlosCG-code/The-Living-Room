@@ -1,7 +1,10 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://presentation/ui/tv_game_ui.gd" id="1_ui"]
 [ext_resource type="AudioStream" path="res://assets/audio/ui/purchase.ogg" id="2_snd"]
+
+[sub_resource type="Theme" id="Theme_tv"]
+default_font_size = 22
 
 [node name="TvGameUI" type="Control"]
 layout_mode = 3
@@ -10,6 +13,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+theme = SubResource("Theme_tv")
 script = ExtResource("1_ui")
 
 [node name="Background" type="ColorRect" parent="."]
@@ -46,7 +50,7 @@ theme_override_font_sizes/font_size = 32
 
 [node name="ProductionLabel" type="Label" parent="Layout/Left"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 20
+theme_override_font_sizes/font_size = 24
 
 [node name="Dial" type="Button" parent="Layout/Left"]
 custom_minimum_size = Vector2(0, 220)
@@ -55,7 +59,7 @@ theme_override_font_sizes/font_size = 40
 
 [node name="RestartButton" type="Button" parent="Layout/Left"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 20
+theme_override_font_sizes/font_size = 24
 
 [node name="RestartProgress" type="Label" parent="Layout/Left"]
 layout_mode = 2

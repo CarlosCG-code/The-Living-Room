@@ -1,6 +1,6 @@
 # Especificación — Hito 2: la tele en el salón del jugador
 
-> Estado: **borrador, en revisión EGM** (etapas 5-9 aplicadas; informes en `reviews/hito2/`). EGM es el proceso de revisión con revisores independientes que se usa antes de aprobar cada especificación. No se escribe código hasta que el usuario lo apruebe.
+> Estado: **aprobada por el usuario (2026-11-17)**; en implementación (fase 2a). Revisión EGM en `reviews/hito2/`. EGM es el proceso de revisión con revisores independientes que se usa antes de aprobar cada especificación. No se escribe código hasta que el usuario lo apruebe.
 >
 > Fuentes: `GAME_DESIGN.md` §1-§3, §5, §8, §10, §11 (hito 2) y §12; `CLAUDE.md` (Arquitectura, Decisiones fijadas); `specs/hito1.md` (la UI plana que pasa a la tele).
 

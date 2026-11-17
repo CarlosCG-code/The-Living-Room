@@ -1,0 +1,16 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://presentation/camera/game_camera.gd" id="1_cam"]
+
+[node name="GameCamera" type="Camera3D"]
+current = true
+script = ExtResource("1_cam")
+
+[node name="Flashlight" type="SpotLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.15, -0.15, 0)
+visible = false
+light_color = Color(1, 0.95, 0.85, 1)
+light_energy = 4.0
+shadow_enabled = true
+spot_range = 12.0
+spot_angle = 22.0
