@@ -1,0 +1,14 @@
+# Godot 4
+.godot/
+/android/
+
+# Builds exportadas
+/build/
+
+# Assets descargados pendientes de importar (packs que trae el usuario)
+/assets/_inbox/
+
+# Sistema
+Thumbs.db
+desktop.ini
+.DS_Store
