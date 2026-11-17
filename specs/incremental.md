@@ -52,7 +52,7 @@ Mejoras de generador: **×2 al tener 10** de un generador y otra vez **al tener 
 
 ## 4. Interferencias (el evento que premia mirar la tele)
 
-De vez en cuando (cada 2-4 minutos) la imagen se llena de estática durante unos 8 segundos. Si el jugador hace clic en ella, gana una ráfaga: 60 segundos de producción de golpe, o ×7 a la producción durante 30 segundos.
+De vez en cuando (cada 2-4 minutos) la imagen se llena de estática durante unos 8 segundos. Si el jugador hace clic en ella, gana una ráfaga instantánea: 15 segundos de producción de golpe (era 60; reducido en el ajuste del hito 1 para que sea un extra y no algo obligatorio) (como mínimo, 50 clics; detalle en `specs/hito1.md`, D7).
 
 - **Por qué:** da un motivo para mirar la tele, mientras que el director de miedo da motivos para mirar el piso. El jugador tiene que repartir su atención, que es el núcleo de la tensión (pilar 3: premiar la atención).
 - **Lectura de terror:** muy de vez en cuando, la estática deja ver un fotograma de algo que no debería estar ahí (por ejemplo, el salón del 3.º). Eso lo decide y lo programa el director (hito 3) y cuenta dentro del tope de destellos (GDD §11). No es un jumpscare.

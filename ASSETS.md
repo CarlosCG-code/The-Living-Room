@@ -28,3 +28,4 @@ Fuente: `COPYRIGHT.txt` de https://github.com/godotengine/godot/blob/4.7.2-stabl
 
 | Archivo | Fuente (URL) | Autor | Licencia | Fecha |
 |---|---|---|---|---|
+| `assets/audio/ui/purchase.ogg` (provisional, sonido de compra; se sustituye en el hito 3) | https://freesound.org/people/Qvantor/sounds/878236/ («UI Click Crisp», vista previa HQ en `.ogg`; SHA-256 `4ee7498e0636280cc17b7d2c9be2c4981892d5545e15734832ecb76c9341e9dd`) | Qvantor | CC0 1.0 | 2026-11-17 |

@@ -1,6 +1,6 @@
 # Especificación — Hito 1: núcleo incremental + UI plana
 
-> Estado: **borrador, en revisión EGM** (etapas 5-9 y ronda final aplicadas; informes en `reviews/hito1/`). No se escribe código hasta que el usuario lo apruebe.
+> Estado: **aprobada por el usuario (2026-11-17)**; en implementación. Revisión EGM en `reviews/hito1/`.
 >
 > Fuentes: `GAME_DESIGN.md` §3, §4 y §11 (hito 1); `specs/incremental.md` (diseño aprobado del incremental); `specs/hito0.md` (proyecto base y procedimientos); `CLAUDE.md` (Arquitectura, Convenciones, Decisiones fijadas).
 
@@ -44,7 +44,7 @@ La run 1 del incremental se puede jugar entera en una UI plana (2D, sin la tele 
 | D4 | Datos | Un solo recurso, `data/economy_run1.tres` (`EconomyConfig`), con los generadores y las mejoras como sub-recursos | Un archivo que el test de ritmo carga directamente | Un `.tres` por generador y mejora: 24 archivos |
 | D5 | Números | `float` (64 bits) para Energía y producción | Su error relativo (~10⁻¹⁶) es despreciable hasta ~10¹⁵; la run 1 se queda muy por debajo. Las runs 2-4 se revisan cuando se fijen sus umbrales (hitos 4-5) | Una librería de números grandes: innecesaria, y sería una dependencia más |
 | D6 | Clics automáticos | Mantener pulsado (*Dial firme*) y *Dial solo* suman `valor del clic × clics por segundo × delta` en cada tick | Es determinista y no depende de los fotogramas; el test puede simularlo | Simular clics sueltos con temporizadores: depende del ritmo de fotogramas |
-| D7 | Recompensa de la interferencia | Instantánea: `max(60 × producción por segundo, 50 × valor del clic)`, calculada al atraparla | No necesita guardar un estado de bonificación. El mínimo de 50 clics hace que valga la pena al principio, cuando la producción es casi 0 | ×7 a la producción durante 30 s: más estado que guardar y probar |
+| D7 | Recompensa de la interferencia | Instantánea: `max(15 × producción por segundo, 50 × valor del clic)`, calculada al atraparla (era 60; cambiado con aprobación del usuario el 2026-11-17 en el ajuste del ritmo) | No necesita guardar un estado de bonificación. Con 15 s, atrapar interferencias acelera la run en torno a un 8-11 %: premia mirar la tele sin hacerlo obligatorio (con 60 s eran ~10 min de diferencia y no cabía en el rango de 30-40 min). El mínimo de 50 clics hace que valga la pena al principio, cuando la producción es casi 0 | ×7 a la producción durante 30 s: más estado que guardar y probar |
 | D8 | Aleatoriedad | Un `RandomNumberGenerator` dentro de `Economy`, con semilla al azar al empezar o cargar. Los tests inyectan una semilla fija | El test es repetible. La partida guardada ya incluye los segundos que faltan para la próxima interferencia, que es todo lo que hace falta | Guardar la semilla y el estado: el JSON de Godot corrompe los enteros de 64 bits (comprobado con 4.7.2), habría que guardarlos como texto, y no aporta nada |
 | D9 | Guardado | `user://run.json`, con `.tmp` y `.bak`; formato y reglas en la §4 | `CLAUDE.md` fija el `.tmp`, el `.bak` y que el meta-estado vaya aparte; esta especificación fija la ruta, el esquema y la validación | Ninguna para el `.tmp` y el `.bak`: los impone `CLAUDE.md`. Binario (`store_var`): no se puede leer ni comparar |
 | D10 | Cuándo se guarda | Al empezar cada run (también la primera), cada 5 min de juego y al cerrar la ventana. Con la variable de entorno `TLR_NO_SAVE=1` (la usan los tests y `verify.sh`), `Game` no lee ni escribe `run.json` y empieza una partida nueva; `SaveSystem` no consulta la variable | El GDD §3 pide inicio de run y cada ~5 min; guardar al cerrar evita perder hasta 5 min. `TLR_NO_SAVE` evita que las verificaciones toquen la partida real. Va en una variable de entorno porque GUT rechaza cualquier argumento que no conoce, también los que van tras `--` (comprobado en su código) | Solo lo del GDD: se perderían hasta 5 min al cerrar |
@@ -115,7 +115,7 @@ Los requisitos de aparición se ajustan en el paso 3 para que los generadores ap
 | `dial_auto` | *Dial solo* | 150.000 producida | 75.000 | `AUTO_CLICK_RATE` 2 |
 | `dial_auto_2` | *Dial solo II* | 2.000.000 producida | 1.000.000 | `AUTO_CLICK_RATE` 5 (cuenta la mayor tasa comprada) |
 
-**Umbral inicial:** 10.000.000 de Energía producida (mayor que el coste de lo que se espera comprar). Todos estos valores son iniciales: el paso 3 de la §6 los ajusta.
+**Umbral inicial:** 10.000.000 de Energía producida (mayor que el coste de lo que se espera comprar). Todos estos valores son iniciales: el paso 3 de la §6 los ajusta. **Resultado del ajuste (2026-11-17):** los valores finales están en `data/economy_run1.tres` (generado por `tools/gen_economy_tres.py`): coste `15 × 6^posición`, producción `0,2 × 5,5^posición`, umbral 6.986.879 y recompensa de la interferencia de 15 s (D7). Para cumplir el rango «algo nuevo cada ≤ 3 min», cada novedad tiene un minuto objetivo en un calendario, y las mejoras ×2 piden además Energía producida (siguen pidiendo 10 o 25 del generador). Los efectos aprobados no cambian.
 
 **Rangos que comprueba el test de ritmo** (de `specs/incremental.md` §8, traducidos a medidas comprobables; la traducción es la decisión D14):
 
@@ -230,7 +230,7 @@ Campos exportados (`@export`), con su tipo y valor inicial:
 | | `name_key`, `desc_key` | `String` | §5.6 |
 | | `kind` | `Kind` (enum de la clase: `GENERATOR_MULT`, `CLICK_MULT`, `HOLD_RATE`, `CLICK_PRODUCTION_SHARE`, `AUTO_CLICK_RATE`) | §3.5 |
 | | `target_id` | `StringName` | generador afectado; vacío en las de clic |
-| | `value`, `cost`, `req_energy_produced` | `float` | §3.5; `req_energy_produced` = 0 en las 12 de generador |
+| | `value`, `cost`, `req_energy_produced` | `float` | §3.5; en las de generador, Energía producida que piden además de los 10 o 25 poseídos (calendario del ajuste; 0 si no hace falta) |
 | | `req_generator_count` | `int` | 10 o 25 en las de generador; 0 en las de clic |
 | `EconomyConfig` | `generators` | `Array[GeneratorDef]` | 6 |
 | | `upgrades` | `Array[UpgradeDef]` | 18 |
@@ -238,7 +238,7 @@ Campos exportados (`@export`), con su tipo y valor inicial:
 | | `threshold` | `float` | 10.000.000 |
 | | `base_click_value` | `float` | 1 |
 | | `interference_min`, `interference_max`, `interference_duration` | `float` | 120, 240, 8 |
-| | `reward_production_seconds`, `reward_min_clicks` | `float` | 60, 50 |
+| | `reward_production_seconds`, `reward_min_clicks` | `float` | 15, 50 |
 
 Formato del `.tres` † (se confirma al escribirlo, importándolo sin errores):
 - una cabecera `[gd_resource type="Resource" script_class="EconomyConfig" ...]`;
@@ -258,7 +258,7 @@ Formato del `.tres` † (se confirma al escribirlo, importándolo sin errores):
 - `_init(config: EconomyConfig, state: RunState = null, rng_seed: int = -1)`: con -1 se usa una semilla al azar. Si `state` es `null`, crea la run 1 con `RunState.new_run` y su propio generador, así que solo hay uno y los tests lo siembran.
 - Señales: `purchased(item_id: StringName)` y `restarted(run_index: int)`.
 - Acciones: `click()`, `tick(delta: float, holding: bool)`, `buy(id: StringName) -> bool`, `catch_interference() -> bool`, `restart() -> bool`.
-- Consultas: `production_per_second() -> float`, `click_value() -> float`, `cost_of(id: StringName) -> float`, `is_visible(id: StringName) -> bool`, `is_bought(id: StringName) -> bool`, `owned(id: StringName) -> int`, `can_restart() -> bool`, `interference_active() -> bool`, `visible_generators() -> Array[GeneratorDef]`, `visible_upgrades() -> Array[UpgradeDef]` (visibles y no compradas).
+- Consultas: `production_per_second() -> float`, `generator_production(id: StringName) -> float` (producción total de un generador, para la tienda), `click_value() -> float`, `cost_of(id: StringName) -> float`, `is_visible(id: StringName) -> bool`, `is_bought(id: StringName) -> bool`, `owned(id: StringName) -> int`, `can_restart() -> bool`, `interference_active() -> bool`, `visible_generators() -> Array[GeneratorDef]`, `visible_upgrades() -> Array[UpgradeDef]` (visibles y no compradas).
 - Para el test de ritmo:
   - `income_per_second(manual_cps: float, holding: bool) -> float`: producción + clics manuales + clics automáticos.
   - `gain_if_bought(id: StringName, manual_cps: float, holding: bool) -> float`: cuánto subiría `income_per_second` con esa compra, sin comprar y sin exigir Energía.

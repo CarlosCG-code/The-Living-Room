@@ -1,2 +1,31 @@
 keys,es
 TITLE,The Living Room
+UI_ENERGY,Energía: %s
+UI_PRODUCTION,Producción: %s
+UI_DIAL,Sintonizar
+UI_RESTART,Reiniciar
+UI_RESTART_PROGRESS,%s / %s
+UI_INTERFERENCE,Interferencia: pulsa para atraparla
+UI_GENERATOR_ROW,%s — tienes %s — %s — coste %s
+UI_UPGRADE_ROW,%s: %s — coste %s
+GEN_ANTENNA,Antena
+GEN_VALVES,Válvulas
+GEN_AUDIO_FREQUENCY,Frecuencia de audio
+GEN_TUNER,Sintonizador
+GEN_REMOTE,Mando a distancia
+GEN_CHANNEL_3,Canal 3
+UPG_PULSE,Pulso
+UPG_DIAL_HOLD,Dial firme
+UPG_PULSE_STRONG,Pulso fuerte
+UPG_RESONANCE,Resonancia
+UPG_DIAL_AUTO,Dial solo
+UPG_DIAL_AUTO_2,Dial solo II
+UPG_PULSE_DESC,Cada clic vale el doble
+UPG_PULSE_STRONG_DESC,Cada clic vale el doble
+UPG_DIAL_HOLD_DESC,Mantén pulsado el dial para sintonizar sin parar
+UPG_RESONANCE_DESC,Cada clic suma parte de la producción
+UPG_DIAL_AUTO_DESC,El dial gira solo
+UPG_DIAL_AUTO_2_DESC,El dial gira solo
+UPG_GEN_X2_10,%s ×2
+UPG_GEN_X2_25,%s ×2 (25)
+UPG_GEN_X2_DESC,Duplica la producción de %s

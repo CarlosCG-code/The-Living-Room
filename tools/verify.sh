@@ -15,9 +15,13 @@ rm -f build/TheLivingRoom.exe build/TheLivingRoom.pck build/check.zip "$LOG"
 "$GODOT" --headless --path . --import >build/import.log 2>&1 || fail "importación (build/import.log)"
 ! grep -q 'ERROR' build/import.log || fail "líneas ERROR en build/import.log"
 
-# Comprobación 2. Tests GUT: deben ejecutarse y pasar los 2 tests.
-"$GODOT" --headless --path . -s addons/gut/gut_cmdln.gd >build/gut.log 2>&1 || fail "tests GUT (build/gut.log)"
-grep -q -E 'Passing Tests +2$' build/gut.log || fail "GUT no ejecutó los 2 tests (build/gut.log)"
+# Comprobación 2. Tests GUT: deben ejecutarse los 6 scripts de test y pasar todos.
+# TLR_NO_SAVE=1: el autoload Game no toca la partida real (GUT rechaza argumentos que no conoce).
+TLR_NO_SAVE=1 "$GODOT" --headless --path . -s addons/gut/gut_cmdln.gd >build/gut.log 2>&1 \
+	|| fail "tests GUT (build/gut.log)"
+grep -q -F -- '---- All tests passed! ----' build/gut.log || fail "no pasaron todos los tests (build/gut.log)"
+grep -q -E 'Scripts +6$' build/gut.log || fail "GUT no ejecutó los 6 scripts de test (build/gut.log)"
+! grep -q -E 'SCRIPT ERROR|Parse Error' build/gut.log || fail "errores de script en build/gut.log"
 
 # Comprobación 3. Exportación release, y un .zip con el mismo preset para listar sus archivos.
 "$GODOT" --headless --path . --export-release "Windows Desktop" build/TheLivingRoom.exe \
@@ -34,7 +38,7 @@ grep -q '^presentation/main\.tscn' build/pack.txt || fail "el paquete no contien
 	|| fail "el paquete contiene el addon, GUT o los tests (build/pack.txt)"
 
 # Comprobación 5. Arranque (D7).
-./build/TheLivingRoom.exe --headless --quit-after 120 --log-file "$LOG" >/dev/null 2>&1 \
+TLR_NO_SAVE=1 ./build/TheLivingRoom.exe --headless --quit-after 120 --log-file "$LOG" >/dev/null 2>&1 \
 	|| fail "la build salió con un código distinto de 0"
 [ -s "$LOG" ] || fail "$LOG falta o está vacío"
 grep -q '^BOOT_OK' "$LOG" || fail "falta BOOT_OK en $LOG"

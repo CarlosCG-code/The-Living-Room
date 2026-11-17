@@ -1,0 +1,276 @@
+[gd_resource type="Resource" script_class="EconomyConfig" load_steps=28 format=3]
+
+[ext_resource type="Script" path="res://core/economy_config.gd" id="config_script"]
+[ext_resource type="Script" path="res://core/generator_def.gd" id="gen_script"]
+[ext_resource type="Script" path="res://core/upgrade_def.gd" id="upg_script"]
+
+[sub_resource type="Resource" id="gen_antenna"]
+script = ExtResource("gen_script")
+id = &"antenna"
+name_key = "GEN_ANTENNA"
+base_cost = 15.0
+base_production = 0.2
+req_energy_produced = 0.0
+
+[sub_resource type="Resource" id="gen_valves"]
+script = ExtResource("gen_script")
+id = &"valves"
+name_key = "GEN_VALVES"
+base_cost = 90.0
+base_production = 1.1
+req_energy_produced = 5100.0
+
+[sub_resource type="Resource" id="gen_audio_frequency"]
+script = ExtResource("gen_script")
+id = &"audio_frequency"
+name_key = "GEN_AUDIO_FREQUENCY"
+base_cost = 540.0
+base_production = 6.050000000000001
+req_energy_produced = 20221.0
+
+[sub_resource type="Resource" id="gen_tuner"]
+script = ExtResource("gen_script")
+id = &"tuner"
+name_key = "GEN_TUNER"
+base_cost = 3240.0
+base_production = 33.275
+req_energy_produced = 71607.0
+
+[sub_resource type="Resource" id="gen_remote"]
+script = ExtResource("gen_script")
+id = &"remote"
+name_key = "GEN_REMOTE"
+base_cost = 19440.0
+base_production = 183.01250000000002
+req_energy_produced = 280547.0
+
+[sub_resource type="Resource" id="gen_channel_3"]
+script = ExtResource("gen_script")
+id = &"channel_3"
+name_key = "GEN_CHANNEL_3"
+base_cost = 116640.0
+base_production = 1006.56875
+req_energy_produced = 1009196.0
+
+[sub_resource type="Resource" id="upg_antenna_x2_10"]
+script = ExtResource("upg_script")
+id = &"antenna_x2_10"
+name_key = "UPG_GEN_X2_10"
+desc_key = "UPG_GEN_X2_DESC"
+kind = 0
+target_id = &"antenna"
+value = 2.0
+cost = 180.0
+req_energy_produced = 791.0
+req_generator_count = 10
+
+[sub_resource type="Resource" id="upg_antenna_x2_25"]
+script = ExtResource("upg_script")
+id = &"antenna_x2_25"
+name_key = "UPG_GEN_X2_25"
+desc_key = "UPG_GEN_X2_DESC"
+kind = 0
+target_id = &"antenna"
+value = 2.0
+cost = 1800.0
+req_energy_produced = 2372.0
+req_generator_count = 25
+
+[sub_resource type="Resource" id="upg_valves_x2_10"]
+script = ExtResource("upg_script")
+id = &"valves_x2_10"
+name_key = "UPG_GEN_X2_10"
+desc_key = "UPG_GEN_X2_DESC"
+kind = 0
+target_id = &"valves"
+value = 2.0
+cost = 1080.0
+req_energy_produced = 6793.0
+req_generator_count = 10
+
+[sub_resource type="Resource" id="upg_valves_x2_25"]
+script = ExtResource("upg_script")
+id = &"valves_x2_25"
+name_key = "UPG_GEN_X2_25"
+desc_key = "UPG_GEN_X2_DESC"
+kind = 0
+target_id = &"valves"
+value = 2.0
+cost = 10800.0
+req_energy_produced = 202144.0
+req_generator_count = 25
+
+[sub_resource type="Resource" id="upg_audio_frequency_x2_10"]
+script = ExtResource("upg_script")
+id = &"audio_frequency_x2_10"
+name_key = "UPG_GEN_X2_10"
+desc_key = "UPG_GEN_X2_DESC"
+kind = 0
+target_id = &"audio_frequency"
+value = 2.0
+cost = 6480.0
+req_energy_produced = 28171.0
+req_generator_count = 10
+
+[sub_resource type="Resource" id="upg_audio_frequency_x2_25"]
+script = ExtResource("upg_script")
+id = &"audio_frequency_x2_25"
+name_key = "UPG_GEN_X2_25"
+desc_key = "UPG_GEN_X2_DESC"
+kind = 0
+target_id = &"audio_frequency"
+value = 2.0
+cost = 64800.0
+req_energy_produced = 52332.0
+req_generator_count = 25
+
+[sub_resource type="Resource" id="upg_tuner_x2_10"]
+script = ExtResource("upg_script")
+id = &"tuner_x2_10"
+name_key = "UPG_GEN_X2_10"
+desc_key = "UPG_GEN_X2_DESC"
+kind = 0
+target_id = &"tuner"
+value = 2.0
+cost = 38880.0
+req_energy_produced = 102521.0
+req_generator_count = 10
+
+[sub_resource type="Resource" id="upg_tuner_x2_25"]
+script = ExtResource("upg_script")
+id = &"tuner_x2_25"
+name_key = "UPG_GEN_X2_25"
+desc_key = "UPG_GEN_X2_DESC"
+kind = 0
+target_id = &"tuner"
+value = 2.0
+cost = 388800.0
+req_energy_produced = 549007.0
+req_generator_count = 25
+
+[sub_resource type="Resource" id="upg_remote_x2_10"]
+script = ExtResource("upg_script")
+id = &"remote_x2_10"
+name_key = "UPG_GEN_X2_10"
+desc_key = "UPG_GEN_X2_DESC"
+kind = 0
+target_id = &"remote"
+value = 2.0
+cost = 233280.0
+req_energy_produced = 688846.0
+req_generator_count = 10
+
+[sub_resource type="Resource" id="upg_remote_x2_25"]
+script = ExtResource("upg_script")
+id = &"remote_x2_25"
+name_key = "UPG_GEN_X2_25"
+desc_key = "UPG_GEN_X2_DESC"
+kind = 0
+target_id = &"remote"
+value = 2.0
+cost = 2332800.0
+req_energy_produced = 0.0
+req_generator_count = 25
+
+[sub_resource type="Resource" id="upg_channel_3_x2_10"]
+script = ExtResource("upg_script")
+id = &"channel_3_x2_10"
+name_key = "UPG_GEN_X2_10"
+desc_key = "UPG_GEN_X2_DESC"
+kind = 0
+target_id = &"channel_3"
+value = 2.0
+cost = 1399680.0
+req_energy_produced = 0.0
+req_generator_count = 10
+
+[sub_resource type="Resource" id="upg_channel_3_x2_25"]
+script = ExtResource("upg_script")
+id = &"channel_3_x2_25"
+name_key = "UPG_GEN_X2_25"
+desc_key = "UPG_GEN_X2_DESC"
+kind = 0
+target_id = &"channel_3"
+value = 2.0
+cost = 13996800.0
+req_energy_produced = 0.0
+req_generator_count = 25
+
+[sub_resource type="Resource" id="upg_pulse"]
+script = ExtResource("upg_script")
+id = &"pulse"
+name_key = "UPG_PULSE"
+desc_key = "UPG_PULSE_DESC"
+kind = 1
+value = 2.0
+cost = 5.0
+req_energy_produced = 0.0
+req_generator_count = 0
+
+[sub_resource type="Resource" id="upg_dial_hold"]
+script = ExtResource("upg_script")
+id = &"dial_hold"
+name_key = "UPG_DIAL_HOLD"
+desc_key = "UPG_DIAL_HOLD_DESC"
+kind = 2
+value = 4.0
+cost = 38.0
+req_energy_produced = 76.0
+req_generator_count = 0
+
+[sub_resource type="Resource" id="upg_pulse_strong"]
+script = ExtResource("upg_script")
+id = &"pulse_strong"
+name_key = "UPG_PULSE_STRONG"
+desc_key = "UPG_PULSE_STRONG_DESC"
+kind = 1
+value = 2.0
+cost = 4857.0
+req_energy_produced = 9715.0
+req_generator_count = 0
+
+[sub_resource type="Resource" id="upg_resonance"]
+script = ExtResource("upg_script")
+id = &"resonance"
+name_key = "UPG_RESONANCE"
+desc_key = "UPG_RESONANCE_DESC"
+kind = 3
+value = 0.02
+cost = 19333.0
+req_energy_produced = 38666.0
+req_generator_count = 0
+
+[sub_resource type="Resource" id="upg_dial_auto"]
+script = ExtResource("upg_script")
+id = &"dial_auto"
+name_key = "UPG_DIAL_AUTO"
+desc_key = "UPG_DIAL_AUTO_DESC"
+kind = 4
+value = 2.0
+cost = 71004.0
+req_energy_produced = 142009.0
+req_generator_count = 0
+
+[sub_resource type="Resource" id="upg_dial_auto_2"]
+script = ExtResource("upg_script")
+id = &"dial_auto_2"
+name_key = "UPG_DIAL_AUTO_2"
+desc_key = "UPG_DIAL_AUTO_2_DESC"
+kind = 4
+value = 5.0
+cost = 220434.0
+req_energy_produced = 440868.0
+req_generator_count = 0
+
+[resource]
+script = ExtResource("config_script")
+generators = Array[ExtResource("gen_script")]([SubResource("gen_antenna"), SubResource("gen_valves"), SubResource("gen_audio_frequency"), SubResource("gen_tuner"), SubResource("gen_remote"), SubResource("gen_channel_3")])
+upgrades = Array[ExtResource("upg_script")]([SubResource("upg_antenna_x2_10"), SubResource("upg_antenna_x2_25"), SubResource("upg_valves_x2_10"), SubResource("upg_valves_x2_25"), SubResource("upg_audio_frequency_x2_10"), SubResource("upg_audio_frequency_x2_25"), SubResource("upg_tuner_x2_10"), SubResource("upg_tuner_x2_25"), SubResource("upg_remote_x2_10"), SubResource("upg_remote_x2_25"), SubResource("upg_channel_3_x2_10"), SubResource("upg_channel_3_x2_25"), SubResource("upg_pulse"), SubResource("upg_dial_hold"), SubResource("upg_pulse_strong"), SubResource("upg_resonance"), SubResource("upg_dial_auto"), SubResource("upg_dial_auto_2")])
+cost_growth = 1.15
+threshold = 6986879.0
+base_click_value = 1.0
+interference_min = 120.0
+interference_max = 240.0
+interference_duration = 8.0
+reward_production_seconds = 15.0
+reward_min_clicks = 50.0

@@ -1,6 +1,5 @@
-extends Node3D
+extends Node
 
 
 func _ready() -> void:
-	$Label3D.text = tr("TITLE")
 	print("BOOT_OK")
