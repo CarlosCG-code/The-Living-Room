@@ -157,6 +157,7 @@ Cada hito empieza con su **especificación de implementación** (archivos, pasos
 ## 12. Decisiones abiertas
 
 - Balance numérico del incremental; umbral de Energía de cada run (la lista y la estructura ya están decididas, §4).
+- Si la tele sigue produciendo Energía mientras el jugador explora (hito 4; propuesta: sí, para que explorar no retrase). Las duraciones de la §3 cuentan solo el tiempo delante de la tele; explorar no tiene límite.
 - Música (si la hay) y voces/idiomas.
 - Epílogos detallados de cada final.
 - Nombres y diseño de las pistas; niveles de confesión según la Evidencia.
