@@ -23,7 +23,7 @@ Separar siempre la lógica de la presentación:
 - `world/` — piso del jugador, escalera, piso de la señora, menú principal (tele y silla). Variantes del piso: espejo y a oscuras (la run 2 combina ambas); su técnica se especifica y valida en el hito 2 junto al look-dev (candidatas: kit modular colocado en simetría, o reflejo de geometría en build con normales y textos corregidos).
 - `narrative/` — contenido de pistas y finales.
 
-La ubicación de autoloads, datos `.tres`, tests y assets se fija en el hito 0 y se anota aquí. En el hito 0 se instalan GUT y el addon `godot_mcp_runtime` y se crea `ASSETS.md`. El addon y su autoload `MCPRuntime` se excluyen de toda build exportada, y se comprueba que la build arranca sin ellos.
+Ubicaciones (fijadas en el hito 0): autoloads en `autoload/`, datos `.tres` en `data/`, tests GUT en `tests/`, assets en `assets/` (`models/`, `textures/`, `audio/`, `fonts/`). `audio/` en la raíz es el código del gestor de audio; los sonidos van en `assets/audio/`. Cada carpeta se crea con su primer archivo. GUT está en `addons/gut/` y el addon de capturas en `addons/godot_mcp_runtime/` (solo build de depuración; lo carga `autoload/dev_boot.gd`, que añade el nodo `MCPRuntime`). El addon se excluye de toda build exportada, y cada hito se comprueba con `tools/verify.sh`, que verifica además que la build arranca sin él.
 
 Reglas:
 - `core/` declara sus propias señales y no conoce el árbol. Un adaptador (autoload) reenvía al autoload `EventBus` solo los eventos discretos (compra, reinicio, pista hallada). El estado continuo (producción, mirada) no se emite: el director lo recibe del reloj en cada tick. Entre sistemas de escena: `EventBus`, no referencias directas.

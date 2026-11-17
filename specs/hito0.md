@@ -1,6 +1,6 @@
 # Especificación — Hito 0: base del proyecto
 
-> Estado: **borrador, pendiente de revisión EGM y aprobación del usuario**. No se escribe código hasta que se apruebe.
+> Estado: **implementada y aprobada por el usuario (2026-11-17)**. Revisión EGM en `reviews/hito0/`.
 >
 > Fuentes: `GAME_DESIGN.md` §11 (hito 0) y `CLAUDE.md` (Arquitectura, Cómo trabajar, Decisiones fijadas).
 
@@ -95,7 +95,7 @@ platform="Windows Desktop"
 runnable=true
 export_filter="all_resources"
 include_filter=""
-exclude_filter="addons/godot_mcp_runtime/*, addons/gut/*, tests/*"
+exclude_filter="addons/godot_mcp_runtime/*, addons/gut/*, tests/*, .gutconfig.json"
 export_path="build/TheLivingRoom.exe"
 encrypt_pck=false
 encrypt_directory=false
@@ -168,9 +168,9 @@ rm -f build/TheLivingRoom.exe build/TheLivingRoom.pck build/check.zip "$LOG"
 "$GODOT" --headless --path . --import >build/import.log 2>&1 || fail "importación (build/import.log)"
 ! grep -q 'ERROR' build/import.log || fail "líneas ERROR en build/import.log"
 
-# Comprobación 2. Tests GUT: deben ejecutarse y pasar los 2 tests (texto del resumen †).
+# Comprobación 2. Tests GUT: deben ejecutarse y pasar los 2 tests.
 "$GODOT" --headless --path . -s addons/gut/gut_cmdln.gd >build/gut.log 2>&1 || fail "tests GUT (build/gut.log)"
-grep -q -E 'Passing Tests[^0-9]*2' build/gut.log || fail "GUT no ejecutó los 2 tests (build/gut.log)"
+grep -q -E 'Passing Tests +2$' build/gut.log || fail "GUT no ejecutó los 2 tests (build/gut.log)"
 
 # Comprobación 3. Exportación release, y un .zip con el mismo preset para listar sus archivos.
 "$GODOT" --headless --path . --export-release "Windows Desktop" build/TheLivingRoom.exe \
@@ -180,10 +180,10 @@ grep -q -E 'Passing Tests[^0-9]*2' build/gut.log || fail "GUT no ejecutó los 2 
 	>build/pack.log 2>&1 || fail "exportación del .zip (build/pack.log)"
 
 # Comprobación 4. Exclusión por lista de archivos, no por texto: dev_boot.gd y las cachés
-# de Godot mencionan el addon aunque sus archivos no estén. Rutas del .zip sin res:// †.
+# de Godot mencionan el addon aunque sus archivos no estén.
 unzip -Z1 build/check.zip >build/pack.txt || fail "no se puede listar build/check.zip"
 grep -q '^presentation/main\.tscn' build/pack.txt || fail "el paquete no contiene la escena principal"
-! grep -q -E '^(addons/godot_mcp_runtime|addons/gut|tests)/' build/pack.txt \
+! grep -q -E '^(addons/godot_mcp_runtime|addons/gut|tests)/|^\.gutconfig\.json$' build/pack.txt \
 	|| fail "el paquete contiene el addon, GUT o los tests (build/pack.txt)"
 
 # Comprobación 5. Arranque (D7).
@@ -217,7 +217,7 @@ Si en el paso 0 resulta que `--log-file` no existe, la comprobación 5 se ejecut
 3. Crear los archivos marcados «crear» en la §3, con el contenido de la §4.
 4. **Importar dos veces** (`$GODOT --headless --path . --import`). La segunda termina con código 0 y sin líneas `ERROR`.
 5. **Tests:** `$GODOT --headless --path . -s addons/gut/gut_cmdln.gd`. Todos pasan.
-6. **LSP:** arrancar en segundo plano `"$GODOT" --headless --editor --path . --lsp-port 6005` y guardar su PID; esperar a que el puerto 6005 acepte conexiones (máximo 30 s; si no, falla). Llamar a `lsp_get_diagnostics` del MCP `godot` (`projectPath` = ruta absoluta del repositorio, `scriptPath` relativo) para `autoload/dev_boot.gd`, `presentation/main.gd` y `tests/test_smoke.gd`: cero errores. Cerrar el proceso por su PID. No va en `verify.sh`, porque necesita el MCP.
+6. **LSP:** arrancar en segundo plano `"$GODOT" --headless --editor --path . --lsp-port 6005`; esperar a que el puerto 6005 acepte conexiones (máximo 30 s; si no, falla). Llamar a `lsp_get_diagnostics` del MCP `godot` (`projectPath` = ruta absoluta del repositorio, `scriptPath` relativo) para `autoload/dev_boot.gd`, `presentation/main.gd` y `tests/test_smoke.gd`: cero errores. Cerrar el proceso buscándolo por su línea de comandos (`--lsp-port 6005`), porque en Windows el PID de Git Bash no es el del proceso de Godot. No va en `verify.sh`, porque necesita el MCP.
 7. **Captura:** ejecutar el proyecto (build de depuración) con el MCP `godot` (`run_project`) y pedir `capture_screenshot` cada segundo, hasta 10 intentos, porque el addon tarda un fotograma en abrir su servidor. Debe verse el título. Cerrar el juego con `stop_project`. Va antes de las plantillas para validar D4 pronto: si GoPeak no conecta, se para y se avisa al usuario con una propuesta de cambio de D4.
 8. **Plantillas:** descargar `Godot_v4.7.2-stable_export_templates.tpz` y `SHA512-SUMS.txt` de `https://github.com/godotengine/godot/releases/download/4.7.2-stable/` y comprobar con `sha512sum -c --ignore-missing SHA512-SUMS.txt` (la lista incluye archivos que no se descargan). Si no coincide, se descarga otra vez; si vuelve a fallar, se avisa al usuario. Descomprimir el contenido de `templates/` en `%APPDATA%\Godot\export_templates\4.7.2.stable\` y comprobar que `version.txt` dice `4.7.2.stable` y que existe `windows_release_x86_64.exe`. Anotar en `ASSETS.md` las licencias de terceros de `COPYRIGHT.txt`. Las permisivas se aceptan por la excepción de `CLAUDE.md`; si aparece una que no lo es, se para y se avisa al usuario.
 9. Ejecutar `tools/verify.sh`: termina con `VERIFY OK`.
@@ -232,7 +232,7 @@ Si en el paso 0 resulta que `--log-file` no existe, la comprobación 5 se ejecut
 | `test_smoke.gd::test_devboot_skips_without_addon` | Crea una instancia de `dev_boot.gd` fuera del árbol y un `Node` vacío (`nodo`). Llama a `load_runtime("res://no_existe.gd", nodo)`, espera un fotograma † y libera ambos | devuelve `null` y `nodo` sigue con 0 hijos |
 | `verify.sh` (comprobación 1) | La segunda importación | código 0, sin `ERROR` |
 | `verify.sh` (comprobación 2) | GUT ejecuta los tests | código 0 y 2 tests pasados |
-| `verify.sh` (comprobación 4) | La lista de archivos del `.zip` exportado contiene `presentation/main.tscn` y nada bajo `addons/godot_mcp_runtime/`, `addons/gut/` ni `tests/` | las dos condiciones se cumplen |
+| `verify.sh` (comprobación 4) | La lista de archivos del `.zip` exportado contiene `presentation/main.tscn` y nada bajo `addons/godot_mcp_runtime/`, `addons/gut/` ni `tests/`, y no incluye `.gutconfig.json` | las dos condiciones se cumplen |
 | `verify.sh` (comprobación 5) | La build release arranca sin el addon | cumple D7 |
 | LSP (paso 6) | Los scripts propios no tienen errores de GDScript | cero errores |
 | Captura (paso 7) | El addon funciona en la build de depuración | GoPeak devuelve la imagen con el título |
