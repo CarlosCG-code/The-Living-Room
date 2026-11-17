@@ -1,0 +1,49 @@
+class_name FactoryCable
+extends Node2D
+
+# Cable de una máquina a la fábrica: dos hilos (amarillo y azul, como en el boceto) y pulsos de
+# electricidad que viajan hacia la fábrica (specs/hito2.md D19).
+
+const YELLOW := Color(0.95, 0.8, 0.25)
+const BLUE := Color(0.3, 0.6, 1.0)
+const PULSE := Color(1.0, 1.0, 0.85)
+const FAULT := Color(1.0, 0.35, 0.2)
+
+## Velocidad de los pulsos (px/s) y cuántos hay a la vez en el cable.
+var speed := 20.0
+var pulses := 2
+## Con una interferencia, el cable parpadea en rojo.
+var sparking := false
+
+var _curve := Curve2D.new()
+var _offset := 0.0
+
+
+func _init(from: Vector2, to: Vector2, sag: float) -> void:
+	_curve.bake_interval = 2.0
+	var handle := (to - from) * 0.4
+	_curve.add_point(from, Vector2.ZERO, Vector2(handle.x, handle.y + sag))
+	_curve.add_point(to, Vector2(-handle.x, -handle.y + sag), Vector2.ZERO)
+
+
+func _process(delta: float) -> void:
+	_offset += speed * delta
+	queue_redraw()
+
+
+func midpoint() -> Vector2:
+	return _curve.sample_baked(_curve.get_baked_length() * 0.5)
+
+
+func _draw() -> void:
+	var points := _curve.get_baked_points()
+	var fault := sparking and fmod(_offset, 6.0) < 3.0
+	draw_polyline(points, FAULT if fault else YELLOW)
+	var shifted := PackedVector2Array()
+	for p in points:
+		shifted.append(p + Vector2(0, 1))
+	draw_polyline(shifted, BLUE)
+	var length := _curve.get_baked_length()
+	for i in pulses:
+		var p := _curve.sample_baked(fposmod(_offset + i * length / pulses, length)).round()
+		draw_rect(Rect2(p - Vector2(1, 1), Vector2(2, 2)), PULSE)

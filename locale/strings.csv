@@ -6,9 +6,12 @@ UI_PER_CLICK,Por clic: %s
 UI_DIAL,Sintonizar
 UI_RESTART,Reiniciar
 UI_RESTART_PROGRESS,%s / %s
-UI_INTERFERENCE,Interferencia: pulsa para atraparla
+UI_INTERFERENCE,¡Atrápalas!
 UI_GENERATOR_ROW,%s — tienes %s — +%s por clic — %s — coste %s
 UI_UPGRADE_ROW,%s: %s — coste %s
+UI_SHOP_TITLE,Mejoras
+UI_FACTORY,Fábrica
+UI_CLOSE,X
 GEN_ANTENNA,Antena
 GEN_VALVES,Válvulas
 GEN_AUDIO_FREQUENCY,Frecuencia de audio

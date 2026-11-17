@@ -152,6 +152,11 @@ func visible_upgrades() -> Array[UpgradeDef]:
 	return result
 
 
+## Clics por segundo que no hace la mano: mantener pulsado (si se mantiene) y Dial solo.
+func auto_clicks_per_second(holding: bool) -> float:
+	return _auto_clicks(holding)
+
+
 func income_per_second(manual_cps: float, holding: bool) -> float:
 	return _income(manual_cps, holding, _gen_mult, &"", 0, _click_mult, _production_share, _hold_rate, _auto_rate)
 
