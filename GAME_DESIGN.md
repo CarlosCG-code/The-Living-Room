@@ -57,7 +57,7 @@ Total estimado: ~2h35 sin la exploración opcional; ~2h50 con ella.
 - **Interferencias:** cada 2-4 min la imagen se llena de estática unos segundos; atraparla con un clic da una ráfaga de Energía. Premia mirar la tele mientras el director premia mirar el piso. El director puede colar un fotograma en la estática (hito 3; cuenta en el tope de destellos, no es un jumpscare).
 - ***Reiniciar*** se habilita al alcanzar el umbral de Energía producida en la run (el de la run 1 sale del test de ritmo del hito 1; los demás, de los hitos 4-5); después, el jugador decide cuándo pulsarlo. Excepción: durante la confesión, *Reiniciar (último)* está siempre disponible (§9).
 - **Prestigio:** cada *Reiniciar* da *Carga*: 3 al llegar al umbral y más si se espera (rendimiento decreciente). Esperar es una decisión de terror: más tiempo en un piso que suena peor. La Carga compra mejoras de **una sola rama**, permanentes durante la partida, que acortan las runs (35 → 15 min). Son partes del protagonista que la tele se queda: *Tus manos* (la tele hace clic sola desde el inicio), *Tu memoria* (empiezas con generadores), *Tu costumbre* (generadores más baratos), *Tu paciencia* (producción ×2), *Tu nombre* (+1 Carga por reinicio; la tele muestra su nombre). Sus rangos exactos se fijan en los hitos 4 y 5.
-- Balance numérico **[PENDIENTE]**: costes y producciones se ajustan con el test de ritmo del hito 1 y con playtests.
+- Balance de la run 1 (hito 1, 2026-11-17): umbral de *Reiniciar* 6.986.879 de Energía producida; recompensa de la interferencia 15 s de producción. Los demás valores están en `data/economy_run1.tres`, generado por `tools/gen_economy_tres.py`; el test de ritmo comprueba que la run 1 dura 30-40 min delante de la tele. Balance de las runs 2-4 **[PENDIENTE]** (hitos 4-5) y playtests.
 
 ## 5. Sistema de miedo
 
@@ -156,14 +156,14 @@ Cada hito empieza con su **especificación de implementación** (archivos, pasos
 
 ## 12. Decisiones abiertas
 
-- Balance numérico del incremental; umbral de Energía de cada run (la lista y la estructura ya están decididas, §4).
+- Balance de las runs 2-4 y su umbral de Energía (la run 1 está fijada, §4).
+- Más mejoras para el incremental (petición del usuario, 2026-11-17): proponerlas en los hitos 4-5, junto a la Carga y las runs siguientes.
 - Si la tele sigue produciendo Energía mientras el jugador explora (hito 4; propuesta: sí, para que explorar no retrase). Las duraciones de la §3 cuentan solo el tiempo delante de la tele; explorar no tiene límite.
 - Música (si la hay) y voces/idiomas.
 - Epílogos detallados de cada final.
 - Nombres y diseño de las pistas; niveles de confesión según la Evidencia.
 - Umbral de Evidencia del final secreto.
 - Técnica de GI y niebla; presupuesto de frame (hito 2).
-- Rangos de ritmo del hito 1.
 - Rangos de las mejoras de prestigio (hito 4).
 - Mando opcional (hito 7).
 - Minutos de diálogo de la confesión (antes del hito 6).

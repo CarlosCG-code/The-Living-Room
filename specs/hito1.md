@@ -1,6 +1,6 @@
 # Especificación — Hito 1: núcleo incremental + UI plana
 
-> Estado: **aprobada por el usuario (2026-11-17)**; en implementación. Revisión EGM en `reviews/hito1/`.
+> Estado: **implementada y aprobada por el usuario (2026-11-17)**. Revisión EGM en `reviews/hito1/`.
 >
 > Fuentes: `GAME_DESIGN.md` §3, §4 y §11 (hito 1); `specs/incremental.md` (diseño aprobado del incremental); `specs/hito0.md` (proyecto base y procedimientos); `CLAUDE.md` (Arquitectura, Convenciones, Decisiones fijadas).
 
