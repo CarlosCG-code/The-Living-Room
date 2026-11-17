@@ -17,6 +17,12 @@ Fuente: `COPYRIGHT.txt` de https://github.com/godotengine/godot/blob/4.7.2-stabl
 - OFL-1.1: tipografías del editor y del motor.
 - **CC-BY-4.0: solo el logotipo de Godot** (`misc/logo/*`), que es el icono del `.exe` mientras no haya uno propio. Se sustituye antes de distribuir (hito 7).
 
+## Hecho por Claude (sin licencia de terceros)
+
+| Archivo | Cómo se hizo | Fecha |
+|---|---|---|
+| `assets/textures/factory/*.png` (fondo de la fábrica y 18 máquinas) | Modelado y render en Blender con `tools/blender/build_factory.py` (primitivas y materiales procedurales; sin assets externos) | 2026-11-18 |
+
 ## Solo desarrollo (no van en la build)
 
 | Nombre | Versión | Origen | SHA-256 | Licencia | Fecha |

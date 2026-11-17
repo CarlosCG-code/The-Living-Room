@@ -12,3 +12,6 @@
 Thumbs.db
 desktop.ini
 .DS_Store
+
+# Renders intermedios de tools/blender/build_factory.py
+/art_source/factory_tmp/
