@@ -56,6 +56,8 @@ func _row(id: StringName) -> Button:
 	if not _rows.has(id):
 		var button := Button.new()
 		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		# Sin partir líneas, una fila larga ensancha la columna y saca el dial de la pantalla de 960 px.
+		button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		button.pressed.connect(Game.buy.bind(id))
 		_shop_list.add_child(button)
 		_rows[id] = button

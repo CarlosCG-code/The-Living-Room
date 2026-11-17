@@ -55,6 +55,24 @@ func test_focus_out_releases() -> void:
 	assert_signal_emit_count(button, "pressed", 0)
 
 
+func test_wheel_scrolls_only_inside() -> void:
+	button.visible = false
+	var scroll := ScrollContainer.new()
+	scroll.size = Vector2(960, 720)
+	var content := Control.new()
+	content.custom_minimum_size = Vector2(100, 3000)
+	scroll.add_child(content)
+	subviewport.add_child(scroll)
+	await wait_physics_frames(2)
+	var wheel := InputEventMouseButton.new()
+	wheel.button_index = MOUSE_BUTTON_WHEEL_DOWN
+	wheel.pressed = true
+	tv_input.forward(CAMERA, Vector3(1, 0, -0.1).normalized(), wheel)
+	assert_eq(scroll.scroll_vertical, 0, "fuera de la pantalla no desplaza")
+	tv_input.forward(CAMERA, Vector3(0, 0, -1), wheel)
+	assert_gt(scroll.scroll_vertical, 0, "dentro de la pantalla desplaza")
+
+
 func test_press_outside_is_ignored() -> void:
 	_click(true, false)
 	_click(false, false)

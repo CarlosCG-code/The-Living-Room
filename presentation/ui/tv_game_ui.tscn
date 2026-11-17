@@ -4,7 +4,7 @@
 [ext_resource type="AudioStream" path="res://assets/audio/ui/purchase.ogg" id="2_snd"]
 
 [sub_resource type="Theme" id="Theme_tv"]
-default_font_size = 22
+default_font_size = 23
 
 [node name="TvGameUI" type="Control"]
 layout_mode = 3

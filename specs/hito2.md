@@ -1,6 +1,6 @@
 # Especificación — Hito 2: la tele en el salón del jugador
 
-> Estado: **aprobada por el usuario (2026-11-17)**; en implementación (fase 2a). Revisión EGM en `reviews/hito2/`. EGM es el proceso de revisión con revisores independientes que se usa antes de aprobar cada especificación. No se escribe código hasta que el usuario lo apruebe.
+> Estado: **aprobada por el usuario (2026-11-17)**; fase 2a implementada y verificada (`VERIFY OK`, 70 tests), **pendiente de la parada del usuario**. Resultados del paso 4: clic, mantener, soltar fuera, compra, interferencia y espejo comprobados con GoPeak; la rueda, con test. D6: letra mínima subida de 22 a 23 (bajo al 67 %: 14,3 px; alto: 21,4 px). Las filas de la tienda parten líneas para no sacar el dial de la pantalla. Revisión EGM en `reviews/hito2/`. EGM es el proceso de revisión con revisores independientes que se usa antes de aprobar cada especificación. No se escribe código hasta que el usuario lo apruebe.
 >
 > Fuentes: `GAME_DESIGN.md` §1-§3, §5, §8, §10, §11 (hito 2) y §12; `CLAUDE.md` (Arquitectura, Decisiones fijadas); `specs/hito1.md` (la UI plana que pasa a la tele).
 
@@ -164,13 +164,13 @@ Archivos que genera Godot y que se versionan, como en los hitos anteriores: el `
 - Tiene una linterna (`SpotLight3D`, hija), apagada salvo en el estado a oscuras.
 
 **`LightMixer`** (`RefCounted`)
-- `_init(room_lights: Array[Light3D], screen_light: Light3D, flashlight: Light3D)`.
+- `_init(room_lights: Array[Light3D], screen_light: Light3D, flashlight: Light3D, environment: Environment, ambient: Dictionary)` (`ambient`: los metadatos `ambient_normal` y `ambient_dark` del salón).
 - `set_state(state: StringName)` (`normal`, `dark`), `set_tv_state(state: StringName)` (`on`, `interference`, `off`) y `set_factor(f: float)` (1 en este hito).
 - Es el único que escribe `light_energy` y `visible` de esas luces: `energía = base(estado) × factor`. Pantalla: base 1 encendida, 1,6 con interferencia, 0 apagada. Linterna: encendida solo en `dark`.
 - También escribe la luz ambiente del `WorldEnvironment` (color y energía por estado, en metadatos de la raíz del salón: `ambient_normal` y `ambient_dark`), multiplicada por `ambient_gi_scale`, que le pasa `GraphicsSettings` (1 sin iluminación global, 0,4 con ella).
 
 **`GraphicsSettings`** (`RefCounted`)
-- `_init(viewport: Viewport, environment: Environment, voxel_gi: VoxelGI, probe: ReflectionProbe, lights: Array[Light3D], flashlight: SpotLight3D, mixer: LightMixer)`.
+- `_init(viewport: Viewport, environment: Environment, voxel_gi: VoxelGI, probe: ReflectionProbe, flashlight: SpotLight3D, mixer: LightMixer)`. Sin `lights`: las luces solo las escribe `LightMixer`.
 - `apply_preset(name: StringName)` (`low`, `medium`, `high`, `ultra`), `set_gi(enabled: bool)` y `set_brightness(v: float)` (multiplicador de exposición; 1 hasta el hito 7).
 - `current: Dictionary`: los valores aplicados. Escribe propiedades de nodos y recursos (que los tests leen sin gráficos) y, para lo que solo existe en el servidor de render (calidad de VoxelGI, de SSAO, de SSIL y del filtro de sombras), llama a `RenderingServer` y lo guarda en `current`.
 
@@ -248,7 +248,7 @@ Archivos que genera Godot y que se versionan, como en los hitos anteriores: el `
 | `test_mirror_math.gd` | Reflejar dos veces devuelve el original; el determinante es +1; un punto en x pasa a -x; un nodo que mira a +X pasa a mirar a -X; con una rotación cualquiera la base sigue siendo ortonormal |
 | `test_light_mixer.gd` | Con luces creadas en el test: en `dark` solo quedan la luz de calle y la linterna; el factor multiplica la base; la pantalla se apaga con `off` y sube con `interference`; la luz ambiente cambia con el estado y con `ambient_gi_scale` |
 | `test_graphics_settings.gd` | Cada preset deja en el entorno, el viewport y las luces los valores de la tabla de D15 (o en `current` lo que solo existe en el servidor de render); aplicar el bajo y luego el ultra deja el ultra entero; `set_gi(false)` quita solo la iluminación global. Se actualiza con los valores finales de 2c |
-| `test_tv_input.gd` | Con un `SubViewport` y un botón en el árbol: pulsar dentro y soltar fuera hace `button_up` sin `pressed`; perder el foco suelta el botón; un clic dentro hace `pressed` |
+| `test_tv_input.gd` | Con un `SubViewport` y un botón en el árbol: pulsar dentro y soltar fuera hace `button_up` sin `pressed`; perder el foco suelta el botón; un clic dentro hace `pressed`; la rueda desplaza un `ScrollContainer` solo dentro de la pantalla (GoPeak no simula la rueda, así que esta comprobación del paso 4 la cubre el test) |
 | Los de los hitos 0 y 1 | Siguen pasando |
 | `verify.sh` | `VERIFY OK`: 11 scripts de test; la escena 3D arranca en la build exportada; el paquete no lleva el addon, los tests, `tools/` ni `art_source/` |
 | Capturas (pasos 4, 8, 9 y 10) | Lo que aprueba el usuario en cada parada |
