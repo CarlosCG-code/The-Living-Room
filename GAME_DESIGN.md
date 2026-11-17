@@ -51,10 +51,13 @@ Total estimado: ~2h35 sin la exploración opcional; ~2h50 con ella.
 ## 4. Núcleo incremental
 
 - **Moneda:** *Energía* (la electricidad del edificio). La producción se refleja en la intensidad de las luces del piso: cuanto más produces, más bajan, y se recuperan al reiniciar. Los parpadeos son eventos del director (§5).
-- **Generadores/automatizaciones:** cada compra altera el mundo; en la run 1, solo con sonido (ej.: *Frecuencia de Audio* hace oír un llanto en la cocina). Lista concreta **[PENDIENTE]**.
-- ***Reiniciar*** se habilita al alcanzar el umbral de Energía de cada run **[PENDIENTE]**; después, el jugador decide cuándo pulsarlo. Excepción: durante la confesión, *Reiniciar (último)* está siempre disponible (§9).
-- **Prestigio:** cada *Reiniciar* da una moneda de meta (*Carga*) para mejoras de **una sola rama**, permanentes durante la partida (no se pierden al pulsar *Reiniciar*), que acortan las runs (35 → 15 min). Las duraciones de la §3 suponen que el jugador compra las mejoras disponibles; sus rangos son **[PENDIENTE]** (hito 4).
-- Balance numérico **[PENDIENTE]**; se afina con playtests.
+- **El juego de la tele:** sintonizar una señal. Cada clic en el dial da Energía; la tienda vende generadores y mejoras. Detalle completo y razones: `specs/incremental.md` (aprobado el 2026-11-17).
+- **Generadores/automatizaciones:** cada compra altera el mundo; en la run 1, solo con sonido. Seis generadores, uno nuevo cada ~5 min: *Antena* (zumbido), *Válvulas* (chasquidos en las paredes), *Frecuencia de audio* (llanto en la cocina), *Sintonizador* (voces de otra tele por el techo), *Mando a distancia* (clic de un mando, algo cae), *Canal 3* (toques en la puerta). Mejoras ×2 por generador al tener 10 y 25.
+- **Línea de los clics** (mejoras de la run): *Pulso*, *Dial firme* (mantener pulsado), *Pulso fuerte*, *Resonancia* (el clic suma parte de la producción), *Dial solo* y *Dial solo II* (la tele hace clic sola). Cada paso hacia la automatización libera al jugador para mirar a su alrededor.
+- **Interferencias:** cada 2-4 min la imagen se llena de estática unos segundos; atraparla con un clic da una ráfaga de Energía. Premia mirar la tele mientras el director premia mirar el piso. El director puede colar un fotograma en la estática (hito 3; cuenta en el tope de destellos, no es un jumpscare).
+- ***Reiniciar*** se habilita al alcanzar el umbral de Energía producida en la run (el de la run 1 sale del test de ritmo del hito 1; los demás, de los hitos 4-5); después, el jugador decide cuándo pulsarlo. Excepción: durante la confesión, *Reiniciar (último)* está siempre disponible (§9).
+- **Prestigio:** cada *Reiniciar* da *Carga*: 3 al llegar al umbral y más si se espera (rendimiento decreciente). Esperar es una decisión de terror: más tiempo en un piso que suena peor. La Carga compra mejoras de **una sola rama**, permanentes durante la partida, que acortan las runs (35 → 15 min). Son partes del protagonista que la tele se queda: *Tus manos* (la tele hace clic sola desde el inicio), *Tu memoria* (empiezas con generadores), *Tu costumbre* (generadores más baratos), *Tu paciencia* (producción ×2), *Tu nombre* (+1 Carga por reinicio; la tele muestra su nombre). Sus rangos exactos se fijan en los hitos 4 y 5.
+- Balance numérico **[PENDIENTE]**: costes y producciones se ajustan con el test de ritmo del hito 1 y con playtests.
 
 ## 5. Sistema de miedo
 
@@ -137,7 +140,7 @@ Cada hito empieza con su **especificación de implementación** (archivos, pasos
 
 0. **Base del proyecto.** Proyecto Godot y estructura de carpetas (las ubicaciones se anotan en `CLAUDE.md`); traducción (CSV, idioma `es`, `tr()` desde el primer texto); instalar GUT (versión compatible con 4.7.2) y el addon de capturas (`godot_mcp_runtime`); versión, origen y licencia de ambos se fijan en su especificación y se registran en `ASSETS.md` (sección de dependencias), que también se crea aquí. Comprobar que la build exportada arranca sin el addon (ni el nodo `MCPRuntime` que añade `DevBoot`) (sale con código 0 y sin errores en el log); la técnica de exclusión y la instalación de las plantillas de exportación se fijan en su especificación.
 1. **Núcleo incremental + UI plana.**
-   - Primer paso: proponer al usuario la lista de generadores (con su efecto en el mundo), sus costes, el umbral de Energía de la run 1 y los rangos de ritmo.
+   - Diseño del incremental aprobado (§4, `specs/incremental.md`). La especificación fija los costes, las producciones y el umbral de la run 1 con el test de ritmo, y entran las interferencias (sin el fotograma del director).
    - Reloj, `EventBus` y el adaptador entre `core/` y el `EventBus`; economía; *Reiniciar* con umbral (en este hito vacía la Energía y suma una run; la Carga y las mejoras llegan en el hito 4).
    - Guardado: su especificación fija las rutas `user://`, el esquema JSON (versión 1), el formato reservado del meta-estado (el último final, que decide el menú alterado) y qué hacer con un archivo corrupto (cargar el `.bak`).
    - Validar el **ritmo** con una simulación determinista en un test de `core/` (una forma de comprar fija): tiempo hasta el primer reinicio (~35 min) y compras por minuto dentro de los rangos aprobados. Efecto provisional: un sonido en cada compra. Si los jugadores quieren seguir tras el primer reinicio se pregunta en el playtest del hito 4.
@@ -153,7 +156,7 @@ Cada hito empieza con su **especificación de implementación** (archivos, pasos
 
 ## 12. Decisiones abiertas
 
-- Lista y balance del incremental; umbral de Energía de cada run.
+- Balance numérico del incremental; umbral de Energía de cada run (la lista y la estructura ya están decididas, §4).
 - Música (si la hay) y voces/idiomas.
 - Epílogos detallados de cada final.
 - Nombres y diseño de las pistas; niveles de confesión según la Evidencia.
