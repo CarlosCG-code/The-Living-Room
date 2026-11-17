@@ -15,3 +15,11 @@ func test_rate() -> void:
 	assert_eq(NumberFormat.rate(99.96), "100/s")
 	assert_eq(NumberFormat.rate(1555.2), "1.555/s")
 	assert_eq(NumberFormat.rate(1555.6), "1.556/s")
+
+
+func test_per_click() -> void:
+	assert_eq(NumberFormat.per_click(0), "0,00")
+	assert_eq(NumberFormat.per_click(0.012), "0,01")
+	assert_eq(NumberFormat.per_click(9.994), "9,99")
+	assert_eq(NumberFormat.per_click(9.996), "10")
+	assert_eq(NumberFormat.per_click(1234.6), "1.235")

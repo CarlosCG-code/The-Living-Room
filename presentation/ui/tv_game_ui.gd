@@ -4,6 +4,7 @@ extends Control
 
 @onready var _energy_label: Label = $Layout/Left/EnergyLabel
 @onready var _production_label: Label = $Layout/Left/ProductionLabel
+@onready var _click_label: Label = $Layout/Left/ClickLabel
 @onready var _dial: Button = $Layout/Left/Dial
 @onready var _restart_button: Button = $Layout/Left/RestartButton
 @onready var _restart_progress: Label = $Layout/Left/RestartProgress
@@ -32,6 +33,7 @@ func _process(_delta: float) -> void:
 	var state := eco.state
 	_energy_label.text = tr("UI_ENERGY") % NumberFormat.energy(state.energy)
 	_production_label.text = tr("UI_PRODUCTION") % NumberFormat.rate(eco.production_per_second())
+	_click_label.text = tr("UI_PER_CLICK") % NumberFormat.per_click(eco.click_value())
 	_restart_button.disabled = not eco.can_restart()
 	_restart_progress.text = tr("UI_RESTART_PROGRESS") % [
 		NumberFormat.energy(state.energy_produced_run), NumberFormat.energy(eco.config.threshold)]
@@ -39,7 +41,8 @@ func _process(_delta: float) -> void:
 	for g in eco.visible_generators():
 		var row := _row(g.id)
 		row.text = tr("UI_GENERATOR_ROW") % [
-			tr(g.name_key), eco.owned(g.id), NumberFormat.rate(eco.generator_production(g.id)), NumberFormat.energy(eco.cost_of(g.id))]
+			tr(g.name_key), eco.owned(g.id), NumberFormat.per_click(eco.generator_click_bonus(g.id)),
+			NumberFormat.rate(eco.generator_production(g.id)), NumberFormat.energy(eco.cost_of(g.id))]
 		row.disabled = state.energy < eco.cost_of(g.id)
 	for u in eco.visible_upgrades():
 		var row := _row(u.id)

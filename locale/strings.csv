@@ -2,11 +2,12 @@ keys,es
 TITLE,The Living Room
 UI_ENERGY,Energía: %s
 UI_PRODUCTION,Producción: %s
+UI_PER_CLICK,Por clic: %s
 UI_DIAL,Sintonizar
 UI_RESTART,Reiniciar
 UI_RESTART_PROGRESS,%s / %s
 UI_INTERFERENCE,Interferencia: pulsa para atraparla
-UI_GENERATOR_ROW,%s — tienes %s — %s — coste %s
+UI_GENERATOR_ROW,%s — tienes %s — +%s por clic — %s — coste %s
 UI_UPGRADE_ROW,%s: %s — coste %s
 GEN_ANTENNA,Antena
 GEN_VALVES,Válvulas
@@ -28,4 +29,4 @@ UPG_DIAL_AUTO_DESC,El dial gira solo
 UPG_DIAL_AUTO_2_DESC,El dial gira solo
 UPG_GEN_X2_10,%s ×2
 UPG_GEN_X2_25,%s ×2 (25)
-UPG_GEN_X2_DESC,Duplica la producción de %s
+UPG_GEN_X2_DESC,Duplica lo que da %s por clic y por segundo

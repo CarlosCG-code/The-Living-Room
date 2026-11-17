@@ -27,7 +27,7 @@ El clic importa al principio y nunca deja de servir, pero el juego lo va automat
 | Mejora | Cuándo aparece | Efecto |
 |---|---|---|
 | **Pulso** | al empezar (coste muy bajo) | Cada clic vale ×2 |
-| **Dial firme** | ~minuto 2 | Mantener pulsado el dial cuenta como 4 clics por segundo |
+| **Dial firme** | ~minuto 2 | Mantener pulsado el dial cuenta como 6 clics por segundo (era 4; subido el 2026-11-18 para que quien casi no clica siga el ritmo con la economía centrada en el clic) |
 | **Pulso fuerte** | ~minuto 8 | Cada clic vale ×2 otra vez |
 | **Resonancia** | ~minuto 12 | Cada clic suma además el 2 % de la producción por segundo, para que hacer clic siga valiendo al final |
 | **Dial solo** | ~minuto 18 | El dial gira solo: 2 clics por segundo sin tocar nada. Se ve girar en la tele |
@@ -47,6 +47,8 @@ La primera compra de cada uno activa su sonido en el piso; las siguientes lo hac
 | 4 | **Sintonizador** | Voces apagadas de otra tele, a través del techo | 15 |
 | 5 | **Mando a distancia** | El clic de un mando en una habitación vacía; algo cae al suelo | 22 |
 | 6 | **Canal 3** | Toques en la puerta (anticipan al repartidor; el 3 es el piso de la señora) | 28 |
+
+**Centrados en el clic (cambio del usuario, 2026-11-18):** cada generador suma Energía a cada clic (su bono, al que también afectan *Pulso* y *Pulso fuerte*) y produce algo por segundo, menos que antes. Con el ajuste, el clic (manual, mantenido o automático) da ~3/4 de la Energía desde el minuto 15. La tienda muestra en cada generador lo que suma por clic y por segundo, y el panel muestra «Por clic».
 
 Mejoras de generador: **×2 al tener 10** de un generador y otra vez **al tener 25** (12 mejoras). El coste de cada generador crece en torno a ×1,15 por compra. Los números exactos se ajustan con el test de ritmo del hito 1.
 

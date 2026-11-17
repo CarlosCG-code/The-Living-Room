@@ -89,8 +89,15 @@ func generator_production(id: StringName) -> float:
 	return 0.0 if g == null else owned(id) * g.base_production * _gen_mult.get(id, 1.0)
 
 
+## (clic base + bonos de los generadores) × multiplicador de clic + parte de la producción.
 func click_value() -> float:
-	return config.base_click_value * _click_mult + _production_share * production_per_second()
+	return _click_base(_gen_mult, &"", 0) * _click_mult + _production_share * production_per_second()
+
+
+## Energía que suma un generador a cada clic (poseídos × bono × multiplicadores).
+func generator_click_bonus(id: StringName) -> float:
+	var g := config.find_generator(id)
+	return 0.0 if g == null else owned(id) * g.click_bonus * _gen_mult.get(id, 1.0) * _click_mult
 
 
 func cost_of(id: StringName) -> float:
@@ -201,10 +208,18 @@ func _production(gen_mult: Dictionary, extra_id: StringName, extra_count: int) -
 	return total
 
 
+func _click_base(gen_mult: Dictionary, extra_id: StringName, extra_count: int) -> float:
+	var total := config.base_click_value
+	for g in config.generators:
+		var count := owned(g.id) + (extra_count if g.id == extra_id else 0)
+		total += count * g.click_bonus * gen_mult.get(g.id, 1.0)
+	return total
+
+
 func _income(manual_cps: float, holding: bool, gen_mult: Dictionary, extra_id: StringName, extra_count: int,
 		click_mult: float, share: float, hold: float, auto: float) -> float:
 	var prod := _production(gen_mult, extra_id, extra_count)
-	var per_click := config.base_click_value * click_mult + share * prod
+	var per_click := _click_base(gen_mult, extra_id, extra_count) * click_mult + share * prod
 	return prod + per_click * (manual_cps + (hold if holding else 0.0) + auto)
 
 

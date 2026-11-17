@@ -2,41 +2,45 @@
 
 Uso: python tools/gen_economy_tres.py
 Los valores salen del ajuste del 2026-11-17 (calendario de apariciones «variante I»): cada novedad de la
-tienda tiene un minuto objetivo y su requisito de Energía producida la coloca ahí.
+tienda tiene un minuto objetivo y su requisito de Energía producida la coloca ahí. Reajuste del 2026-11-18
+(economía centrada en el clic): cada generador suma Energía a cada clic; mismos minutos objetivo, requisitos
+y umbral recalculados con la media geométrica de los 4 perfiles del test de ritmo.
 """
 
 A = 6.0  # coste de los generadores: 15 × A^posición
-B = 5.5  # producción de los generadores: 0,2 × B^posición
-THRESHOLD = 6_986_879.0
+B = 5.5  # escala de los generadores: 0,2 × B^posición
+P = 0.4  # producción por segundo: P × 0,2 × B^posición
+C = 0.03  # bono por clic (antes del multiplicador de clic): C × 0,2 × B^posición
+THRESHOLD = 16_846_002.0
 
 # id, clave, energía producida para aparecer
 GENERATORS = [
     ("antenna", "GEN_ANTENNA", 0),
-    ("valves", "GEN_VALVES", 5_100),
-    ("audio_frequency", "GEN_AUDIO_FREQUENCY", 20_221),
-    ("tuner", "GEN_TUNER", 71_607),
-    ("remote", "GEN_REMOTE", 280_547),
-    ("channel_3", "GEN_CHANNEL_3", 1_009_196),
+    ("valves", "GEN_VALVES", 4_800),
+    ("audio_frequency", "GEN_AUDIO_FREQUENCY", 15_527),
+    ("tuner", "GEN_TUNER", 52_114),
+    ("remote", "GEN_REMOTE", 258_101),
+    ("channel_3", "GEN_CHANNEL_3", 1_135_196),
 ]
 GEN_UPGRADE_COST = {10: 12, 25: 120}  # × coste base
 # Energía producida que piden además las mejoras ×2 (sin entrada: 0), para repartirlas en los huecos.
 GEN_UPGRADE_REQ = {
-    "antenna_x2_10": 791, "antenna_x2_25": 2_372,
-    "valves_x2_10": 6_793, "valves_x2_25": 202_144,
-    "audio_frequency_x2_10": 28_171, "audio_frequency_x2_25": 52_332,
-    "tuner_x2_10": 102_521, "tuner_x2_25": 549_007,
-    "remote_x2_10": 688_846,
+    "antenna_x2_10": 424, "antenna_x2_25": 2_927,
+    "valves_x2_10": 6_260, "valves_x2_25": 173_361,
+    "audio_frequency_x2_10": 21_596, "audio_frequency_x2_25": 1_052_136,
+    "tuner_x2_10": 114_767, "tuner_x2_25": 15_772_181,
+    "remote_x2_10": 895_490,
 }
 
 # Kind: 0 GENERATOR_MULT, 1 CLICK_MULT, 2 HOLD_RATE, 3 CLICK_PRODUCTION_SHARE, 4 AUTO_CLICK_RATE
 # id, clave, kind, value, cost, req_energy_produced
 CLICK_UPGRADES = [
     ("pulse", "UPG_PULSE", 1, 2.0, 5, 0),
-    ("dial_hold", "UPG_DIAL_HOLD", 2, 4.0, 38, 76),
-    ("pulse_strong", "UPG_PULSE_STRONG", 1, 2.0, 4_857, 9_715),
-    ("resonance", "UPG_RESONANCE", 3, 0.02, 19_333, 38_666),
-    ("dial_auto", "UPG_DIAL_AUTO", 4, 2.0, 71_004, 142_009),
-    ("dial_auto_2", "UPG_DIAL_AUTO_2", 4, 5.0, 220_434, 440_868),
+    ("dial_hold", "UPG_DIAL_HOLD", 2, 6.0, 61, 122),
+    ("pulse_strong", "UPG_PULSE_STRONG", 1, 2.0, 4_225, 8_449),
+    ("resonance", "UPG_RESONANCE", 3, 0.02, 13_288, 26_575),
+    ("dial_auto", "UPG_DIAL_AUTO", 4, 2.0, 56_500, 112_999),
+    ("dial_auto_2", "UPG_DIAL_AUTO_2", 4, 5.0, 221_637, 443_274),
 ]
 
 
@@ -58,7 +62,8 @@ def main() -> None:
             f'id = &"{gid}"\n'
             f'name_key = "{key}"\n'
             f"base_cost = {num(round(base_cost))}\n"
-            f"base_production = {num(0.2 * B ** i)}\n"
+            f"base_production = {num(P * 0.2 * B ** i)}\n"
+            f"click_bonus = {num(C * 0.2 * B ** i)}\n"
             f"req_energy_produced = {num(req)}\n"
         )
     for gid, _key, _req in GENERATORS:

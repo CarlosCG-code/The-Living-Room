@@ -15,6 +15,15 @@ static func rate(x: float) -> String:
 	return _group(int(roundf(x))) + "/s"
 
 
+## Energía por clic: 2 decimales con coma por debajo de 10 (los bonos de las primeras compras son pequeños);
+## entero con punto de miles desde 10.
+static func per_click(x: float) -> String:
+	var v := maxf(x, 0.0)
+	if snappedf(v, 0.01) < 10.0:
+		return ("%.2f" % v).replace(".", ",")
+	return _group(int(roundf(v)))
+
+
 static func _group(n: int) -> String:
 	var digits := str(n)
 	var out := ""

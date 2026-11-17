@@ -52,6 +52,10 @@ theme_override_font_sizes/font_size = 32
 layout_mode = 2
 theme_override_font_sizes/font_size = 24
 
+[node name="ClickLabel" type="Label" parent="Layout/Left"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+
 [node name="Dial" type="Button" parent="Layout/Left"]
 custom_minimum_size = Vector2(0, 220)
 layout_mode = 2

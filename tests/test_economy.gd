@@ -115,6 +115,20 @@ func test_multipliers_multiply() -> void:
 	assert_almost_eq(eco.click_value(), 4.0, 0.0001)
 
 
+func test_generator_click_bonus() -> void:
+	config.generators[0].click_bonus = 0.5
+	_give(200)
+	eco.buy(&"a")
+	eco.buy(&"a")
+	eco.buy(&"a_x2")
+	assert_almost_eq(eco.click_value(), 1.0 + 2 * 0.5 * 2, 0.0001, "el ×2 del generador dobla su bono")
+	eco.buy(&"pulse")
+	assert_almost_eq(eco.click_value(), (1.0 + 2.0) * 2, 0.0001, "Pulso dobla también los bonos")
+	assert_almost_eq(eco.generator_click_bonus(&"a"), 4.0, 0.0001)
+	# Una «a» más: +1 × 2 de producción y +0,5 × 2 × 2 por clic a 1 clic/s.
+	assert_almost_eq(eco.gain_if_bought(&"a", 1.0, false), 2.0 + 2.0, 0.0001)
+
+
 func test_click_production_share() -> void:
 	_give(100)
 	eco.buy(&"a")
