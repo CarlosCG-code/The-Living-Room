@@ -23,6 +23,7 @@ var _shake: Tween
 var _menu: MainMenuUI
 var _pause: MainMenuUI
 var _static: ColorRect
+var _card_open := false  # carta de fin de la emisión en pantalla
 var _lore_ratio := 0.0  # ratio de la run en el último fotograma
 var _lore_run := 0  # 0: aún no se ha mirado
 var _carga: CargaScreen
@@ -153,7 +154,7 @@ func _process(_delta: float) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if _pause.visible or _carga.visible or _menu.visible or _static.visible:
+	if _pause.visible or _carga.visible or _menu.visible or _static.visible or _card_open:
 		return
 	if event.is_action_pressed("ui_cancel") and not _tree.visible:
 		open_pause()
@@ -220,6 +221,7 @@ func _restart() -> void:
 ## Carta de «fin de la emisión» con un tono de prueba que desafina, antes de la pantalla de Carga.
 func _end_of_broadcast() -> void:
 	var card := EndOfBroadcast.new()
+	_card_open = true
 	add_child(card)
 	var tone := AudioStreamPlayer.new()
 	tone.stream = preload("res://assets/audio/tv/test_tone.wav")
@@ -228,6 +230,7 @@ func _end_of_broadcast() -> void:
 	tone.play()
 	await get_tree().create_timer(EndOfBroadcast.DURATION).timeout
 	card.queue_free()
+	_card_open = false
 
 
 func is_restarting() -> bool:
@@ -235,6 +238,8 @@ func is_restarting() -> bool:
 
 
 func _click(at: Vector2) -> void:
+	if not Game.running:
+		return  # menú, pausa, carta o Carga: la partida está parada y el clic no cuenta
 	_osd.hide_intro()
 	var amount := Game.click()
 	if amount <= 0.0:
