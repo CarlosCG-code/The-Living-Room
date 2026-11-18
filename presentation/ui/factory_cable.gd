@@ -32,7 +32,12 @@ func _process(delta: float) -> void:
 
 
 func midpoint() -> Vector2:
-	return _curve.sample_baked(_curve.get_baked_length() * 0.5)
+	return point_at(0.5)
+
+
+## Punto del cable: 0 en la máquina, 1 en la fábrica.
+func point_at(t: float) -> Vector2:
+	return _curve.sample_baked(_curve.get_baked_length() * clampf(t, 0.0, 1.0))
 
 
 func _draw() -> void:

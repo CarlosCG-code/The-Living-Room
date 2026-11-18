@@ -47,16 +47,29 @@ func test_pressing_a_machine_asks_for_a_click() -> void:
 	assert_signal_emitted(view, "machine_pressed", "el receptor sintoniza desde el principio")
 
 
-func test_interference_sparks_from_a_powered_cable() -> void:
+func test_interference_travels_along_a_powered_cable() -> void:
 	view.show_counts({&"valves": 1})
-	view.set_interference(true)
+	var e := TvEventDef.new()
+	e.id = &"interference"
+	e.reward_min_clicks = 1.0
 	var cable: FactoryCable = view.get_group(&"valves")["cable"]
+	var sparks: Node2D = view.get_node("Sparks")
 	var catch_button: Button = view.get_node("Catch")
+	view.show_event(e, 0.0)
 	assert_true(catch_button.visible)
-	assert_almost_eq((view.get_node("Sparks") as Node2D).position, cable.midpoint(), Vector2(0.01, 0.01),
-			"las chispas salen del único cable con corriente")
+	assert_almost_eq(sparks.position, cable.point_at(0.0), Vector2(0.01, 0.01), "salen del único cable con corriente")
+	view.show_event(e, 0.5)
+	assert_almost_eq(sparks.position, cable.midpoint(), Vector2(0.01, 0.01), "y viajan por él")
 	watch_signals(view)
 	catch_button.pressed.emit()
-	assert_signal_emitted(view, "interference_pressed")
-	view.set_interference(false)
+	assert_signal_emitted(view, "event_pressed")
+	view.show_event(null, 0.0)
 	assert_false(catch_button.visible)
+
+
+func test_clear_signal_cannot_be_caught() -> void:
+	var e := TvEventDef.new()
+	e.id = &"clear_signal"
+	e.production_mult = 2.0
+	view.show_event(e, 0.5)
+	assert_false((view.get_node("Catch") as Button).visible)

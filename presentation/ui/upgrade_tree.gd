@@ -19,15 +19,19 @@ const POSITIONS := {
 }
 const ROW_X2_10 := 122.0
 const ROW_X2_25 := 154.0
-const CHALK := Color("e8f0ff")
-const DIM := Color("44558a")
-const GOLD := Color("ffd36b")
-const GREEN := Color("6cf08a")
+const CHALK := Color("c9d0e0")
+const DIM := Color("2c3350")
+const GOLD := Color("e0b85a")
+const GREEN := Color("62c47a")
+const RED := Color("b0484a")
+const MIST := Color("7d8fb0")
+const PANEL := Color("06070c")
+const CARD_TOP := 180.0
 
 var _buttons := {}  # StringName -> Button
 var _icons := {}  # StringName -> Texture2D
 var _selected: StringName = &""
-var _info: Label
+var _card := {}  # "title" | "cost" | "body" | "effect" -> Label
 
 
 func _ready() -> void:
@@ -50,16 +54,26 @@ func _ready() -> void:
 	close.focus_mode = FOCUS_NONE
 	close.pressed.connect(close_requested.emit)
 	add_child(close)
-	_info = Label.new()
-	_info.position = Vector2(8, 192)
-	_info.size = Vector2(304, 44)
-	_info.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	add_child(_info)
+	# Ficha de la mejora seleccionada: nombre y coste, descripción y efecto con números.
+	for key: String in ["title", "cost", "body", "effect"]:
+		var l := Label.new()
+		l.size = Vector2(296, 10)
+		l.position = Vector2(12, {"title": CARD_TOP + 4, "cost": CARD_TOP + 4, "body": CARD_TOP + 16,
+			"effect": CARD_TOP + 40}[key])
+		l.add_theme_color_override(&"font_color", {"title": GOLD, "body": CHALK, "effect": MIST}.get(key, CHALK))
+		_card[key] = l
+		add_child(l)
+	(_card["cost"] as Label).horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	(_card["body"] as Label).autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	(_card["body"] as Label).size.y = 26
 
 
 func _process(_delta: float) -> void:
 	if visible:
-		_info.text = describe(_selected)
+		var c := card(_selected)
+		for key: String in _card:
+			(_card[key] as Label).text = c.get(key, "")
+		(_card["cost"] as Label).add_theme_color_override(&"font_color", c.get("cost_color", CHALK))
 		queue_redraw()
 
 
@@ -87,21 +101,60 @@ func state_of(id: StringName) -> StringName:
 
 
 func describe(id: StringName) -> String:
-	if id == &"":
-		return ""
-	var eco := Game.economy
-	if state_of(id) == &"locked":
+	if id != &"" and state_of(id) == &"locked":
 		return tr("UI_LOCKED")
+	var c := card(id)
+	return " — ".join(PackedStringArray([c.get("title", ""), c.get("body", ""), c.get("effect", ""), c.get("cost", "")]))
+
+
+## Textos de la ficha: title, cost (y cost_color), body y effect.
+func card(id: StringName) -> Dictionary:
+	if id == &"":
+		return {}
+	var eco := Game.economy
+	var state := state_of(id)
+	if state == &"locked":
+		return {"title": "???", "body": tr("UI_LOCKED"), "cost_color": DIM}
+	var cost_text := tr("UI_BOUGHT") if state == &"bought" else NumberFormat.energy(eco.cost_of(id))
+	var cost_color: Color = {&"bought": GREEN, &"affordable": GOLD}.get(state, RED)
 	var g := eco.config.find_generator(id)
 	if g:
-		return tr("UI_GENERATOR_ROW") % [tr(g.name_key), eco.owned(id), NumberFormat.per_click(eco.generator_click_bonus(id)),
-			NumberFormat.rate(eco.generator_production(id)), NumberFormat.energy(eco.cost_of(id))]
+		return {"title": tr("UI_GENERATOR_TITLE") % [tr(g.name_key), eco.owned(id)], "cost": cost_text,
+			"cost_color": cost_color, "body": tr(g.name_key + "_DESC"),
+			"effect": tr("UI_EFFECT_OWNED") % [NumberFormat.per_click(eco.generator_click_bonus(id)),
+				NumberFormat.rate(eco.generator_production(id))]}
 	var u := eco.config.find_upgrade(id)
-	var name := tr(u.name_key) if u.target_id == &"" else tr(u.name_key) % tr(eco.config.find_generator(u.target_id).name_key)
-	var desc := tr(u.desc_key) if u.target_id == &"" else tr(u.desc_key) % tr(eco.config.find_generator(u.target_id).name_key)
-	if eco.is_bought(id):
-		return "%s: %s — %s" % [name, desc, tr("UI_BOUGHT")]
-	return tr("UI_UPGRADE_ROW") % [name, desc, NumberFormat.energy(u.cost)]
+	var target := tr(eco.config.find_generator(u.target_id).name_key) if u.target_id != &"" else ""
+	var title := tr(u.name_key) % target if target != "" else tr(u.name_key)
+	var body := tr(u.desc_key) % target if target != "" else tr(u.desc_key)
+	return {"title": title, "cost": cost_text, "cost_color": cost_color, "body": body,
+		"effect": "" if state == &"bought" else _effect(u)}
+
+
+## Qué cambia al comprarla, con los números de ahora.
+func _effect(u: UpgradeDef) -> String:
+	var eco := Game.economy
+	match u.kind:
+		UpgradeDef.Kind.GENERATOR_MULT:
+			var c := eco.generator_click_bonus(u.target_id)
+			var p := eco.generator_production(u.target_id)
+			return tr("UI_EFFECT_GEN") % [NumberFormat.per_click(c), NumberFormat.per_click(c * u.value),
+				NumberFormat.rate(p), NumberFormat.rate(p * u.value)]
+		UpgradeDef.Kind.CLICK_MULT, UpgradeDef.Kind.CLICK_PRODUCTION_SHARE:
+			# Con 1 clic/s a mano, lo que sube la Energía/s es lo que sube cada clic por todos los clics.
+			var now := eco.click_value()
+			var gain := eco.gain_if_bought(u.id, 1.0, false) / (1.0 + eco.auto_clicks_per_second(false))
+			return tr("UI_EFFECT_CLICK") % [NumberFormat.per_click(now), NumberFormat.per_click(now + gain)]
+		UpgradeDef.Kind.HOLD_RATE:
+			return tr("UI_EFFECT_HOLD") % _num(u.value)
+		UpgradeDef.Kind.AUTO_CLICK_RATE:
+			return tr("UI_EFFECT_AUTO") % [_num(eco.auto_clicks_per_second(false)), _num(u.value)]
+	return ""
+
+
+## 6 → "6", 2.5 → "2,5".
+func _num(x: float) -> String:
+	return ("%.1f" % x).trim_suffix(".0").replace(".", ",")
 
 
 func _add_node(id: StringName, pos: Vector2, icon: StringName) -> void:
@@ -130,9 +183,16 @@ func _parent_of(id: StringName) -> StringName:
 
 
 func _draw() -> void:
-	draw_rect(Rect2(Vector2.ZERO, size), Color("0b0e1a"))
-	draw_rect(Rect2(2, 2, size.x - 4, size.y - 4), CHALK, false)
-	draw_line(Vector2(4, 188), Vector2(size.x - 4, 188), DIM)
+	draw_rect(Rect2(Vector2.ZERO, size), PANEL)
+	# Marco doble apagado y esquinas marcadas, como una placa vieja atornillada.
+	draw_rect(Rect2(2, 2, size.x - 4, size.y - 4), DIM, false)
+	draw_rect(Rect2(4, 4, size.x - 8, size.y - 8), Color(DIM, 0.5), false)
+	for corner: Vector2 in [Vector2(2, 2), Vector2(size.x - 5, 2), Vector2(2, size.y - 5), Vector2(size.x - 5, size.y - 5)]:
+		draw_rect(Rect2(corner, Vector2(3, 3)), MIST)
+	var card_rect := Rect2(8, CARD_TOP, size.x - 16, size.y - CARD_TOP - 8)
+	draw_rect(card_rect, Color("0d1019"))
+	draw_rect(card_rect, Color(GOLD, 0.35) if _selected != &"" else DIM, false)
+	draw_line(card_rect.position + Vector2(4, 14), Vector2(card_rect.end.x - 4, card_rect.position.y + 14), DIM)
 	var blink := fmod(Time.get_ticks_msec() / 1000.0, 0.8) < 0.5
 	for id: StringName in _buttons:
 		var parent := _parent_of(id)
@@ -144,7 +204,8 @@ func _draw() -> void:
 		var b: Button = _buttons[id]
 		var r := Rect2(b.position, NODE)
 		var state := state_of(id)
-		draw_rect(r, Color("1b2340"))
+		draw_rect(r.grow(1), Color(0, 0, 0, 0.6))  # sombra
+		draw_rect(r, Color("10142a") if state != &"locked" else Color("090b14"))
 		var border: Color = {&"bought": GREEN, &"affordable": GOLD if blink else CHALK,
 			&"available": CHALK, &"locked": DIM}[state]
 		draw_rect(r, border, false)

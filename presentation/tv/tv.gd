@@ -34,7 +34,8 @@ func _ready() -> void:
 func _process(_delta: float) -> void:
 	var state: StringName = &"off"
 	if power:
-		state = &"interference" if Game.economy.interference_active() else &"on"
+		var e := Game.economy.active_event()
+		state = &"interference" if e and e.id == &"interference" else &"on"
 	if state != _state:
 		_state = state
 		screen_state_changed.emit(state)

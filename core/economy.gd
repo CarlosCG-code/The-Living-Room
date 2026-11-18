@@ -35,14 +35,14 @@ func click() -> void:
 func tick(delta: float, holding: bool) -> void:
 	_gain(production_per_second() * delta)
 	_gain(click_value() * _auto_clicks(holding) * delta)
-	if state.interference_active_left > 0.0:
-		state.interference_active_left -= delta
-		if state.interference_active_left <= 0.0:
-			_end_interference()
+	if state.event_id != &"":
+		state.event_left -= delta
+		if state.event_left <= 0.0:
+			_end_event()
 	else:
-		state.interference_next_in -= delta
-		if state.interference_next_in <= 0.0:
-			state.interference_active_left = config.interference_duration
+		state.event_next_in -= delta
+		if state.event_next_in <= 0.0:
+			_start_event()
 	state.play_time += delta
 
 
@@ -59,12 +59,13 @@ func buy(id: StringName) -> bool:
 	return true
 
 
-func catch_interference() -> bool:
-	if not interference_active():
+## Atrapa el evento activo si se puede atrapar; da su ráfaga una sola vez.
+func catch_event() -> bool:
+	var e := active_event()
+	if e == null or not e.catchable():
 		return false
-	_gain(maxf(config.reward_production_seconds * production_per_second(),
-			config.reward_min_clicks * click_value()))
-	_end_interference()
+	_gain(maxf(e.reward_production_seconds * production_per_second(), e.reward_min_clicks * click_value()))
+	_end_event()
 	return true
 
 
@@ -80,7 +81,8 @@ func restart() -> bool:
 # --- Consultas ---
 
 func production_per_second() -> float:
-	return _production(_gen_mult, &"", 0)
+	var e := active_event()
+	return _production(_gen_mult, &"", 0) * (e.production_mult if e else 1.0)
 
 
 ## Producción total por segundo de un generador (poseídos × base × multiplicador).
@@ -132,8 +134,14 @@ func can_restart() -> bool:
 	return state.energy_produced_run >= config.threshold
 
 
-func interference_active() -> bool:
-	return state.interference_active_left > 0.0
+func active_event() -> TvEventDef:
+	return config.find_event(state.event_id) if state.event_id != &"" else null
+
+
+## 0 al empezar el evento activo, 1 al acabar (0 si no hay).
+func event_progress() -> float:
+	var e := active_event()
+	return 0.0 if e == null else clampf(1.0 - state.event_left / e.duration, 0.0, 1.0)
 
 
 func visible_generators() -> Array[GeneratorDef]:
@@ -202,9 +210,24 @@ func _gain(amount: float) -> void:
 	state.energy_produced_run += amount
 
 
-func _end_interference() -> void:
-	state.interference_active_left = 0.0
-	state.interference_next_in = _rng.randf_range(config.interference_min, config.interference_max)
+func _start_event() -> void:
+	var total := 0.0
+	for e in config.events:
+		total += e.weight
+	var roll := _rng.randf() * total
+	for e in config.events:
+		roll -= e.weight
+		if roll < 0.0:
+			state.event_id = e.id
+			state.event_left = e.duration
+			return
+	_end_event()  # sin eventos en la config: solo se reprograma
+
+
+func _end_event() -> void:
+	state.event_id = &""
+	state.event_left = 0.0
+	state.event_next_in = _rng.randf_range(config.event_min, config.event_max)
 
 
 func _auto_clicks(holding: bool) -> float:

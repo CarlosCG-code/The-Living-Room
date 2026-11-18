@@ -9,9 +9,16 @@ extends Control
 signal machine_pressed(at: Vector2)
 signal hold_changed(holding: bool)
 signal shop_requested
-signal interference_pressed
+signal event_pressed
 
 const TEX := "res://assets/textures/tv/"
+# Eventos (core/tv_event_def.gd): la estrella cruza el cielo; la silueta sale en uno de estos sitios.
+const STAR_FROM := Vector2(300, 14)
+const STAR_TO := Vector2(40, 58)
+const SILHOUETTE_SPOTS: Array[Vector2] = [Vector2(196, 131), Vector2(300, 134), Vector2(112, 129), Vector2(24, 133)]
+const SHADOW := Color("05060b")
+## Oscurece y enfría el fondo pintado para que la tele no parezca alegre.
+const BG_TINT := Color(0.4, 0.43, 0.58)
 ## Unidades del generador necesarias para cada hueco (el k-ésimo pide THRESHOLDS[k]).
 const THRESHOLDS: Array[int] = [1, 5, 10, 25, 50]
 const FADE_IN := 0.6
@@ -42,9 +49,14 @@ var _shop_hint: Label
 var _sparks: CPUParticles2D
 var _catch: Button
 var _hint: Label
-var _interference_on := false
+var _event_layer: Node2D
+var _vignette: TextureRect
+var _event_id: StringName = &""
+var _event_t := 0.0
+var _event_at := Vector2.ZERO
 var _faulty: FactoryCable
 var _auto_acc := 0.0
+var _flicker_left := 0.0
 
 
 func _ready() -> void:
@@ -52,8 +64,17 @@ func _ready() -> void:
 	var bg := TextureRect.new()
 	bg.texture = load(TEX + "background.png")
 	bg.mouse_filter = MOUSE_FILTER_IGNORE
+	bg.modulate = BG_TINT
 	add_child(bg)
-	add_child(_particles(Vector2(160, -4), Vector2(170, 1), 70, 9.0, Vector2(4, 14), Color(0.91, 0.94, 1.0, 0.8)))
+	_event_layer = Node2D.new()
+	_event_layer.draw.connect(_draw_event)
+	add_child(_event_layer)
+	add_child(_particles(Vector2(160, -4), Vector2(170, 1), 70, 9.0, Vector2(4, 14), Color(0.75, 0.8, 0.92, 0.55)))
+	# Niebla baja: manchas grandes y casi transparentes que se arrastran por la nieve.
+	var fog := _particles(Vector2(-20, 200), Vector2(4, 40), 14, 26.0, Vector2(14, 0), Color(0.55, 0.6, 0.75, 0.07))
+	fog.scale_amount_min = 18.0
+	fog.scale_amount_max = 30.0
+	add_child(fog)
 
 	var cables: Array[FactoryCable] = []
 	for id: StringName in LAYOUT:
@@ -100,17 +121,24 @@ func _ready() -> void:
 	_catch.focus_mode = FOCUS_NONE
 	_catch.size = CATCH_SIZE
 	_catch.visible = false
-	_catch.pressed.connect(interference_pressed.emit)
+	_catch.pressed.connect(event_pressed.emit)
 	add_child(_catch)
-	_hint = _label(tr("UI_INTERFERENCE"), Vector2.ZERO, FactoryCable.FAULT)
+	_vignette = _make_vignette()
+	add_child(_vignette)
+	_hint = _label("", Vector2.ZERO, FactoryCable.FAULT)
 	_hint.visible = false
+	# Los textos van por encima de la viñeta para que se lean en los bordes.
+	for child in get_children():
+		if child is Label:
+			move_child(child, -1)
 
 
 func _process(delta: float) -> void:
 	var eco := Game.economy
 	show_counts(eco.state.generators)
-	set_interference(eco.interference_active())
+	show_event(eco.active_event(), eco.event_progress())
 	_shop_hint.visible = _has_affordable(eco) and fmod(Time.get_ticks_msec() / 1000.0, 1.0) < 0.6
+	_flicker(delta)
 	# Dial solo (y mantener pulsado): las máquinas dan saltitos solas, uno por clic automático.
 	_auto_acc += eco.auto_clicks_per_second(_any_held()) * delta
 	while _auto_acc >= 1.0:
@@ -132,31 +160,117 @@ func show_counts(counts: Dictionary) -> void:
 		cable.pulses = clampi(1 + owned / 5, 1, 6)
 
 
-func set_interference(active: bool) -> void:
-	if active == _interference_on:
+## Muestra el evento activo de la tele (null = ninguno); t va de 0 (empieza) a 1 (acaba).
+func show_event(e: TvEventDef, t: float) -> void:
+	var id: StringName = e.id if e else &""
+	if id != _event_id:
+		_start_event(e)
+	_event_t = t
+	if id == &"":
 		return
-	_interference_on = active
-	if active:
-		var at := FACTORY_POS + Vector2(28, 25)
+	match id:
+		&"interference":
+			# Las chispas viajan por el cable desde la máquina hasta la fábrica.
+			_event_at = _faulty.point_at(t) if _faulty else FACTORY_POS + Vector2(28, 25)
+		&"shooting_star":
+			_event_at = STAR_FROM.lerp(STAR_TO, t)
+		&"clear_signal":
+			_event_at = Vector2(160, 30)
+	_sparks.position = _event_at
+	_catch.position = (_event_at - CATCH_SIZE / 2).clamp(Vector2.ZERO, size - CATCH_SIZE)
+	var hint_size := _hint.get_combined_minimum_size()
+	_hint.position = (_event_at + Vector2(-hint_size.x / 2, 10)).round().clamp(Vector2(0, 14), size - hint_size)
+	_event_layer.queue_redraw()
+
+
+func _start_event(e: TvEventDef) -> void:
+	var id: StringName = e.id if e else &""
+	_event_id = id
+	if _faulty:
+		_faulty.sparking = false
+		_faulty = null
+	if id == &"interference":
 		var powered: Array[FactoryCable] = []
-		for id: StringName in _groups:
-			var cable: FactoryCable = _groups[id]["cable"]
+		for gid: StringName in _groups:
+			var cable: FactoryCable = _groups[gid]["cable"]
 			if cable.visible:
 				powered.append(cable)
 		if not powered.is_empty():
 			_faulty = powered.pick_random()
 			_faulty.sparking = true
-			at = _faulty.midpoint()
-		_sparks.position = at
-		_catch.position = (at - CATCH_SIZE / 2).clamp(Vector2.ZERO, size - CATCH_SIZE)
-		var hint_size := _hint.get_combined_minimum_size()
-		_hint.position = (at + Vector2(-hint_size.x / 2, 10)).round().clamp(Vector2(0, 12), size - hint_size)
-	elif _faulty:
-		_faulty.sparking = false
-		_faulty = null
-	_sparks.emitting = active
-	_catch.visible = active
-	_hint.visible = active
+	elif id == &"silhouette":
+		_event_at = SILHOUETTE_SPOTS.pick_random()
+	_sparks.emitting = id == &"interference"
+	_catch.visible = e != null and e.catchable()
+	_hint.visible = id != &""
+	if id != &"":
+		_hint.text = tr("UI_EVENT_" + String(id).to_upper())
+		_hint.add_theme_color_override(&"font_color", {&"clear_signal": Color("7fe0b0"), &"shooting_star": Color("f0e2a0"),
+			&"silhouette": Color("9a8f9e")}.get(id, FactoryCable.FAULT))
+	_event_layer.queue_redraw()
+
+
+func _draw_event() -> void:
+	var c := _event_layer
+	match _event_id:
+		&"shooting_star":
+			var dir := (STAR_TO - STAR_FROM).normalized()
+			for k in 10:
+				var p := (_event_at - dir * k * 2.0).round()
+				c.draw_rect(Rect2(p, Vector2(1, 1)), Color(1, 1, 0.9, 1.0 - k / 10.0))
+			c.draw_rect(Rect2(_event_at.round() - Vector2(1, 1), Vector2(2, 2)), Color.WHITE)
+		&"clear_signal":
+			# Aurora: bandas verdosas que ondulan; entra y sale suave.
+			var alpha := sin(PI * _event_t) * 0.35
+			var time := Time.get_ticks_msec() / 1000.0
+			for band in 3:
+				for x in range(0, 320, 2):
+					var y := 22.0 + band * 7.0 + sin(x * 0.03 + time * 0.8 + band) * 6.0
+					c.draw_rect(Rect2(x, y, 2, 10 - band * 2), Color(0.4, 1.0, 0.7 - band * 0.15, alpha * (1.0 - band * 0.25)))
+		&"silhouette":
+			# Figura quieta entre los árboles: aparece despacio y parpadea al final.
+			var a := clampf(_event_t * 4.0, 0.0, 1.0)
+			if _event_t > 0.8 and fmod(_event_t * 40.0, 2.0) < 1.0:
+				a *= 0.3
+			var feet := _event_at
+			c.draw_rect(Rect2(feet + Vector2(-3, -16), Vector2(6, 16)), Color(SHADOW, a))  # cuerpo
+			c.draw_rect(Rect2(feet + Vector2(-4, -15), Vector2(1, 9)), Color(SHADOW, a))  # brazos largos
+			c.draw_rect(Rect2(feet + Vector2(3, -15), Vector2(1, 9)), Color(SHADOW, a))
+			c.draw_rect(Rect2(feet + Vector2(-2, -21), Vector2(4, 5)), Color(SHADOW, a))  # cabeza
+			c.draw_rect(Rect2(feet + Vector2(-1, -19), Vector2(1, 1)), Color(0.9, 0.85, 0.8, a * 0.9))  # ojos
+			c.draw_rect(Rect2(feet + Vector2(1, -19), Vector2(1, 1)), Color(0.9, 0.85, 0.8, a * 0.9))
+
+
+## Viñeta: oscurece los bordes de la pantalla.
+func _make_vignette() -> TextureRect:
+	var g := Gradient.new()
+	g.set_color(0, Color(SHADOW, 0.0))
+	g.set_color(1, Color(SHADOW, 0.85))
+	g.add_point(0.4, Color(SHADOW, 0.0))
+	g.add_point(0.75, Color(SHADOW, 0.45))
+	var tex := GradientTexture2D.new()
+	tex.gradient = g
+	tex.fill = GradientTexture2D.FILL_RADIAL
+	tex.fill_from = Vector2(0.5, 0.5)
+	tex.fill_to = Vector2(1.05, 1.05)
+	tex.width = 160
+	tex.height = 120
+	var v := TextureRect.new()
+	v.name = "Vignette"
+	v.texture = tex
+	v.size = Vector2(320, 240)
+	v.stretch_mode = TextureRect.STRETCH_SCALE
+	v.mouse_filter = MOUSE_FILTER_IGNORE
+	return v
+
+
+## De vez en cuando la luz de la fábrica falla un instante.
+func _flicker(delta: float) -> void:
+	if _flicker_left > 0.0:
+		_flicker_left -= delta
+	elif randf() < delta / 9.0:
+		_flicker_left = randf_range(0.06, 0.25)
+	_factory.modulate = Color(0.45, 0.45, 0.55) if _flicker_left > 0.0 else Color.WHITE
 
 
 ## Número que sube y se desvanece donde se ha clicado.

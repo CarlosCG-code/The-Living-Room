@@ -72,8 +72,8 @@ func _simulate(manual_cps: float, tranquil: bool, catch_interferences: bool) -> 
 		# El perfil tranquilo pasa siempre holding = true: no tiene efecto hasta comprar Dial firme.
 		var holding := tranquil
 		var cps := 0.0 if tranquil and eco.is_bought(&"dial_hold") else manual_cps
-		if catch_interferences and eco.interference_active():
-			eco.catch_interference()
+		if catch_interferences and eco.active_event() != null:
+			eco.catch_event()
 		acc += cps * STEP
 		while acc >= 1.0:
 			eco.click()

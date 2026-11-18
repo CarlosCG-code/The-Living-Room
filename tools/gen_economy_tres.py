@@ -53,6 +53,15 @@ def num(x: float) -> str:
     return repr(float(x))
 
 
+# Eventos de la tele: id, peso, duración (s), recompensa (s de producción, clics mínimos), multiplicador.
+EVENTS = [
+    ("interference", 4, 8, 15, 50, 1),
+    ("shooting_star", 3, 3, 8, 25, 1),
+    ("clear_signal", 2, 20, 0, 0, 2),
+    ("silhouette", 1, 5, 45, 150, 1),
+]
+
+
 def main() -> None:
     subs = []
     gen_ids = []
@@ -110,12 +119,27 @@ def main() -> None:
             f"req_generator_count = 0\n"
             f'requires_id = &"{CLICK_PARENT[uid]}"\n'
         )
-    steps = 3 + len(subs) + 1
+    event_ids = []
+    for eid, weight, duration, reward_s, reward_clicks, mult in EVENTS:
+        sid = f"evt_{eid}"
+        event_ids.append(sid)
+        subs.append(
+            f'[sub_resource type="Resource" id="{sid}"]\n'
+            f'script = ExtResource("evt_script")\n'
+            f'id = &"{eid}"\n'
+            f"weight = {num(weight)}\n"
+            f"duration = {num(duration)}\n"
+            f"reward_production_seconds = {num(reward_s)}\n"
+            f"reward_min_clicks = {num(reward_clicks)}\n"
+            f"production_mult = {num(mult)}\n"
+        )
+    steps = 4 + len(subs) + 1
     out = [
         f'[gd_resource type="Resource" script_class="EconomyConfig" load_steps={steps} format=3]\n',
         '[ext_resource type="Script" path="res://core/economy_config.gd" id="config_script"]',
         '[ext_resource type="Script" path="res://core/generator_def.gd" id="gen_script"]',
-        '[ext_resource type="Script" path="res://core/upgrade_def.gd" id="upg_script"]\n',
+        '[ext_resource type="Script" path="res://core/upgrade_def.gd" id="upg_script"]',
+        '[ext_resource type="Script" path="res://core/tv_event_def.gd" id="evt_script"]\n',
         "\n".join(subs),
         "[resource]",
         'script = ExtResource("config_script")',
@@ -124,11 +148,9 @@ def main() -> None:
         "cost_growth = 1.15",
         f"threshold = {num(THRESHOLD)}",
         "base_click_value = 1.0",
-        "interference_min = 120.0",
-        "interference_max = 240.0",
-        "interference_duration = 8.0",
-        "reward_production_seconds = 15.0",
-        "reward_min_clicks = 50.0",
+        "events = Array[ExtResource(\"evt_script\")]([" + ", ".join(f'SubResource("{s}")' for s in event_ids) + "])",
+        "event_min = 120.0",
+        "event_max = 240.0",
         "",
     ]
     with open("data/economy_run1.tres", "w", encoding="utf-8", newline="\n") as f:

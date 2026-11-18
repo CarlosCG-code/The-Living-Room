@@ -1,8 +1,9 @@
-[gd_resource type="Resource" script_class="EconomyConfig" load_steps=28 format=3]
+[gd_resource type="Resource" script_class="EconomyConfig" load_steps=33 format=3]
 
 [ext_resource type="Script" path="res://core/economy_config.gd" id="config_script"]
 [ext_resource type="Script" path="res://core/generator_def.gd" id="gen_script"]
 [ext_resource type="Script" path="res://core/upgrade_def.gd" id="upg_script"]
+[ext_resource type="Script" path="res://core/tv_event_def.gd" id="evt_script"]
 
 [sub_resource type="Resource" id="gen_antenna"]
 script = ExtResource("gen_script")
@@ -292,6 +293,42 @@ req_energy_produced = 443274.0
 req_generator_count = 0
 requires_id = &"dial_auto"
 
+[sub_resource type="Resource" id="evt_interference"]
+script = ExtResource("evt_script")
+id = &"interference"
+weight = 4.0
+duration = 8.0
+reward_production_seconds = 15.0
+reward_min_clicks = 50.0
+production_mult = 1.0
+
+[sub_resource type="Resource" id="evt_shooting_star"]
+script = ExtResource("evt_script")
+id = &"shooting_star"
+weight = 3.0
+duration = 3.0
+reward_production_seconds = 8.0
+reward_min_clicks = 25.0
+production_mult = 1.0
+
+[sub_resource type="Resource" id="evt_clear_signal"]
+script = ExtResource("evt_script")
+id = &"clear_signal"
+weight = 2.0
+duration = 20.0
+reward_production_seconds = 0.0
+reward_min_clicks = 0.0
+production_mult = 2.0
+
+[sub_resource type="Resource" id="evt_silhouette"]
+script = ExtResource("evt_script")
+id = &"silhouette"
+weight = 1.0
+duration = 5.0
+reward_production_seconds = 45.0
+reward_min_clicks = 150.0
+production_mult = 1.0
+
 [resource]
 script = ExtResource("config_script")
 generators = Array[ExtResource("gen_script")]([SubResource("gen_antenna"), SubResource("gen_valves"), SubResource("gen_audio_frequency"), SubResource("gen_tuner"), SubResource("gen_remote"), SubResource("gen_channel_3")])
@@ -299,8 +336,6 @@ upgrades = Array[ExtResource("upg_script")]([SubResource("upg_antenna_x2_10"), S
 cost_growth = 1.15
 threshold = 16846002.0
 base_click_value = 1.0
-interference_min = 120.0
-interference_max = 240.0
-interference_duration = 8.0
-reward_production_seconds = 15.0
-reward_min_clicks = 50.0
+events = Array[ExtResource("evt_script")]([SubResource("evt_interference"), SubResource("evt_shooting_star"), SubResource("evt_clear_signal"), SubResource("evt_silhouette")])
+event_min = 120.0
+event_max = 240.0

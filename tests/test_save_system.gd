@@ -32,7 +32,7 @@ func _state(energy: float) -> RunState:
 	s.energy = energy
 	s.energy_produced_run = energy
 	s.generators[&"antenna"] = 2
-	s.interference_next_in = 123.456789012345
+	s.event_next_in = 123.456789012345
 	return s
 
 
@@ -106,9 +106,9 @@ func test_corrupt_main_without_bak_returns_null() -> void:
 	assert_true(FileAccess.file_exists(path + ".corrupt"))
 
 
-func test_version_2_and_missing_version_unreadable() -> void:
+func test_newer_version_and_missing_version_unreadable() -> void:
 	var d := _state(5).to_dict()
-	d["version"] = 2
+	d["version"] = 3
 	_write(path, JSON.stringify(d))
 	assert_null(saves.load_run(config))
 	d.erase("version")

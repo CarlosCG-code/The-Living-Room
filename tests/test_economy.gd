@@ -46,12 +46,24 @@ func before_each() -> void:
 	config.cost_growth = 1.15
 	config.threshold = 1000
 	config.base_click_value = 1
-	config.interference_min = 120
-	config.interference_max = 240
-	config.interference_duration = 8
-	config.reward_production_seconds = 60
-	config.reward_min_clicks = 50
+	config.event_min = 120
+	config.event_max = 240
+	config.events = [_event(&"interference", 8, 60, 50, 1)]
 	eco = Economy.new(config, null, 42)
+
+
+func _event(id: StringName, duration: float, reward_s: float, reward_clicks: float, mult: float) -> TvEventDef:
+	var e := TvEventDef.new()
+	e.id = id
+	e.duration = duration
+	e.reward_production_seconds = reward_s
+	e.reward_min_clicks = reward_clicks
+	e.production_mult = mult
+	return e
+
+
+func _active() -> bool:
+	return eco.active_event() != null
 
 
 func _give(amount: float) -> void:
@@ -186,53 +198,53 @@ func test_restart_requires_threshold_and_resets() -> void:
 
 
 func test_interference_appears_in_range_and_lasts() -> void:
-	var next := eco.state.interference_next_in
+	var next := eco.state.event_next_in
 	assert_between(next, 120.0, 240.0)
 	eco.tick(next - 0.5, false)
-	assert_false(eco.interference_active())
+	assert_false(_active())
 	eco.tick(1.0, false)
-	assert_true(eco.interference_active())
+	assert_true(_active())
 	eco.tick(7.5, false)
-	assert_true(eco.interference_active())
+	assert_true(_active())
 	eco.tick(1.0, false)
-	assert_false(eco.interference_active())
-	assert_between(eco.state.interference_next_in, 120.0, 240.0)
+	assert_false(_active())
+	assert_between(eco.state.event_next_in, 120.0, 240.0)
 
 
 func test_catch_interference_pays_once() -> void:
-	eco.tick(eco.state.interference_next_in + 0.1, false)
+	eco.tick(eco.state.event_next_in + 0.1, false)
 	var e0 := eco.state.energy
-	assert_true(eco.catch_interference())
+	assert_true(eco.catch_event())
 	assert_almost_eq(eco.state.energy - e0, 50.0, 0.0001)  # sin producción: mínimo de 50 clics
-	assert_false(eco.catch_interference())
-	assert_false(eco.interference_active())
+	assert_false(eco.catch_event())
+	assert_false(_active())
 
 
 func test_catch_reward_uses_production() -> void:
 	_give(1000)
 	for i in 10:
 		eco.buy(&"a")
-	eco.tick(eco.state.interference_next_in + 0.1, false)
+	eco.tick(eco.state.event_next_in + 0.1, false)
 	var e0 := eco.state.energy
-	eco.catch_interference()
+	eco.catch_event()
 	assert_almost_eq(eco.state.energy - e0, 60.0 * 10.0, 0.0001)
 
 
 func test_missed_interference_pays_nothing() -> void:
-	eco.tick(eco.state.interference_next_in + 0.1, false)
+	eco.tick(eco.state.event_next_in + 0.1, false)
 	var e0 := eco.state.energy
 	eco.tick(9.0, false)
-	assert_false(eco.interference_active())
+	assert_false(_active())
 	assert_almost_eq(eco.state.energy, e0, 0.0001)
 
 
 func test_restart_cancels_active_interference() -> void:
 	_give(2000)
-	eco.tick(eco.state.interference_next_in + 0.1, false)
-	assert_true(eco.interference_active())
+	eco.tick(eco.state.event_next_in + 0.1, false)
+	assert_true(_active())
 	eco.restart()
-	assert_false(eco.interference_active())
-	assert_between(eco.state.interference_next_in, 120.0, 240.0)
+	assert_false(_active())
+	assert_between(eco.state.event_next_in, 120.0, 240.0)
 
 
 func test_gain_if_bought_does_not_change_state() -> void:
@@ -258,4 +270,41 @@ func test_purchase_signal_once_per_buy() -> void:
 
 func test_same_seed_same_interference() -> void:
 	var other := Economy.new(config, null, 42)
-	assert_eq(other.state.interference_next_in, eco.state.interference_next_in)
+	assert_eq(other.state.event_next_in, eco.state.event_next_in)
+
+
+func test_clear_signal_doubles_production_and_cannot_be_caught() -> void:
+	config.events = [_event(&"clear_signal", 20, 0, 0, 2)]
+	_give(1000)
+	for i in 10:
+		eco.buy(&"a")
+	var base := eco.production_per_second()
+	eco.tick(eco.state.event_next_in + 0.1, false)
+	assert_almost_eq(eco.production_per_second(), base * 2.0, 0.0001)
+	assert_false(eco.catch_event())
+	eco.tick(20.0, false)
+	assert_almost_eq(eco.production_per_second(), base, 0.0001)
+
+
+func test_event_picked_by_weight() -> void:
+	var never := _event(&"never", 5, 1, 1, 1)
+	never.weight = 0.0
+	config.events = [never, _event(&"always", 5, 1, 1, 1)]
+	for i in 20:
+		eco.tick(eco.state.event_next_in + 0.1, false)
+		assert_eq(eco.state.event_id, &"always")
+		eco.catch_event()
+
+
+func test_event_progress_goes_from_0_to_1() -> void:
+	eco.tick(eco.state.event_next_in + 0.01, false)
+	assert_almost_eq(eco.event_progress(), 0.0, 0.01)
+	eco.tick(4.0, false)
+	assert_almost_eq(eco.event_progress(), 0.5, 0.01)
+
+
+func test_no_events_only_reschedules() -> void:
+	config.events = []
+	eco.tick(eco.state.event_next_in + 0.1, false)
+	assert_false(_active())
+	assert_between(eco.state.event_next_in, 120.0, 240.0)

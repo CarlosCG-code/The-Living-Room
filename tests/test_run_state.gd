@@ -11,17 +11,20 @@ func before_each() -> void:
 	var u := UpgradeDef.new()
 	u.id = &"pulse"
 	config.upgrades = [u]
+	var e := TvEventDef.new()
+	e.id = &"interference"
+	config.events = [e]
 
 
 func _valid_dict() -> Dictionary:
 	return {
-		"version": 1,
+		"version": 2,
 		"run_index": 2,
 		"energy": 12.5,
 		"energy_produced_run": 40.0,
 		"generators": {"antenna": 3},
 		"upgrades": ["pulse"],
-		"interference": {"next_in": 150.0, "active_left": 0.0},
+		"event": {"next_in": 150.0, "id": "", "left": 0.0},
 		"play_time": 33.0,
 	}
 
@@ -33,8 +36,9 @@ func test_round_trip() -> void:
 	s.energy_produced_run = 9.0
 	s.generators[&"antenna"] = 4
 	s.upgrades.append(&"pulse")
-	s.interference_next_in = 100.0
-	s.interference_active_left = 2.0
+	s.event_next_in = 100.0
+	s.event_id = &"interference"
+	s.event_left = 2.0
 	s.play_time = 77.0
 	var w: PackedStringArray = []
 	var back := RunState.from_dict(s.to_dict(), config, w)
@@ -46,7 +50,7 @@ func test_round_trip() -> void:
 func test_accepts_json_types() -> void:
 	# Tras pasar por JSON, los números llegan como float y los id como String.
 	var d := _valid_dict()
-	d["version"] = 1.0
+	d["version"] = 2.0
 	d["run_index"] = 2.0
 	d["generators"] = {"antenna": 3.0}
 	var w: PackedStringArray = []
@@ -94,7 +98,7 @@ func test_missing_or_newer_version_is_unreadable() -> void:
 	d.erase("version")
 	assert_null(RunState.from_dict(d, config, PackedStringArray()))
 	d = _valid_dict()
-	d["version"] = 2
+	d["version"] = 3
 	assert_null(RunState.from_dict(d, config, PackedStringArray()))
 
 
@@ -105,3 +109,36 @@ func test_negatives_clamped_to_zero() -> void:
 	var s := RunState.from_dict(d, config, PackedStringArray())
 	assert_eq(s.energy, 0.0)
 	assert_eq(s.generators[&"antenna"], 0)
+
+
+func test_migrates_v1_active_interference() -> void:
+	var d := _valid_dict()
+	d.erase("event")
+	d["version"] = 1
+	d["interference"] = {"next_in": 0.0, "active_left": 3.0}
+	var s := RunState.from_dict(d, config, PackedStringArray())
+	assert_not_null(s)
+	assert_eq(s.event_id, &"interference")
+	assert_almost_eq(s.event_left, 3.0, 0.0001)
+	assert_eq(int(s.to_dict()["version"]), 2)
+
+
+func test_migrates_v1_idle_interference() -> void:
+	var d := _valid_dict()
+	d.erase("event")
+	d["version"] = 1.0
+	d["interference"] = {"next_in": 150.0, "active_left": 0.0}
+	var s := RunState.from_dict(d, config, PackedStringArray())
+	assert_not_null(s)
+	assert_eq(s.event_id, &"")
+	assert_almost_eq(s.event_next_in, 150.0, 0.0001)
+
+
+func test_unknown_event_dropped_with_warning() -> void:
+	var d := _valid_dict()
+	d["event"] = {"next_in": 10.0, "id": "ghost", "left": 2.0}
+	var w: PackedStringArray = []
+	var s := RunState.from_dict(d, config, w)
+	assert_not_null(s)
+	assert_eq(s.event_id, &"")
+	assert_eq(w.size(), 1)

@@ -42,8 +42,8 @@ func buy(id: StringName) -> bool:
 	return economy.buy(id)
 
 
-func catch_interference() -> bool:
-	return economy.catch_interference()
+func catch_event() -> bool:
+	return economy.catch_event()
 
 
 func restart() -> bool:

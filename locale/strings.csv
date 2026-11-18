@@ -3,11 +3,8 @@ TITLE,The Living Room
 UI_RESTART,Reiniciar
 UI_HUD,Energía %s · %s · %s/clic · reinicio %d%%
 UI_HINT_CLICK,¡Clica!
-UI_LOCKED,??? — Se desbloquea al comprar la mejora de la que sale.
-UI_BOUGHT,comprada
-UI_INTERFERENCE,¡Atrápalas!
-UI_GENERATOR_ROW,%s — tienes %s — +%s por clic — %s — coste %s
-UI_UPGRADE_ROW,%s: %s — coste %s
+UI_LOCKED,Se desbloquea al comprar la mejora de la que sale.
+UI_BOUGHT,Comprada
 UI_SHOP_TITLE,Mejoras
 UI_CLOSE,X
 GEN_ANTENNA,Antena
@@ -22,12 +19,28 @@ UPG_PULSE_STRONG,Pulso fuerte
 UPG_RESONANCE,Resonancia
 UPG_DIAL_AUTO,Dial solo
 UPG_DIAL_AUTO_2,Dial solo II
-UPG_PULSE_DESC,Cada clic vale el doble
-UPG_PULSE_STRONG_DESC,Cada clic vale el doble
-UPG_DIAL_HOLD_DESC,Mantén pulsado el dial para sintonizar sin parar
-UPG_RESONANCE_DESC,Cada clic suma parte de la producción
-UPG_DIAL_AUTO_DESC,El dial gira solo
-UPG_DIAL_AUTO_2_DESC,El dial gira solo
+UPG_PULSE_DESC,Golpeas el dial con más fuerza: cada clic vale el doble.
+UPG_PULSE_STRONG_DESC,Más fuerte todavía. Cada clic vuelve a valer el doble.
+UPG_DIAL_HOLD_DESC,No sueltes el dial: mantenlo pulsado y sigue sintonizando.
+UPG_RESONANCE_DESC,El zumbido de las máquinas se cuela en cada clic: suma parte de la producción.
+UPG_DIAL_AUTO_DESC,El dial empieza a girar sin que nadie lo toque.
+UPG_DIAL_AUTO_2_DESC,Gira más deprisa. No preguntes quién lo mueve.
 UPG_GEN_X2_10,%s ×2
 UPG_GEN_X2_25,%s ×2 (25)
-UPG_GEN_X2_DESC,Duplica lo que da %s por clic y por segundo
+UPG_GEN_X2_DESC,%s trabaja el doble: duplica lo que da por clic y por segundo.
+UI_GENERATOR_TITLE,%s · tienes %s
+UI_EFFECT_OWNED,En total: +%s por clic y %s
+UI_EFFECT_GEN,+%s → +%s por clic · %s → %s
+UI_EFFECT_CLICK,Cada clic: +%s → +%s
+UI_EFFECT_HOLD,Mantener pulsado: %s clics por segundo
+UI_EFFECT_AUTO,Clics solos: %s → %s por segundo
+UI_EVENT_INTERFERENCE,¡Atrápalas!
+UI_EVENT_SHOOTING_STAR,¡Una estrella! Atrápala
+UI_EVENT_CLEAR_SIGNAL,Señal clara: producción ×2
+UI_EVENT_SILHOUETTE,¿Quién está ahí?
+GEN_ANTENNA_DESC,"Capta lo que flota en el aire. A veces, algo más."
+GEN_VALVES_DESC,Se calientan solas. Huelen a polvo quemado.
+GEN_AUDIO_FREQUENCY_DESC,Un zumbido grave que nunca termina de irse.
+GEN_TUNER_DESC,Busca el canal entre la nieve de la pantalla.
+GEN_REMOTE_DESC,Cambia de canal aunque nadie lo toque.
+GEN_CHANNEL_3_DESC,Siempre emite. Nadie sabe qué.

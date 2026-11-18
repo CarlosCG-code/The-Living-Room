@@ -21,7 +21,7 @@ func _ready() -> void:
 	_factory.machine_pressed.connect(_click)
 	_factory.hold_changed.connect(Game.set_holding)
 	_factory.shop_requested.connect(_open_shop)
-	_factory.interference_pressed.connect(Game.catch_interference)
+	_factory.event_pressed.connect(Game.catch_event)
 	_tree.buy_requested.connect(Game.buy)
 	_tree.close_requested.connect(_close_shop)
 	EventBus.purchase_made.connect(func(_id: StringName) -> void: _purchase_sound.play())

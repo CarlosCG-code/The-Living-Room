@@ -62,6 +62,19 @@ De vez en cuando (cada 2-4 minutos) salen chispas de uno de los cables de la fá
 - **Lectura de terror:** muy de vez en cuando, la estática deja ver un fotograma de algo que no debería estar ahí (por ejemplo, el salón del 3.º). Eso lo decide y lo programa el director (hito 3) y cuenta dentro del tope de destellos (GDD §11). No es un jumpscare.
 - Nunca es obligatoria: quien no la atrapa solo tarda un poco más.
 
+### 4.1 Eventos de la tele (2026-11-18, pedido del usuario)
+
+La interferencia es ahora uno de varios eventos (`core/tv_event_def.gd`, datos en `data/economy_run1.tres`). Cada 2-4 min sale uno al azar según su peso; ninguno quita Energía.
+
+| Evento | Peso | Dura | Efecto |
+|---|---|---|---|
+| Interferencia | 4 | 8 s | Las chispas recorren el cable desde la máquina hasta la fábrica; clic = 15 s de producción (mín. 50 clics) |
+| Estrella fugaz | 3 | 3 s | Cruza el cielo; clic = 8 s de producción (mín. 25 clics) |
+| Señal clara | 2 | 20 s | Aurora en el cielo; producción ×2, no se atrapa |
+| Silueta en el bosque | 1 | 5 s | Una figura quieta entre los árboles; clic = 45 s de producción (mín. 150 clics) |
+
+Guardado v2: el bloque `interference` pasa a `event` (`next_in`, `id`, `left`), con migrador desde v1 y su test.
+
 ## 5. Reiniciar y Carga (aprobado)
 
 - *Reiniciar* se habilita al alcanzar el umbral de Energía de la run (Energía producida en esa run). Después, el jugador decide cuándo pulsarlo.
