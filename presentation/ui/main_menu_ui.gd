@@ -1,12 +1,15 @@
 class_name MainMenuUI
 extends Control
 
-# Menú principal dentro de la tele (320 × 240): Jugar/Continuar, Ajustes y Salir. Los ajustes cambian
+# Menú principal dentro de la tele (320 × 240): Jugar/Continuar, Ajustes y Salir. Con pause_menu = true es
+# el menú de pausa que se abre con Esc durante la partida: Reanudar, Ajustes, Menú principal y Salir. Los ajustes cambian
 # con clic o Intro (siguiente valor) y con izquierda/derecha; Esc vuelve. Siempre hay un botón con foco
 # para jugar solo con teclado o mando. Solo pinta y avisa: el menú del mundo hace el cambio de escena.
 
 signal play_requested
 signal quit_requested
+signal resume_requested
+signal menu_requested
 
 const CRT_LEVELS: Array[float] = [0.0, 0.5, 1.0]
 const VOLUME_STEP := 0.1
@@ -18,16 +21,20 @@ var _title: Label
 var _play: Button
 var _rows := {}  # "quality" | "fullscreen" | "volume" | "crt" -> Button
 var _glitch_left := 0.0
+## Menú de pausa (se fija antes de añadirlo al árbol).
+var pause_menu := false
 
 
 func _ready() -> void:
 	set_anchors_preset(PRESET_FULL_RECT)
 	var bg := ColorRect.new()
-	bg.color = Color("040509")
+	# En pausa se ve la partida detrás, muy oscurecida.
+	bg.color = Color(0.016, 0.02, 0.035, 0.88) if pause_menu else Color("040509")
 	bg.set_anchors_preset(PRESET_FULL_RECT)
 	bg.mouse_filter = MOUSE_FILTER_IGNORE
 	add_child(bg)
-	add_child(TvFog.make(Color(0.35, 0.38, 0.5)))
+	if not pause_menu:
+		add_child(TvFog.make(Color(0.35, 0.38, 0.5)))
 	_title = Label.new()
 	_title.text = tr("TITLE")
 	_title.add_theme_font_size_override(&"font_size", 24)
@@ -38,8 +45,14 @@ func _ready() -> void:
 	add_child(_title)
 
 	_main = _column()
-	_play = _button(_main, tr("UI_CONTINUE") if Game.has_progress() else tr("UI_PLAY"), play_requested.emit)
-	_button(_main, tr("UI_SETTINGS"), show_options)
+	if pause_menu:
+		_title.text = tr("UI_PAUSED")
+		_play = _button(_main, tr("UI_RESUME"), resume_requested.emit)
+		_button(_main, tr("UI_SETTINGS"), show_options)
+		_button(_main, tr("UI_MAIN_MENU"), menu_requested.emit)
+	else:
+		_play = _button(_main, tr("UI_CONTINUE") if Game.has_progress() else tr("UI_PLAY"), play_requested.emit)
+		_button(_main, tr("UI_SETTINGS"), show_options)
 	_button(_main, tr("UI_QUIT"), quit_requested.emit)
 
 	_options = _column()
@@ -64,9 +77,15 @@ func _process(delta: float) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if _options.visible and event.is_action_pressed("ui_cancel"):
+	if not is_visible_in_tree() or not event.is_action_pressed("ui_cancel"):
+		return
+	if _options.visible:
 		show_main()
-		get_viewport().set_input_as_handled()
+	elif pause_menu:
+		resume_requested.emit()
+	else:
+		return
+	get_viewport().set_input_as_handled()
 
 
 func show_options() -> void:

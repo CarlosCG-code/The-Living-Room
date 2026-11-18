@@ -1,12 +1,12 @@
 class_name FactoryCable
 extends Node2D
 
-# Cable de una máquina a la fábrica: dos hilos (amarillo y azul, como en el boceto) y pulsos de
-# electricidad que viajan hacia la fábrica (specs/hito2.md D19).
+# Cable de una máquina a la fábrica: goma oscura con su sombra y pulsos de electricidad ámbar
+# que viajan hacia la fábrica (specs/hito2.md D19).
 
-const YELLOW := Color(0.95, 0.8, 0.25)
-const BLUE := Color(0.3, 0.6, 1.0)
-const PULSE := Color(1.0, 1.0, 0.85)
+const RUBBER := Color("2a2f3f")
+const RUBBER_SHADOW := Color("12151f")
+const PULSE := Color("ffc861")
 const FAULT := Color(1.0, 0.35, 0.2)
 
 ## Velocidad de los pulsos (px/s) y cuántos hay a la vez en el cable.
@@ -43,11 +43,11 @@ func point_at(t: float) -> Vector2:
 func _draw() -> void:
 	var points := _curve.get_baked_points()
 	var fault := sparking and fmod(_offset, 6.0) < 3.0
-	draw_polyline(points, FAULT if fault else YELLOW)
+	draw_polyline(points, FAULT if fault else RUBBER)
 	var shifted := PackedVector2Array()
 	for p in points:
 		shifted.append(p + Vector2(0, 1))
-	draw_polyline(shifted, BLUE)
+	draw_polyline(shifted, RUBBER_SHADOW)
 	var length := _curve.get_baked_length()
 	for i in pulses:
 		var p := _curve.sample_baked(fposmod(_offset + i * length / pulses, length)).round()

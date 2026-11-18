@@ -50,3 +50,19 @@ func test_volume_wraps_to_zero() -> void:
 	menu.show_options()
 	menu.get_option_button("volume").pressed.emit()
 	assert_almost_eq(Game.settings.volume, 0.0, 0.0001)
+
+
+func test_pause_stops_the_run_and_resume_restarts_it() -> void:
+	var vp := SubViewport.new()
+	vp.size = Vector2i(320, 240)
+	add_child_autofree(vp)
+	var ui: Node = (load("res://presentation/ui/tv_game_ui.tscn") as PackedScene).instantiate()
+	vp.add_child(ui)
+	Game.running = true
+	ui.open_pause()
+	assert_true(ui.is_paused())
+	assert_false(Game.running, "en pausa la economía no avanza")
+	ui.close_pause()
+	assert_false(ui.is_paused())
+	assert_true(Game.running)
+	Game.running = false

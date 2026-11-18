@@ -4,9 +4,9 @@ shader_type canvas_item;
 
 uniform sampler2D noise : repeat_enable, filter_nearest;
 uniform vec4 tint : source_color = vec4(0.62, 0.68, 0.82, 1.0);
-uniform float strength = 0.5;
+uniform float strength = 0.28;
 uniform vec2 pixels = vec2(320.0, 130.0);  // tamaño del rectángulo en píxeles de la tele
-uniform float speed = 0.012;
+uniform float speed = 0.03;
 
 const mat4 BAYER = mat4(
 	vec4(0.0, 8.0, 2.0, 10.0), vec4(12.0, 4.0, 14.0, 6.0),

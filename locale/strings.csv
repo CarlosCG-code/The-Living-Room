@@ -1,7 +1,6 @@
 keys,es
 TITLE,The Living Room
 UI_RESTART,Reiniciar
-UI_HUD,Energía %s · %s · %s/clic · reinicio %d%%
 UI_HINT_CLICK,¡Clica!
 UI_LOCKED,Se desbloquea al comprar la mejora de la que sale.
 UI_BOUGHT,Comprada
@@ -59,3 +58,11 @@ UI_CRT_SOFT,suave
 UI_CRT_FULL,fuerte
 UI_SCREEN_FULL,completa
 UI_SCREEN_WINDOW,ventana
+UI_PAUSED,Pausa
+UI_RESUME,Reanudar
+UI_MAIN_MENU,Menú principal
+OSD_ENERGY,Energía
+OSD_RESTART,Reinicio
+OSD_PER_CLICK,%s/clic
+OSD_SHOP_PROMPT,E  Mejoras
+UI_CLOSE_HINT,Esc  Salir

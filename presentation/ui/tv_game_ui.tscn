@@ -1,4 +1,4 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=7 format=3]
 
 
 [ext_resource type="Script" path="res://presentation/ui/tv_game_ui.gd" id="1_ui"]
@@ -7,6 +7,7 @@
 [ext_resource type="Script" path="res://presentation/ui/upgrade_tree.gd" id="5_tree"]
 
 [ext_resource type="Theme" path="res://presentation/ui/tv_theme.tres" id="6_theme"]
+[ext_resource type="Script" path="res://presentation/ui/tv_osd.gd" id="7_osd"]
 
 [node name="TvGameUI" type="Control"]
 layout_mode = 3
@@ -25,28 +26,13 @@ offset_bottom = 240.0
 mouse_filter = 2
 script = ExtResource("3_factory")
 
-[node name="Hud" type="ColorRect" parent="."]
-layout_mode = 0
+[node name="Osd" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 0
 offset_right = 320.0
-offset_bottom = 13.0
+offset_bottom = 240.0
 mouse_filter = 2
-color = Color(0.043, 0.055, 0.102, 0.75)
-
-[node name="Text" type="Label" parent="Hud"]
-layout_mode = 0
-offset_left = 3.0
-offset_top = 1.0
-offset_right = 260.0
-offset_bottom = 12.0
-
-[node name="RestartButton" type="Button" parent="Hud"]
-visible = false
-layout_mode = 0
-offset_left = 262.0
-offset_top = 0.0
-offset_right = 318.0
-offset_bottom = 12.0
-focus_mode = 0
+script = ExtResource("7_osd")
 
 [node name="UpgradeTree" type="Control" parent="."]
 visible = false

@@ -10,6 +10,8 @@ signal machine_pressed(at: Vector2)
 signal hold_changed(holding: bool)
 signal shop_requested
 signal event_pressed
+## Primera máquina de un generador (para el aviso del OSD); no salta al cargar la partida.
+signal generator_shown(id: StringName)
 
 const TEX := "res://assets/textures/tv/"
 # Eventos (core/tv_event_def.gd): la estrella cruza el cielo; la silueta sale en uno de estos sitios.
@@ -17,8 +19,8 @@ const STAR_FROM := Vector2(300, 14)
 const STAR_TO := Vector2(40, 58)
 const SILHOUETTE_SPOTS: Array[Vector2] = [Vector2(196, 131), Vector2(300, 134), Vector2(112, 129), Vector2(24, 133)]
 const SHADOW := Color("05060b")
-## Oscurece y enfría el fondo pintado para que la tele no parezca alegre.
-const BG_TINT := Color(0.4, 0.43, 0.58)
+## Texto en pantalla (números al clicar, aviso de la Señal clara): mismo fósforo que el OSD.
+const OSD_TEXT := Color("b8f5c4")
 ## Unidades del generador necesarias para cada hueco (el k-ésimo pide THRESHOLDS[k]).
 const THRESHOLDS: Array[int] = [1, 5, 10, 25, 50]
 const FADE_IN := 0.6
@@ -28,24 +30,18 @@ const RECEPTOR_FEET := Vector2(147, 174)
 const CATCH_SIZE := Vector2(40, 32)
 # Por generador: pies de cada hueco (abajo a la izquierda), etiqueta y cable (desde, hasta, caída).
 const LAYOUT := {
-	&"antenna": {"slots": [Vector2(62, 132), Vector2(80, 136), Vector2(98, 132)],
-		"label": Vector2(58, 84), "cable": [Vector2(106, 118), Vector2(134, 120), 6.0]},
-	&"channel_3": {"slots": [Vector2(226, 134)], "label": Vector2(212, 66),
-		"cable": [Vector2(232, 118), Vector2(186, 122), 6.0]},
-	&"valves": {"slots": [Vector2(54, 168), Vector2(78, 170), Vector2(102, 168)],
-		"label": Vector2(50, 140), "cable": [Vector2(116, 160), Vector2(134, 136), 4.0]},
-	&"audio_frequency": {"slots": [Vector2(74, 214), Vector2(96, 216)],
-		"label": Vector2(40, 218), "cable": [Vector2(108, 198), Vector2(140, 142), 8.0]},
-	&"tuner": {"slots": [Vector2(204, 214), Vector2(228, 212)],
-		"label": Vector2(196, 218), "cable": [Vector2(212, 198), Vector2(178, 142), 8.0]},
-	&"remote": {"slots": [Vector2(232, 172), Vector2(246, 174)],
-		"label": Vector2(212, 144), "cable": [Vector2(236, 160), Vector2(186, 136), 4.0]},
+	&"antenna": {"slots": [Vector2(62, 132), Vector2(80, 136), Vector2(98, 132)], "cable": [Vector2(106, 118), Vector2(134, 120), 6.0]},
+	&"channel_3": {"slots": [Vector2(226, 134)], "cable": [Vector2(232, 118), Vector2(186, 122), 6.0]},
+	&"valves": {"slots": [Vector2(54, 168), Vector2(78, 170), Vector2(102, 168)], "cable": [Vector2(116, 160), Vector2(134, 136), 4.0]},
+	&"audio_frequency": {"slots": [Vector2(74, 214), Vector2(96, 216)], "cable": [Vector2(108, 198), Vector2(140, 142), 8.0]},
+	&"tuner": {"slots": [Vector2(204, 214), Vector2(228, 212)], "cable": [Vector2(212, 198), Vector2(178, 142), 8.0]},
+	&"remote": {"slots": [Vector2(232, 172), Vector2(246, 174)], "cable": [Vector2(236, 160), Vector2(186, 136), 4.0]},
 }
 
-var _groups := {}  # StringName -> {"machines": Array[TextureButton], "cable": FactoryCable, "label": Label}
+var _groups := {}  # StringName -> {"machines": Array[TextureButton], "cable": FactoryCable, "shown": bool}
 var _receptor: TextureButton
 var _factory: TextureButton
-var _shop_hint: Label
+var _counts_seen := false
 var _sparks: CPUParticles2D
 var _catch: Button
 var _hint: Label
@@ -64,7 +60,6 @@ func _ready() -> void:
 	var bg := TextureRect.new()
 	bg.texture = load(TEX + "background.png")
 	bg.mouse_filter = MOUSE_FILTER_IGNORE
-	bg.modulate = BG_TINT
 	add_child(bg)
 	_event_layer = Node2D.new()
 	_event_layer.draw.connect(_draw_event)
@@ -81,8 +76,12 @@ func _ready() -> void:
 		cables.append(cable)
 	_factory = _sprite_button(load(TEX + "factory.png"), FACTORY_POS)
 	_factory.pressed.connect(shop_requested.emit)
-	add_child(_particles(FACTORY_POS + Vector2(44, 0), Vector2(2, 1), 10, 3.0, Vector2(-8, -10), Color(0.66, 0.74, 0.88, 0.7)))
-	_shop_hint = _label(tr("UI_SHOP_TITLE"), FACTORY_POS + Vector2(10, -12), Color("ffd36b"))
+	# Humo lento de la chimenea, que se va hacia la izquierda con el viento.
+	var smoke := _particles(FACTORY_POS + Vector2(44, 0), Vector2(2, 1), 16, 5.0, Vector2(-6, -9), Color(0.45, 0.5, 0.6, 0.45))
+	smoke.scale_amount_min = 1.0
+	smoke.scale_amount_max = 3.0
+	add_child(smoke)
+	_light_pool()
 
 	var i := 0
 	for id: StringName in LAYOUT:
@@ -93,10 +92,7 @@ func _ready() -> void:
 			var m := _machine(tex, feet)
 			m.visible = false
 			machines.append(m)
-		var gen := Game.economy.config.find_generator(id)
-		var label := _label(tr(gen.name_key) if gen else String(id), spec["label"], Color.WHITE)
-		label.visible = false
-		_groups[id] = {"machines": machines, "cable": cables[i], "label": label}
+		_groups[id] = {"machines": machines, "cable": cables[i], "shown": false}
 		i += 1
 	_receptor = _machine(load(TEX + "receptor.png"), RECEPTOR_FEET)
 
@@ -121,7 +117,7 @@ func _ready() -> void:
 	add_child(_catch)
 	_vignette = _make_vignette()
 	add_child(_vignette)
-	_hint = _label(tr("UI_EVENT_CLEAR_SIGNAL"), Vector2.ZERO, Color("7fe0b0"))
+	_hint = _label(tr("UI_EVENT_CLEAR_SIGNAL"), Vector2.ZERO, Color("8fe8b8"))
 	_hint.visible = false
 	# Los textos van por encima de la viñeta para que se lean en los bordes.
 	for child in get_children():
@@ -133,7 +129,6 @@ func _process(delta: float) -> void:
 	var eco := Game.economy
 	show_counts(eco.state.generators)
 	show_event(eco.active_event(), eco.event_progress())
-	_shop_hint.visible = _has_affordable(eco) and fmod(Time.get_ticks_msec() / 1000.0, 1.0) < 0.6
 	_flicker(delta)
 	# Dial solo (y mantener pulsado): las máquinas dan saltitos solas, uno por clic automático.
 	_auto_acc += eco.auto_clicks_per_second(_any_held()) * delta
@@ -150,10 +145,13 @@ func show_counts(counts: Dictionary) -> void:
 		for k in machines.size():
 			_set_shown(machines[k], owned >= THRESHOLDS[mini(k, THRESHOLDS.size() - 1)])
 		_set_shown(group["cable"], owned > 0)
-		_announce(group["label"], owned > 0)
+		if owned > 0 and not group["shown"] and _counts_seen:
+			generator_shown.emit(id)
+		group["shown"] = owned > 0
 		var cable: FactoryCable = group["cable"]
 		cable.speed = 18.0 + 10.0 * log(1.0 + owned)
 		cable.pulses = clampi(1 + owned / 5, 1, 6)
+	_counts_seen = true
 
 
 ## Muestra el evento activo de la tele (null = ninguno); t va de 0 (empieza) a 1 (acaba).
@@ -268,7 +266,7 @@ func _flicker(delta: float) -> void:
 
 ## Número que sube y se desvanece donde se ha clicado.
 func float_text(at: Vector2, text: String) -> void:
-	var label := _label(text, (at + Vector2(-8, -14)).round(), Color("ffd36b"))
+	var label := _label(text, (at + Vector2(-8, -14)).round(), OSD_TEXT)
 	var tween := label.create_tween().set_parallel()
 	tween.tween_property(label, "position:y", label.position.y - 14, 0.7)
 	tween.tween_property(label, "modulate:a", 0.0, 0.7)
@@ -292,6 +290,14 @@ func get_receptor() -> TextureButton:
 func _machine(tex: Texture2D, feet: Vector2) -> TextureButton:
 	var b := _sprite_button(tex, feet - Vector2(0, tex.get_height()))
 	b.pivot_offset = Vector2(tex.get_width() / 2.0, tex.get_height())
+	# Sombra en la nieve: ancla la máquina al suelo (la luna está arriba a la derecha).
+	var shadow := TextureRect.new()
+	shadow.texture = _shadow_texture()
+	shadow.show_behind_parent = true
+	shadow.mouse_filter = MOUSE_FILTER_IGNORE
+	shadow.size = Vector2(tex.get_width() + 6, 6)
+	shadow.position = Vector2(-5, tex.get_height() - 4)
+	b.add_child(shadow)
 	b.button_down.connect(func() -> void: hold_changed.emit(true))
 	b.button_up.connect(func() -> void: hold_changed.emit(false))
 	b.pressed.connect(func() -> void:
@@ -319,8 +325,9 @@ func _label(text: String, pos: Vector2, color: Color) -> Label:
 	label.position = pos
 	label.mouse_filter = MOUSE_FILTER_IGNORE
 	label.add_theme_color_override(&"font_color", color)
-	label.add_theme_color_override(&"font_outline_color", Color("0b0e1a"))
-	label.add_theme_constant_override(&"outline_size", 2)
+	label.add_theme_color_override(&"font_shadow_color", Color(0, 0, 0, 0.85))
+	label.add_theme_constant_override(&"shadow_offset_x", 1)
+	label.add_theme_constant_override(&"shadow_offset_y", 1)
 	add_child(label)
 	return label
 
@@ -369,28 +376,6 @@ func _any_held() -> bool:
 	return false
 
 
-func _has_affordable(eco: Economy) -> bool:
-	for g in eco.visible_generators():
-		if eco.state.energy >= eco.cost_of(g.id):
-			return true
-	for u in eco.visible_upgrades():
-		if eco.state.energy >= u.cost:
-			return true
-	return false
-
-
-func _announce(label: Label, on: bool) -> void:
-	if on == label.visible:
-		return
-	label.visible = on
-	if on:
-		label.modulate.a = 0.0
-		var tween := label.create_tween()
-		tween.tween_property(label, "modulate:a", 1.0, FADE_IN)
-		tween.tween_interval(LABEL_HOLD)
-		tween.tween_property(label, "modulate:a", 0.0, 1.0)
-
-
 func _set_shown(item: CanvasItem, on: bool) -> void:
 	if on == item.visible:
 		return
@@ -398,3 +383,46 @@ func _set_shown(item: CanvasItem, on: bool) -> void:
 	if on:
 		item.modulate.a = 0.0
 		item.create_tween().tween_property(item, "modulate:a", 1.0, FADE_IN)
+
+
+static var _shadow_tex: GradientTexture2D
+
+
+static func _shadow_texture() -> GradientTexture2D:
+	if _shadow_tex == null:
+		var g := Gradient.new()
+		g.set_color(0, Color(0.01, 0.015, 0.03, 0.75))
+		g.set_color(1, Color(0.01, 0.015, 0.03, 0.0))
+		_shadow_tex = GradientTexture2D.new()
+		_shadow_tex.gradient = g
+		_shadow_tex.fill = GradientTexture2D.FILL_RADIAL
+		_shadow_tex.fill_from = Vector2(0.5, 0.5)
+		_shadow_tex.fill_to = Vector2(1.0, 0.5)
+		_shadow_tex.width = 32
+		_shadow_tex.height = 8
+	return _shadow_tex
+
+
+## Luz cálida de las ventanas sobre la nieve: el único punto cálido de la escena.
+func _light_pool() -> void:
+	var g := Gradient.new()
+	g.set_color(0, Color(1.0, 0.72, 0.35, 0.22))
+	g.set_color(1, Color(1.0, 0.72, 0.35, 0.0))
+	var tex := GradientTexture2D.new()
+	tex.gradient = g
+	tex.fill = GradientTexture2D.FILL_RADIAL
+	tex.fill_from = Vector2(0.5, 0.0)
+	tex.fill_to = Vector2(1.0, 0.0)
+	tex.width = 64
+	tex.height = 24
+	var pool := TextureRect.new()
+	pool.name = "LightPool"
+	pool.texture = tex
+	pool.stretch_mode = TextureRect.STRETCH_SCALE
+	pool.size = Vector2(96, 30)
+	pool.position = FACTORY_POS + Vector2(-20, 48)
+	pool.mouse_filter = MOUSE_FILTER_IGNORE
+	var add := CanvasItemMaterial.new()
+	add.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
+	pool.material = add
+	add_child(pool)

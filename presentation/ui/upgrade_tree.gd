@@ -19,13 +19,18 @@ const POSITIONS := {
 }
 const ROW_X2_10 := 122.0
 const ROW_X2_25 := 154.0
-const CHALK := Color("c9d0e0")
-const DIM := Color("2c3350")
-const GOLD := Color("e0b85a")
-const GREEN := Color("62c47a")
-const RED := Color("b0484a")
-const MIST := Color("7d8fb0")
-const PANEL := Color("06070c")
+# Estilo: el menú azul de una tele de los 90 (OSD). Azul de fondo, texto blanco, selección ámbar.
+const CHALK := Color("e6ecff")
+const DIM := Color("2a3d9e")
+const GOLD := Color("ffc861")
+const GREEN := Color("8fd6a0")
+const RED := Color("ff8a7a")
+const MIST := Color("a9b8f0")
+const PANEL := Color("0b1c70")
+const BAR := Color("06104a")
+const TILE := Color("0a165c")
+## Los iconos usan la paleta nocturna del mundo: sobre el azul del menú se aclaran un poco.
+const ICON_LIFT := Color(1.6, 1.6, 1.7)
 const CARD_TOP := 180.0
 
 var _buttons := {}  # StringName -> Button
@@ -45,12 +50,15 @@ func _ready() -> void:
 		if POSITIONS.has(u.id):
 			_add_node(u.id, POSITIONS[u.id], u.id)
 	var title := Label.new()
-	title.text = tr("UI_SHOP_TITLE")
-	title.position = Vector2(6, 4)
+	title.text = tr("UI_SHOP_TITLE").to_upper()
+	title.position = Vector2(8, 3)
+	title.add_theme_color_override(&"font_color", CHALK)
 	add_child(title)
 	var close := Button.new()
-	close.text = tr("UI_CLOSE")
-	close.position = Vector2(290, 3)
+	close.text = tr("UI_CLOSE_HINT")
+	close.flat = true
+	close.add_theme_color_override(&"font_color", MIST)
+	close.position = Vector2(246, -1)
 	close.focus_mode = FOCUS_NONE
 	close.pressed.connect(close_requested.emit)
 	add_child(close)
@@ -184,33 +192,29 @@ func _parent_of(id: StringName) -> StringName:
 
 func _draw() -> void:
 	draw_rect(Rect2(Vector2.ZERO, size), PANEL)
-	# Marco doble apagado y esquinas marcadas, como una placa vieja atornillada.
-	draw_rect(Rect2(2, 2, size.x - 4, size.y - 4), DIM, false)
-	draw_rect(Rect2(4, 4, size.x - 8, size.y - 8), Color(DIM, 0.5), false)
-	for corner: Vector2 in [Vector2(2, 2), Vector2(size.x - 5, 2), Vector2(2, size.y - 5), Vector2(size.x - 5, size.y - 5)]:
-		draw_rect(Rect2(corner, Vector2(3, 3)), MIST)
-	var card_rect := Rect2(8, CARD_TOP, size.x - 16, size.y - CARD_TOP - 8)
-	draw_rect(card_rect, Color("0d1019"))
-	draw_rect(card_rect, Color(GOLD, 0.35) if _selected != &"" else DIM, false)
-	draw_line(card_rect.position + Vector2(4, 14), Vector2(card_rect.end.x - 4, card_rect.position.y + 14), DIM)
-	var blink := fmod(Time.get_ticks_msec() / 1000.0, 0.8) < 0.5
+	draw_rect(Rect2(0, 0, size.x, 14), BAR)
+	var card_rect := Rect2(0, CARD_TOP, size.x, size.y - CARD_TOP)
+	draw_rect(card_rect, BAR)
+	draw_line(Vector2(0, CARD_TOP), Vector2(size.x, CARD_TOP), Color(MIST, 0.5))
 	for id: StringName in _buttons:
 		var parent := _parent_of(id)
 		if parent != &"" and _buttons.has(parent):
 			var lit := state_of(id) != &"locked"
-			draw_line(_center(parent), _center(id), GOLD if lit else DIM)
+			draw_line(_center(parent), _center(id), Color(CHALK, 0.55) if lit else DIM)
 	var font := get_theme_default_font()
 	for id: StringName in _buttons:
 		var b: Button = _buttons[id]
 		var r := Rect2(b.position, NODE)
 		var state := state_of(id)
-		draw_rect(r.grow(1), Color(0, 0, 0, 0.6))  # sombra
-		draw_rect(r, Color("10142a") if state != &"locked" else Color("090b14"))
-		var border: Color = {&"bought": GREEN, &"affordable": GOLD if blink else CHALK,
-			&"available": CHALK, &"locked": DIM}[state]
+		draw_rect(Rect2(r.position + Vector2(2, 2), r.size), Color(0, 0, 0.1, 0.5))  # sombra dura de OSD
+		draw_rect(r, Color("1d3bb0") if state == &"bought" else TILE)
+		var border: Color = {&"bought": GREEN, &"affordable": CHALK, &"available": Color(CHALK, 0.6),
+			&"locked": DIM}[state]
 		draw_rect(r, border, false)
 		var icon: Texture2D = _icons[id]
-		draw_texture(icon, r.position + Vector2(4, 4), Color(1, 1, 1, 0.25) if state == &"locked" else Color.WHITE)
+		draw_texture(icon, r.position + Vector2(4, 4), Color(1, 1, 1, 0.2) if state == &"locked" else ICON_LIFT)
+		if state == &"affordable":
+			draw_rect(Rect2(r.end - Vector2(4, 4), Vector2(3, 3)), GOLD)  # se puede comprar
 		var count := Game.economy.owned(id)
 		var tag := ""
 		if String(id).ends_with("_x2_10"):
@@ -221,9 +225,11 @@ func _draw() -> void:
 			tag = str(count)
 		if tag != "":
 			# A la derecha del nodo, donde no pasan las ramas.
-			draw_string(font, r.position + Vector2(r.size.x + 2, 9), tag, HORIZONTAL_ALIGNMENT_LEFT, -1, 8, GOLD)
+			draw_string(font, r.position + Vector2(r.size.x + 2, 9), tag, HORIZONTAL_ALIGNMENT_LEFT, -1, 8,
+				CHALK if state != &"locked" else DIM)
 		if b.has_focus() or id == _selected:
 			draw_rect(r.grow(2), GOLD, false)
+			draw_rect(r.grow(3), Color(GOLD, 0.35), false)
 
 
 func _center(id: StringName) -> Vector2:

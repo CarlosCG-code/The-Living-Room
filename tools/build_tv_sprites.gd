@@ -5,14 +5,16 @@ extends SceneTree
 # Paleta fría de 8 bits; cada letra es un color (ver PAL). Todo el arte es propio (sin assets de terceros).
 
 const OUT := "res://assets/textures/tv/"
+# Paleta nocturna: fríos apagados para todo y un único acento cálido (y, o: la luz de la fábrica y la
+# energía). Rojo (e) solo en pilotos diminutos. Todo comparte la misma luz: la luna arriba a la derecha.
 const PAL := {
-	"k": "0b0e1a", "n": "1b2340", "b": "2d3a63", "c": "44558a",
-	"w": "e8f0ff", "s": "a9bde0", "S": "7d92bd",
-	"p": "16302f", "q": "2f5d50", "g": "4f8a6e",
-	"r": "5a2e2e", "R": "8a4b3b", "T": "b06a4f",
-	"y": "ffd36b", "o": "ff8a3d", "e": "e8433b",
-	"m": "3a3f4f", "M": "6b7390", "l": "b6bfd6",
-	"G": "6cf08a", "B": "4aa3ff", "d": "5e3f27", "D": "9a6b40",
+	"k": "07090f", "n": "111830", "b": "1c2747", "c": "2c3a62",
+	"w": "b8c4dc", "s": "6f7f9f", "S": "56658a",
+	"p": "0d1d20", "q": "1a3532", "g": "2b5145",
+	"r": "3a2224", "R": "553331", "T": "70463a",
+	"y": "ffc861", "o": "d9772f", "e": "b8382f",
+	"m": "23273a", "M": "40475e", "l": "7f88a3",
+	"G": "8fd6a0", "B": "5b86c4", "d": "35251a", "D": "57402d",
 }
 
 var _img: Image
