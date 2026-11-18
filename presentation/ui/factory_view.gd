@@ -28,6 +28,8 @@ const LABEL_HOLD := 3.0
 const FACTORY_POS := Vector2(132, 92)
 const RECEPTOR_FEET := Vector2(147, 174)
 const CATCH_SIZE := Vector2(40, 32)
+## Zona de clic del receptor, mucho mayor que su dibujo (26 × 24): al clicar deprisa el ratón se mueve.
+const RECEPTOR_HITBOX := Vector2(64, 52)
 # Por generador: pies de cada hueco (abajo a la izquierda), etiqueta y cable (desde, hasta, caída).
 const LAYOUT := {
 	&"antenna": {"slots": [Vector2(62, 132), Vector2(80, 136), Vector2(98, 132)], "cable": [Vector2(106, 118), Vector2(134, 120), 6.0]},
@@ -95,6 +97,7 @@ func _ready() -> void:
 		_groups[id] = {"machines": machines, "cable": cables[i], "shown": false}
 		i += 1
 	_receptor = _machine(load(TEX + "receptor.png"), RECEPTOR_FEET)
+	_widen_hitbox(_receptor, RECEPTOR_HITBOX)
 
 	_sparks = _particles(Vector2.ZERO, Vector2(3, 3), 48, 0.6, Vector2.ZERO, Color(1.0, 0.95, 0.6))
 	_sparks.name = "Sparks"
@@ -276,7 +279,12 @@ func float_text(at: Vector2, text: String) -> void:
 ## Pulsación desde el teclado: salta el receptor como si se hubiera clicado.
 func press_receptor() -> Vector2:
 	_bounce(_receptor)
-	return _receptor.position + Vector2(_receptor.size.x / 2, 0)
+	return top_of(_receptor)
+
+
+## Centro de la parte de arriba del dibujo (no de la zona de clic, que puede ser mayor).
+func top_of(b: TextureButton) -> Vector2:
+	return b.position + Vector2(b.size.x / 2, (b.size.y - b.texture_normal.get_height()) / 2)
 
 
 func get_group(id: StringName) -> Dictionary:
@@ -302,8 +310,21 @@ func _machine(tex: Texture2D, feet: Vector2) -> TextureButton:
 	b.button_up.connect(func() -> void: hold_changed.emit(false))
 	b.pressed.connect(func() -> void:
 		_bounce(b)
-		machine_pressed.emit(b.position + Vector2(b.size.x / 2, 0)))
+		machine_pressed.emit(top_of(b)))
 	return b
+
+
+## Agranda la zona de clic sin mover ni estirar el dibujo: rectángulo entero, sin máscara de píxeles.
+func _widen_hitbox(b: TextureButton, hit: Vector2) -> void:
+	var tex_size := b.texture_normal.get_size()
+	b.texture_click_mask = null
+	b.ignore_texture_size = true
+	b.stretch_mode = TextureButton.STRETCH_KEEP_CENTERED
+	b.position -= (hit - tex_size) / 2.0
+	b.size = hit
+	b.pivot_offset = Vector2(hit.x / 2.0, (hit.y + tex_size.y) / 2.0)
+	for child in b.get_children():
+		(child as Control).position += (hit - tex_size) / 2.0
 
 
 func _sprite_button(tex: Texture2D, pos: Vector2) -> TextureButton:

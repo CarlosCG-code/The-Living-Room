@@ -10,28 +10,28 @@ const PRESETS := {
 		"shadow_atlas": 1024, "shadow_filter": RenderingServer.SHADOW_QUALITY_HARD, "flashlight_shadow": false,
 		"ssao": false, "ssao_quality": RenderingServer.ENV_SSAO_QUALITY_LOW,
 		"ssil": false, "ssil_quality": RenderingServer.ENV_SSIL_QUALITY_LOW,
-		"probe": false, "taa": false, "fxaa": true, "scale": 0.67,
+		"probe": false, "taa": false, "fxaa": true, "scale": 0.67, "max_height": 720,
 	},
 	&"medium": {
 		"gi": false, "gi_quality": RenderingServer.VOXEL_GI_QUALITY_LOW, "fog": false,
 		"shadow_atlas": 2048, "shadow_filter": RenderingServer.SHADOW_QUALITY_SOFT_LOW, "flashlight_shadow": true,
 		"ssao": true, "ssao_quality": RenderingServer.ENV_SSAO_QUALITY_LOW,
 		"ssil": false, "ssil_quality": RenderingServer.ENV_SSIL_QUALITY_LOW,
-		"probe": true, "taa": false, "fxaa": true, "scale": 0.85,
+		"probe": true, "taa": false, "fxaa": true, "scale": 0.85, "max_height": 900,
 	},
 	&"high": {
 		"gi": true, "gi_quality": RenderingServer.VOXEL_GI_QUALITY_LOW, "fog": true,
 		"shadow_atlas": 4096, "shadow_filter": RenderingServer.SHADOW_QUALITY_SOFT_MEDIUM, "flashlight_shadow": true,
 		"ssao": true, "ssao_quality": RenderingServer.ENV_SSAO_QUALITY_MEDIUM,
 		"ssil": true, "ssil_quality": RenderingServer.ENV_SSIL_QUALITY_MEDIUM,
-		"probe": true, "taa": true, "fxaa": false, "scale": 1.0,
+		"probe": true, "taa": true, "fxaa": false, "scale": 1.0, "max_height": 1080,
 	},
 	&"ultra": {
 		"gi": true, "gi_quality": RenderingServer.VOXEL_GI_QUALITY_HIGH, "fog": true,
 		"shadow_atlas": 8192, "shadow_filter": RenderingServer.SHADOW_QUALITY_SOFT_HIGH, "flashlight_shadow": true,
 		"ssao": true, "ssao_quality": RenderingServer.ENV_SSAO_QUALITY_HIGH,
 		"ssil": true, "ssil_quality": RenderingServer.ENV_SSIL_QUALITY_HIGH,
-		"probe": true, "taa": true, "fxaa": false, "scale": 1.0,
+		"probe": true, "taa": true, "fxaa": false, "scale": 1.0, "max_height": 1440,
 	},
 }
 const AMBIENT_GI_SCALE := 0.4  # con iluminación global, la luz ambiente base se baja (D9)
@@ -56,6 +56,14 @@ func _init(viewport: Viewport, environment: Environment, voxel_gi: VoxelGI, prob
 	_flashlight = flashlight
 	_mixer = mixer
 	_base_exposure = environment.tonemap_exposure if environment else 1.0
+
+
+## Escala del 3D: la del preset, pero sin pasar de max_height filas internas. En un monitor 4K el 3D no se
+## dibuja a 2160 filas: los efectos de pantalla (SSAO, SSIL, TAA) cuestan por píxel y la tele no lo necesita.
+static func render_scale(scale: float, max_height: float, viewport_height: float) -> float:
+	if viewport_height <= 0.0:
+		return scale
+	return clampf(minf(scale, max_height / viewport_height), 0.25, 1.0)
 
 
 func apply_preset(preset: StringName) -> void:
@@ -98,6 +106,6 @@ func _apply() -> void:
 		_viewport.positional_shadow_atlas_size = current["shadow_atlas"]
 		_viewport.use_taa = current["taa"]
 		_viewport.screen_space_aa = Viewport.SCREEN_SPACE_AA_FXAA if current["fxaa"] else Viewport.SCREEN_SPACE_AA_DISABLED
-		var scale: float = current["scale"]
+		var scale := render_scale(current["scale"], current["max_height"], _viewport.get_visible_rect().size.y)
 		_viewport.scaling_3d_mode = Viewport.SCALING_3D_MODE_FSR if scale < 1.0 else Viewport.SCALING_3D_MODE_BILINEAR
 		_viewport.scaling_3d_scale = scale

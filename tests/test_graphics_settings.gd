@@ -79,3 +79,11 @@ func test_set_gi_only_touches_gi() -> void:
 	assert_false(gi.visible)
 	assert_true(env.volumetric_fog_enabled)
 	assert_almost_eq(env.ambient_light_energy, 1.0, 0.001)
+
+
+func test_render_scale_caps_internal_height() -> void:
+	assert_almost_eq(GraphicsSettings.render_scale(1.0, 1440, 2160), 1440.0 / 2160.0, 0.0001, "alto en 4K: 1440 filas")
+	assert_almost_eq(GraphicsSettings.render_scale(1.0, 1440, 1080), 1.0, 0.0001, "en 1080p no se escala")
+	assert_almost_eq(GraphicsSettings.render_scale(0.85, 1080, 1080), 0.85, 0.0001, "manda la escala del preset si es menor")
+	assert_almost_eq(GraphicsSettings.render_scale(1.0, 720, 0), 1.0, 0.0001, "sin tamaño de ventana, sin cambios")
+	assert_almost_eq(GraphicsSettings.render_scale(1.0, 100, 4320), 0.25, 0.0001, "nunca por debajo de 0,25")

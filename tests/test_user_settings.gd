@@ -11,7 +11,7 @@ func test_missing_file_gives_defaults() -> void:
 	var s := UserSettings.load_from(PATH)
 	assert_eq(s.quality, &"medium")
 	assert_false(s.fullscreen)
-	assert_almost_eq(s.volume, 0.8, 0.0001)
+	assert_almost_eq(s.volume, 0.25, 0.0001)
 	assert_almost_eq(s.crt, 1.0, 0.0001)
 
 

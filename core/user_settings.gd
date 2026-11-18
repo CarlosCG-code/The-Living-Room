@@ -10,8 +10,8 @@ const SECTION := "settings"
 
 var quality: StringName = &"medium"
 var fullscreen := false
-## Volumen general, 0–1.
-var volume := 0.8
+## Volumen general, 0–1. Bajo por defecto: la primera vez no debe sonar fuerte.
+var volume := 0.25
 ## Intensidad del filtro CRT/VHS de la tele, 0–1 (0 = imagen limpia).
 var crt := 1.0
 

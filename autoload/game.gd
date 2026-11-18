@@ -31,9 +31,9 @@ func _ready() -> void:
 
 ## Aplica lo global (pantalla, volumen) y avisa a las escenas (calidad, filtro de la tele).
 func apply_settings() -> void:
-	if DisplayServer.get_name() != "headless":
-		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN if settings.fullscreen
-				else DisplayServer.WINDOW_MODE_WINDOWED)
+	var mode := DisplayServer.WINDOW_MODE_FULLSCREEN if settings.fullscreen else DisplayServer.WINDOW_MODE_WINDOWED
+	if DisplayServer.get_name() != "headless" and DisplayServer.window_get_mode() != mode:
+		DisplayServer.window_set_mode(mode)
 	AudioServer.set_bus_volume_db(0, linear_to_db(settings.volume))
 	EventBus.settings_changed.emit()
 

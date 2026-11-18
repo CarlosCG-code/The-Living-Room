@@ -166,7 +166,10 @@ func _button(parent: Container, text: String, action: Callable) -> Button:
 	b.add_theme_color_override(&"font_color", DIM)
 	b.size_flags_horizontal = SIZE_SHRINK_CENTER
 	b.pressed.connect(action)
-	# El ratón también mueve el foco: nunca hay dos botones marcados a la vez.
-	b.mouse_entered.connect(b.grab_focus)
+	# El ratón mueve el foco solo cuando se mueve de verdad: al cambiar un ajuste, el texto y la tele se
+	# redibujan y Godot puede mandar un «ratón entra» falso que se llevaba el foco a otra fila.
+	b.gui_input.connect(func(event: InputEvent) -> void:
+		if event is InputEventMouseMotion and (event as InputEventMouseMotion).relative != Vector2.ZERO and not b.has_focus():
+			b.grab_focus())
 	parent.add_child(b)
 	return b

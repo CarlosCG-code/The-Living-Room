@@ -33,6 +33,8 @@ func _ready() -> void:
 	var preset := _dev("TLR_PRESET")
 	settings.apply_preset(StringName(preset) if preset in ["low", "medium", "high", "ultra"] else Game.settings.quality)
 	EventBus.settings_changed.connect(func() -> void: settings.apply_preset(Game.settings.quality))
+	# Al pasar a pantalla completa (o cambiar la ventana) se recalcula la resolución interna del 3D.
+	get_viewport().size_changed.connect(func() -> void: settings.apply_preset(settings.current["preset"]))
 	if _dev("TLR_GI") == "0":
 		settings.set_gi(false)
 	tv.screen_state_changed.connect(mixer.set_tv_state)

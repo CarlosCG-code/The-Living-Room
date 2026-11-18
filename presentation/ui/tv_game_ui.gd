@@ -47,7 +47,7 @@ func _process(_delta: float) -> void:
 		eco.can_restart(), not _tree.visible and _has_affordable(eco))
 	if not _hinted and state.energy_produced_run == 0.0:
 		_hinted = true
-		_factory.float_text(_factory.get_receptor().position + Vector2(13, -2), tr("UI_HINT_CLICK"))
+		_factory.float_text(_factory.top_of(_factory.get_receptor()), tr("UI_HINT_CLICK"))
 
 
 func _unhandled_input(event: InputEvent) -> void:
