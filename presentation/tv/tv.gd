@@ -6,6 +6,7 @@ signal screen_state_changed(state: StringName)
 
 const SCREEN_SIZE := Vector2(0.52, 0.39)
 const SCREEN_SHADER := preload("res://presentation/tv/tv_screen.gdshader")
+const SCREEN_LAYER := 2  # capa de render 2: la del cristal
 
 ## Lo que se ve en la pantalla: el incremental en el salón, el menú en el menú principal.
 @export var ui_scene: PackedScene = preload("res://presentation/ui/tv_game_ui.tscn")
@@ -32,6 +33,9 @@ func _ready() -> void:
 	_material.shader = SCREEN_SHADER
 	_material.set_shader_parameter(&"screen_tex", _subviewport.get_texture())
 	_screen.material_override = _material
+	# La luz de la pantalla está delante del cristal: si lo iluminara, dejaría una mancha en el centro.
+	_screen.layers = SCREEN_LAYER
+	_screen_light.light_cull_mask &= ~SCREEN_LAYER
 	_input.setup(_subviewport, _screen, SCREEN_SIZE)
 	EventBus.settings_changed.connect(_apply_settings)
 	_apply_settings()

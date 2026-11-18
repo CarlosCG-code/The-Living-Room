@@ -1,22 +1,40 @@
 shader_type spatial;
-// Pantalla de la tele: la imagen del SubViewport con emisión, viñeta y un filtro CRT/VHS barato
-// (líneas de barrido, color corrido, grano y una franja de tracking que baja despacio). Sin curvar:
-// la curvatura desviaría los clics (specs/hito2.md D5). Filtro sin suavizar: píxeles retro (D19).
-render_mode unshaded, cull_back;
+// Pantalla y cristal de la tele en un solo mesh opaco y con luz:
+// - la imagen del SubViewport es emisión (con líneas de barrido, color corrido, grano y franja VHS);
+// - el cristal es la superficie: el motor pone el Fresnel, el brillo de la lámpara y el reflejo de la sonda;
+// - el abombado del cristal solo está en la normal: la malla es plana y los clics no cambian (D5).
+// Sin curvar la imagen (D5). Muestreo «sharp bilinear»: píxeles nítidos a cualquier escala, sin escalera (D19).
+render_mode cull_back;
 
-uniform sampler2D screen_tex : source_color, filter_nearest;
-uniform float brightness = 1.3;
+uniform sampler2D screen_tex : source_color, filter_linear, repeat_disable;
+uniform vec2 source_size = vec2(320.0, 240.0);
+uniform float brightness = 1.15;
 uniform float vignette = 0.35;
 // 0 = imagen limpia; 1 = filtro completo. Ajuste de accesibilidad y de calidad.
 uniform float crt = 1.0;
-uniform vec2 source_size = vec2(320.0, 240.0);
+uniform float edge_shadow = 0.025;  // sombra del marco sobre la imagen, en fracción de pantalla
+uniform vec2 screen_half_m = vec2(0.26, 0.195);
+uniform float glass_radius_m = 1.0;  // radio de la cara del tubo (un 14" anda entre 0,8 y 1,5 m)
+uniform vec3 glass_tint : source_color = vec3(0.05, 0.055, 0.06);
+uniform float glass_roughness = 0.22;
+// Fuerza del reflejo: 0,5 es vidrio real (F0 = 0,04); más bajo, el reflejo no lava la imagen.
+uniform float glass_specular = 0.18;  // medido en capturas: más alto, la lámpara parecía un sol en el cielo
 
 float hash(vec2 p) {
 	return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
 }
 
+// Solo se interpola en el píxel de pantalla que cae en el borde de cada texel.
+vec3 sharp(vec2 uv) {
+	vec2 px = uv * source_size;
+	vec2 seam = floor(px + 0.5);
+	px = seam + clamp((px - seam) / max(fwidth(px), vec2(1e-5)), -0.5, 0.5);
+	return texture(screen_tex, px / source_size).rgb;
+}
+
 void fragment() {
 	vec2 uv = UV;
+	vec2 c = UV * 2.0 - 1.0;
 	vec2 texel = 1.0 / source_size;
 
 	// Franja de tracking VHS: baja cada ~11 s y tuerce un poco las filas que pisa.
@@ -27,20 +45,29 @@ void fragment() {
 
 	// Color corrido: rojo y azul se separan menos de un píxel; se ve en los bordes.
 	float shift = texel.x * 0.6 * crt;
-	vec3 color = vec3(
-		texture(screen_tex, uv + vec2(shift, 0.0)).r,
-		texture(screen_tex, uv).g,
-		texture(screen_tex, uv - vec2(shift, 0.0)).b);
+	vec3 color = vec3(sharp(uv + vec2(shift, 0.0)).r, sharp(uv).g, sharp(uv - vec2(shift, 0.0)).b);
 
-	// Líneas de barrido: una por fila de la imagen de 320 × 240.
-	float line = 0.5 + 0.5 * cos(fract(UV.y * source_size.y) * 6.2832);
-	color *= mix(1.0, 0.72 + 0.28 * (1.0 - line), crt);
+	// Líneas de barrido, una por fila de la imagen; por debajo de ~2 px por línea harían moiré y se apagan.
+	float line_px = 1.0 / max(fwidth(uv.y) * source_size.y, 1e-5);
+	float line = 0.5 + 0.5 * cos(fract(uv.y * source_size.y) * 6.2832);
+	color *= mix(1.0, 0.72 + 0.28 * (1.0 - line), smoothstep(2.0, 3.5, line_px) * crt);
 
-	// Grano que cambia 24 veces por segundo y la franja un poco más clara.
-	float grain = hash(floor(UV * source_size * 2.0) + floor(TIME * 24.0)) - 0.5;
-	color += (grain * 0.05 + band * 0.06) * crt;
+	// Grano: solo oscurece (si aclarara, los negros se volverían grises). Una celda por píxel de la imagen.
+	float grain = hash(floor(uv * source_size) + floor(TIME * 24.0));
+	color *= 1.0 - grain * 0.12 * crt;
+	color += band * 0.04;
 
-	vec2 d = UV - vec2(0.5);
-	float v = 1.0 - vignette * dot(d, d) * 4.0;
-	ALBEDO = max(color, vec3(0.0)) * brightness * v;
+	// Sombra del marco: la imagen se hunde un poco bajo el borde de plástico.
+	vec2 edge = min(UV, 1.0 - UV);
+	float shadow = smoothstep(0.0, edge_shadow, min(edge.x, edge.y * 0.75));
+	float v = 1.0 - vignette * dot(c, c);
+	EMISSION = max(color, vec3(0.0)) * brightness * v * shadow;
+
+	// Cristal convexo: normal de una esfera de radio glass_radius_m.
+	vec2 slope = c * screen_half_m / glass_radius_m;
+	NORMAL_MAP = vec3(slope * vec2(0.5, -0.5) + 0.5, 1.0);
+	ROUGHNESS = glass_roughness;
+	SPECULAR = glass_specular;
+	METALLIC = 0.0;
+	ALBEDO = glass_tint;
 }

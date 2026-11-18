@@ -10,28 +10,28 @@ const PRESETS := {
 		"shadow_atlas": 1024, "shadow_filter": RenderingServer.SHADOW_QUALITY_HARD, "flashlight_shadow": false,
 		"ssao": false, "ssao_quality": RenderingServer.ENV_SSAO_QUALITY_LOW,
 		"ssil": false, "ssil_quality": RenderingServer.ENV_SSIL_QUALITY_LOW,
-		"probe": false, "taa": false, "fxaa": true, "scale": 0.67, "max_height": 720,
+		"probe": true, "taa": false, "fxaa": true, "scale": 0.67, "max_height": 720, "glow": false,
 	},
 	&"medium": {
 		"gi": false, "gi_quality": RenderingServer.VOXEL_GI_QUALITY_LOW, "fog": false,
 		"shadow_atlas": 2048, "shadow_filter": RenderingServer.SHADOW_QUALITY_SOFT_LOW, "flashlight_shadow": true,
 		"ssao": true, "ssao_quality": RenderingServer.ENV_SSAO_QUALITY_LOW,
 		"ssil": false, "ssil_quality": RenderingServer.ENV_SSIL_QUALITY_LOW,
-		"probe": true, "taa": false, "fxaa": true, "scale": 0.85, "max_height": 900,
+		"probe": true, "taa": false, "fxaa": true, "scale": 0.85, "max_height": 900, "glow": true,
 	},
 	&"high": {
 		"gi": true, "gi_quality": RenderingServer.VOXEL_GI_QUALITY_LOW, "fog": true,
 		"shadow_atlas": 4096, "shadow_filter": RenderingServer.SHADOW_QUALITY_SOFT_MEDIUM, "flashlight_shadow": true,
 		"ssao": true, "ssao_quality": RenderingServer.ENV_SSAO_QUALITY_MEDIUM,
 		"ssil": true, "ssil_quality": RenderingServer.ENV_SSIL_QUALITY_MEDIUM,
-		"probe": true, "taa": true, "fxaa": false, "scale": 1.0, "max_height": 1080,
+		"probe": true, "taa": true, "fxaa": false, "scale": 1.0, "max_height": 1080, "glow": true,
 	},
 	&"ultra": {
 		"gi": true, "gi_quality": RenderingServer.VOXEL_GI_QUALITY_HIGH, "fog": true,
 		"shadow_atlas": 8192, "shadow_filter": RenderingServer.SHADOW_QUALITY_SOFT_HIGH, "flashlight_shadow": true,
 		"ssao": true, "ssao_quality": RenderingServer.ENV_SSAO_QUALITY_HIGH,
 		"ssil": true, "ssil_quality": RenderingServer.ENV_SSIL_QUALITY_HIGH,
-		"probe": true, "taa": true, "fxaa": false, "scale": 1.0, "max_height": 1440,
+		"probe": true, "taa": true, "fxaa": false, "scale": 1.0, "max_height": 1440, "glow": true,
 	},
 }
 const AMBIENT_GI_SCALE := 0.4  # con iluminación global, la luz ambiente base se baja (D9)
@@ -94,6 +94,8 @@ func _apply() -> void:
 		_environment.volumetric_fog_enabled = current["fog"]
 		_environment.ssao_enabled = current["ssao"]
 		_environment.ssil_enabled = current["ssil"]
+		# Halo de la pantalla sobre el marco y la pared (niveles en living_room.tscn); barato, fuera en bajo.
+		_environment.glow_enabled = current["glow"]
 		_environment.tonemap_exposure = _base_exposure * float(current["brightness"])
 	RenderingServer.environment_set_ssao_quality(current["ssao_quality"], current["ssao_quality"] == RenderingServer.ENV_SSAO_QUALITY_LOW, 0.5, 2, 50.0, 300.0)
 	RenderingServer.environment_set_ssil_quality(current["ssil_quality"], current["ssil_quality"] == RenderingServer.ENV_SSIL_QUALITY_LOW, 0.5, 4, 50.0, 300.0)

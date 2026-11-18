@@ -30,7 +30,7 @@ func test_low() -> void:
 	assert_false(env.volumetric_fog_enabled)
 	assert_false(env.ssao_enabled)
 	assert_false(env.ssil_enabled)
-	assert_false(probe.visible)
+	assert_true(probe.visible, "la sonda es el reflejo del cristal: barata, en todos los presets")
 	assert_false(flashlight.shadow_enabled)
 	assert_eq(viewport.positional_shadow_atlas_size, 1024)
 	assert_eq(viewport.screen_space_aa, Viewport.SCREEN_SPACE_AA_FXAA)
