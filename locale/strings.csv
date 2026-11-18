@@ -63,13 +63,13 @@ UI_CLOSE_HINT,Esc  Salir
 PERK_HANDS,Tus manos
 PERK_HANDS_DESC,La racha aguanta 3 s y cada crítico llena parte de la barra de cintas.
 PERK_MEMORY,Tu memoria
-PERK_MEMORY_DESC,"Empiezas con 10 Antenas, 5 Válvulas, Pulso y Dial firme."
+PERK_MEMORY_DESC,"Empiezas con 15 Antenas, 10 Válvulas, 5 Frecuencias y las primeras mejoras."
 PERK_HABIT,Tu costumbre
-PERK_HABIT_DESC,Máquinas un 25 % más baratas; sus mejoras piden la mitad.
+PERK_HABIT_DESC,Máquinas un 35 % más baratas; sus mejoras piden la mitad.
 PERK_PULSE,Tu pulso
-PERK_PULSE_DESC,Tu clic a mano vale el doble.
+PERK_PULSE_DESC,Tu clic vale un 40 % más.
 PERK_NAME,Tu nombre
-PERK_NAME_DESC,La tele aprende cómo te llamas.
+PERK_NAME_DESC,Todo rinde un 20 % más. La tele aprende cómo te llamas.
 UI_CARGA_TITLE,Reinicio
 UI_CARGA,Carga: %d
 UI_CARGA_COST,%d de Carga
@@ -136,3 +136,5 @@ UI_EFFECT_CRIT_MULT,Crítico: ×%s → ×%s
 UI_EFFECT_COMBO,Racha máxima: ×%s → ×%s
 UI_EFFECT_SKILL,Dura %s s · espera %s s
 UI_EFFECT_PROD,Producción: %s → %s
+OSD_NEXT_CARGA,+1 de Carga a %s
+UI_CARGA_HELP,"Reiniciar da Carga: 3 al llegar, más cuanto más esperes."

@@ -793,8 +793,8 @@ name_key = "PERK_MEMORY"
 desc_key = "PERK_MEMORY_DESC"
 cost = 2
 kind = 1
-upgrade_ids = Array[StringName]([&"pulse", &"dial_hold"])
-generators = {&"antenna": 10, &"valves": 5}
+upgrade_ids = Array[StringName]([&"pulse", &"dial_hold", &"bare_cable", &"antenna_tune"])
+generators = {&"antenna": 15, &"valves": 10, &"audio_frequency": 5}
 
 [sub_resource type="Resource" id="perk_hands"]
 script = ExtResource("perk_script")
@@ -804,7 +804,7 @@ desc_key = "PERK_HANDS_DESC"
 cost = 2
 kind = 5
 value = 3.0
-value2 = 0.2
+value2 = 0.03
 
 [sub_resource type="Resource" id="perk_eyes"]
 script = ExtResource("perk_script")
@@ -823,7 +823,7 @@ name_key = "PERK_HABIT"
 desc_key = "PERK_HABIT_DESC"
 cost = 3
 kind = 2
-value = 0.75
+value = 0.65
 value2 = 0.5
 
 [sub_resource type="Resource" id="perk_pulse"]
@@ -833,7 +833,7 @@ name_key = "PERK_PULSE"
 desc_key = "PERK_PULSE_DESC"
 cost = 3
 kind = 3
-value = 2.0
+value = 1.4
 
 [sub_resource type="Resource" id="perk_name"]
 script = ExtResource("perk_script")
@@ -842,6 +842,7 @@ name_key = "PERK_NAME"
 desc_key = "PERK_NAME_DESC"
 cost = 4
 kind = 7
+value = 1.2
 
 [sub_resource type="Resource" id="evt_interference"]
 script = ExtResource("evt_script")

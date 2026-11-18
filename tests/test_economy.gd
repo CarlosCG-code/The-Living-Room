@@ -506,3 +506,12 @@ func test_hold_fills_bar_at_half_and_uses_combo() -> void:
 	eco.tick(1.0, true)
 	assert_almost_eq(eco.state.energy - e0, 4.0 * 1.5, 0.0001, "mantener: racha llena, sin crítico")
 	assert_almost_eq(eco.state.package_bar, 2.0, 0.0001, "4 clics × 0,5")
+
+
+func test_next_carga_at_gives_one_more() -> void:
+	eco.state.energy_produced_run = 1000  # umbral: 3
+	var next := eco.next_carga_at()
+	eco.state.energy_produced_run = next - 1.0
+	assert_eq(eco.carga_if_restarted(), 3)
+	eco.state.energy_produced_run = next + 1.0
+	assert_eq(eco.carga_if_restarted(), 4, "a esa Energía, un punto más")

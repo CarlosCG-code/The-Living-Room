@@ -233,12 +233,24 @@ func restart() -> bool:
 func carga_if_restarted() -> int:
 	if not can_restart():
 		return 0
+	return int(floorf(config.carga_base * sqrt(state.energy_produced_run / config.threshold))) + _carga_bonus()
+
+
+## Energía producida en la run a la que reiniciar daría un punto más de Carga (INF si aún no se puede).
+func next_carga_at() -> float:
+	if not can_restart():
+		return INF
+	var base := carga_if_restarted() - _carga_bonus() + 1
+	return config.threshold * pow(base / config.carga_base, 2.0)
+
+
+func _carga_bonus() -> int:
 	var bonus := 0
 	for id in state.perks:
 		var p := config.find_perk(id)
 		if p and p.kind == PerkDef.Kind.CARGA_BONUS:
 			bonus += int(p.value)
-	return int(floorf(config.carga_base * sqrt(state.energy_produced_run / config.threshold))) + bonus
+	return bonus
 
 
 ## Las permanentes se compran en cualquier orden, con Carga suficiente. Lo que da al empezar la run se da ya.
@@ -606,6 +618,9 @@ func _recalc() -> void:
 				m.crit_bar_fill = p.value2
 			PerkDef.Kind.EVENT_BOOST:
 				m.eyes = p
+			PerkDef.Kind.NAME:
+				m.prod_mult *= p.value
+				m.click_mult *= p.value
 	for id in state.upgrades:
 		var u := config.find_upgrade(id)
 		if u != null:

@@ -58,6 +58,7 @@ var _hint: Label
 var _event_layer: Node2D
 var _marker: Node2D
 var _tapes: Array[TextureButton] = []
+var _click_sparks: CPUParticles2D
 var _vignette: TextureRect
 var _event_id: StringName = &""
 var _event_t := 0.0
@@ -120,6 +121,17 @@ func _ready() -> void:
 	_sparks.scale_amount_max = 2.0
 	_sparks.preprocess = 0.0
 	add_child(_sparks)
+	_click_sparks = _particles(Vector2.ZERO, Vector2(1, 1), 4, 0.35, Vector2.ZERO, Color(1.0, 0.85, 0.5))
+	_click_sparks.one_shot = true
+	_click_sparks.explosiveness = 1.0
+	_click_sparks.emitting = false
+	_click_sparks.preprocess = 0.0
+	_click_sparks.direction = Vector2.UP
+	_click_sparks.spread = 70.0
+	_click_sparks.initial_velocity_min = 25.0
+	_click_sparks.initial_velocity_max = 50.0
+	_click_sparks.gravity = Vector2(0, 160)
+	add_child(_click_sparks)
 	_catch = Button.new()
 	_catch.name = "Catch"
 	_catch.flat = true
@@ -356,12 +368,30 @@ func get_tape(slot: int) -> TextureButton:
 
 
 ## Número que sube y se desvanece donde se ha clicado.
-func float_text(at: Vector2, text: String) -> void:
-	var label := _label(text, (at + Vector2(-8, -14)).round(), OSD_TEXT)
-	var tween := label.create_tween().set_parallel()
-	tween.tween_property(label, "position:y", label.position.y - 14, 0.7)
-	tween.tween_property(label, "modulate:a", 0.0, 0.7)
+## Número que salta donde se ha clicado: un poco desviado para que no se tapen; el crítico, el doble de
+## grande, en ámbar, y se queda un instante antes de subir.
+func float_text(at: Vector2, text: String, crit: bool = false) -> void:
+	var offset := Vector2(randi_range(-6, 6), 0)
+	var label := _label(text, (at + offset + Vector2(-8, -14)).round(), FactoryCable.PULSE if crit else OSD_TEXT)
+	if crit:
+		label.add_theme_font_size_override(&"font_size", 16)
+		label.position.y -= 8
+	var rise := 10.0 if crit else 12.0
+	var tween := label.create_tween()
+	if crit:
+		tween.tween_interval(0.12)
+	tween.set_parallel()
+	tween.tween_property(label, "position:y", label.position.y - rise, 0.6).set_trans(Tween.TRANS_CUBIC) \
+		.set_ease(Tween.EASE_OUT)
+	tween.tween_property(label, "modulate:a", 0.0, 0.2).set_delay(0.4)
 	tween.chain().tween_callback(label.queue_free)
+
+
+## Chispas sueltas al clicar (más en un crítico).
+func click_burst(at: Vector2, crit: bool = false) -> void:
+	_click_sparks.position = at
+	_click_sparks.amount = 10 if crit else 4
+	_click_sparks.restart()
 
 
 ## Pulsación desde el teclado: salta el receptor como si se hubiera clicado.

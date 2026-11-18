@@ -11,7 +11,7 @@ enum Kind {
 	CARGA_BONUS,
 	COMBO_GRACE,  ## la racha aguanta value s; cada crítico llena value2 de la barra de cinta
 	EVENT_BOOST,  ## eventos cada value–value2 s, avisados; atrapar uno sube un grado la siguiente cinta
-	NAME,  ## tu nombre en el OSD y en las cintas (lore)
+	NAME,  ## producción y clics × value; tu nombre en el OSD y en las cintas (lore)
 }
 
 @export var id: StringName

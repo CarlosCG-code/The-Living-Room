@@ -16,7 +16,8 @@ const NOTICE_TIME := 3.0
 const BAR_SEGMENTS := 20
 ## Habilidades del mando en orden de tecla (1-4) e icono de cada una.
 const SKILLS: Array[StringName] = [&"sweep", &"surge", &"seek", &"overload"]
-const SKILL_ROW := Vector2(246, 196)
+## Arriba a la izquierda, bajo la barra de cintas: abajo a la derecha pisaba los sintonizadores.
+const SKILL_ROW := Vector2(14, 50)
 
 var _energy: Label
 var _energy_caption: Label
@@ -72,21 +73,25 @@ func _ready() -> void:
 	_restart.focus_mode = FOCUS_NONE
 	_restart.flat = true
 	_restart.add_theme_color_override(&"font_color", AMBER)
-	_restart.position = Vector2(118, 214)
+	_restart.position = Vector2(150, 211)
 	_restart.visible = false
 	_restart.pressed.connect(restart_pressed.emit)
 	add_child(_restart)
 
 
-## restart_carga: Carga que daría reiniciar ya, o -1 si aún no se puede.
+## restart_carga: Carga que daría reiniciar ya, o -1 si aún no se puede; next_carga: Energía para una más.
 func show_values(energy: String, per_second: String, per_click: String, progress: float, restart_carga: int,
-		shop_ready: bool) -> void:
+		shop_ready: bool, next_carga: String = "") -> void:
 	_energy.text = energy
 	_rates.text = "%s  ·  %s" % [per_second, tr("OSD_PER_CLICK") % per_click]
 	_progress = clampf(progress, 0.0, 1.0)
 	_restart.visible = restart_carga >= 0
 	if restart_carga >= 0:
 		_restart.text = tr("UI_RESTART_CONFIRM") % restart_carga
+		# Esperar da más Carga: se dice cuánto falta para la siguiente.
+		_restart_caption.text = tr("OSD_NEXT_CARGA") % next_carga
+	else:
+		_restart_caption.text = tr("OSD_RESTART")
 	# Parpadeo de OSD: encendido y apagado secos, no un fundido.
 	_prompt.visible = shop_ready and fmod(Time.get_ticks_msec() / 1000.0, 1.2) < 0.8
 	queue_redraw()

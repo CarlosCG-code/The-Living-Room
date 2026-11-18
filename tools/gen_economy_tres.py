@@ -84,12 +84,13 @@ UPGRADES = [
 # Mejoras permanentes (specs/incremental_v2.md §4), en cualquier orden: id, clave, coste, PerkDef.Kind, datos.
 PERKS = [
     ("memory", "PERK_MEMORY", 2, 1,
-     'upgrade_ids = Array[StringName]([&"pulse", &"dial_hold"])\ngenerators = {&"antenna": 10, &"valves": 5}'),
-    ("hands", "PERK_HANDS", 2, 5, "value = 3.0\nvalue2 = 0.2"),
+     'upgrade_ids = Array[StringName]([&"pulse", &"dial_hold", &"bare_cable", &"antenna_tune"])\n'
+     'generators = {&"antenna": 15, &"valves": 10, &"audio_frequency": 5}'),
+    ("hands", "PERK_HANDS", 2, 5, "value = 3.0\nvalue2 = 0.03"),
     ("eyes", "PERK_EYES", 3, 6, "value = 60.0\nvalue2 = 120.0"),
-    ("habit", "PERK_HABIT", 3, 2, "value = 0.75\nvalue2 = 0.5"),
-    ("pulse", "PERK_PULSE", 3, 3, "value = 2.0"),
-    ("name", "PERK_NAME", 4, 7, ""),
+    ("habit", "PERK_HABIT", 3, 2, "value = 0.65\nvalue2 = 0.5"),
+    ("pulse", "PERK_PULSE", 3, 3, "value = 1.4"),
+    ("name", "PERK_NAME", 4, 7, "value = 1.2"),
 ]
 
 # Eventos de la tele: id, peso, duración (s), recompensa (s de ingresos, clics mínimos), multiplicador.

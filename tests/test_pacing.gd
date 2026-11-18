@@ -83,10 +83,27 @@ func test_pacing_ranges() -> void:
 	assert_gt(gap, 180.0, "el activo llega al menos 3 min antes (%.1f min)" % (gap / 60.0))
 
 
+func test_every_perk_shortens_run_2() -> void:
+	# Cada permanente tiene que notarse en la run siguiente, sin romperla (specs/incremental_v2.md §4).
+	var base: float = _simulate(6.0, false, true)["threshold"]
+	for p in config.perks:
+		var t: float = _simulate(6.0, false, true, [p.id])["threshold"]
+		gut.p("RUN2 [%s] %.1f min (sin permanentes: %.1f)" % [p.id, t / 60.0, base / 60.0])
+		assert_lt(t, base * 0.95, "%s acorta la run al menos un 5 %%" % p.id)
+	var all := config.perks.map(func(p: PerkDef) -> StringName: return p.id)
+	var t_all: float = _simulate(6.0, false, true, all)["threshold"]
+	assert_between(t_all / 60.0, 9.0, 18.0, "con todas, la run 4 dura cerca de 15 min (%.1f)" % (t_all / 60.0))
+
+
 # --- Simulador ---
 
-func _simulate(manual_cps: float, tranquil: bool, catch_interferences: bool) -> Dictionary:
+func _simulate(manual_cps: float, tranquil: bool, catch_interferences: bool, perks: Array = []) -> Dictionary:
 	var eco := Economy.new(config, null, 1)
+	if not perks.is_empty():
+		eco.state.run_index = 2
+		eco.state.carga = 99
+		for p in perks:
+			eco.buy_perk(p)
 	var t := 0.0
 	var acc := 0.0
 	var purchases: Array[float] = []

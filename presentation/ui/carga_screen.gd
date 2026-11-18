@@ -24,6 +24,8 @@ func _ready() -> void:
 	_carga = _label("", Vector2(160, 3), UpgradeTree.GOLD)
 	_carga.size.x = 152
 	_carga.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	var help := _label(tr("UI_CARGA_HELP"), Vector2(8, 17), UpgradeTree.MIST)
+	help.size = Vector2(304, 12)
 	var y := ROW_TOP
 	for p in Game.economy.config.perks:
 		var b := Button.new()

@@ -15,6 +15,10 @@ const CHANNEL_CHANGE := 0.4  # segundos de nieve al cambiar de canal
 @onready var _tree: UpgradeTree = $UpgradeTree
 @onready var _purchase_sound: AudioStreamPlayer = $PurchaseSound
 
+const CLICK_SOUND := preload("res://assets/audio/tv/click_relay.wav")
+var _click_sound: AudioStreamPlayer
+var _shake: Tween
+
 var _menu: MainMenuUI
 var _pause: MainMenuUI
 var _static: ColorRect
@@ -43,7 +47,14 @@ func _ready() -> void:
 			event_sound.play())
 	_tree.buy_requested.connect(Game.buy)
 	_tree.close_requested.connect(_close_shop)
-	EventBus.purchase_made.connect(func(_id: StringName) -> void: _purchase_sound.play())
+	EventBus.purchase_made.connect(func(_id: StringName) -> void:
+		_purchase_sound.play()
+		shake(2))
+	_click_sound = AudioStreamPlayer.new()
+	_click_sound.stream = CLICK_SOUND
+	_click_sound.volume_db = -10.0
+	_click_sound.max_polyphony = 4
+	add_child(_click_sound)
 	_carga = CargaScreen.new()
 	_carga.hide()
 	add_child(_carga)
@@ -127,7 +138,8 @@ func _process(_delta: float) -> void:
 	var state := eco.state
 	_osd.show_values(NumberFormat.energy(state.energy), NumberFormat.rate(eco.production_per_second()),
 		NumberFormat.per_click(eco.click_value()), state.energy_produced_run / eco.config.threshold,
-		eco.carga_if_restarted() if eco.can_restart() else -1, not _tree.visible and _has_affordable(eco))
+		eco.carga_if_restarted() if eco.can_restart() else -1, not _tree.visible and _has_affordable(eco),
+		NumberFormat.energy(eco.next_carga_at()) if eco.can_restart() else "")
 	var skills := {}
 	for skill: StringName in TvOsd.SKILLS:
 		if eco.has_skill(skill):
@@ -170,7 +182,8 @@ func _open_package(slot: int) -> void:
 			var amount := Game.open_package(i)
 			var at := _factory.get_tape(slot).position + Vector2(12, 0)
 			var text := ("×%d" % int(Game.economy.config.black_mult)) if rarity == Economy.Rarity.BLACK 				else "+" + NumberFormat.energy(amount)
-			_factory.float_text(at, text)
+			_factory.float_text(at, text, rarity != Economy.Rarity.COMMON)
+			shake(3 if rarity == Economy.Rarity.BLACK else 2)
 			return
 
 
@@ -189,9 +202,30 @@ func is_restarting() -> bool:
 
 func _click(at: Vector2) -> void:
 	_osd.hide_intro()
-	if not Game.click():
+	var amount := Game.click()
+	if amount <= 0.0:
 		return  # por encima del tope de clics por segundo: no cuenta ni se ve
-	_factory.float_text(at, "+" + NumberFormat.per_click(Game.economy.click_value()))
+	# Lo ganado de verdad (con Tu pulso, racha y crítico), no el valor base del clic.
+	var crit := Game.economy.last_click_crit
+	_factory.float_text(at, "+" + NumberFormat.per_click(amount), crit)
+	_factory.click_burst(at + Vector2(0, 6), crit)
+	# Relé: el tono varía un poco en cada clic y sube con la racha; el crítico suena más grave.
+	_click_sound.pitch_scale = (0.8 if crit else 1.0) * randf_range(0.94, 1.06) * (1.0 + 0.12 * Game.economy.combo_fraction())
+	_click_sound.play()
+	if crit:
+		shake(1)
+
+
+## Sacude la imagen de la tele px píxeles enteros un instante (compras, críticos, cintas). Solo la imagen:
+## la cámara no se mueve.
+func shake(px: int) -> void:
+	if _shake:
+		_shake.kill()
+	position = Vector2.ZERO
+	_shake = create_tween()
+	for i in 3:
+		_shake.tween_property(self, "position", Vector2(randi_range(-px, px), randi_range(-px, px)), 0.04)
+	_shake.tween_property(self, "position", Vector2.ZERO, 0.04)
 
 
 ## Esc durante la partida: la partida se para y la tele muestra el menú de pausa.

@@ -86,7 +86,21 @@ def clear_signal():
     return out
 
 
+def click_relay():
+    # Relé mecánico seco: un chasquido de ruido muy corto y un golpe grave que se apaga en 60 ms.
+    rng = random.Random(3)
+    n = int(RATE * 0.07)
+    out = []
+    for i in range(n):
+        t = i / RATE
+        snap = rng.uniform(-1, 1) * math.exp(-t * 400)
+        body = math.sin(2 * math.pi * 180 * t) * math.exp(-t * 60) * 0.6
+        out.append(snap + body)
+    return out
+
+
 if __name__ == "__main__":
+    save("click_relay", click_relay())
     save("event_interference", interference())
     save("event_shooting_star", shooting_star())
     save("event_silhouette", silhouette())
