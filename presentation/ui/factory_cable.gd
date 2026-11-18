@@ -14,6 +14,8 @@ var speed := 20.0
 var pulses := 2
 ## Con una interferencia, el cable parpadea en rojo.
 var sparking := false
+## 0 = pulsos regulares; 1 = laten irregulares, como un corazón (terror progresivo).
+var beat := 0.0
 
 var _curve := Curve2D.new()
 var _offset := 0.0
@@ -29,7 +31,9 @@ func _init(from: Vector2, to: Vector2, sag: float) -> void:
 
 func _process(delta: float) -> void:
 	# Los pulsos avanzan a saltos de 10 fps, como el resto del mundo.
-	_offset += speed * delta
+	var t := Time.get_ticks_msec() / 1000.0
+	var heart := pow(maxf(sin(t * 4.2), 0.0), 6.0) + 0.6 * pow(maxf(sin(t * 4.2 - 0.9), 0.0), 8.0)
+	_offset += speed * delta * lerpf(1.0, 0.15 + 2.5 * heart, beat)
 	var step := floorf(Time.get_ticks_msec() / 100.0)
 	if step != _last_step:
 		_last_step = step

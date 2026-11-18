@@ -138,3 +138,5 @@ UI_EFFECT_SKILL,Dura %s s · espera %s s
 UI_EFFECT_PROD,Producción: %s → %s
 OSD_NEXT_CARGA,+1 de Carga a %s
 UI_CARGA_HELP,"Reiniciar da Carga: 3 al llegar, más cuanto más esperes."
+UI_END_OF_BROADCAST,FIN DE LA EMISION
+UI_END_OF_BROADCAST_SUB,No apague el receptor.

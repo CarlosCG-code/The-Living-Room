@@ -83,7 +83,7 @@ func _ready() -> void:
 ## restart_carga: Carga que daría reiniciar ya, o -1 si aún no se puede; next_carga: Energía para una más.
 func show_values(energy: String, per_second: String, per_click: String, progress: float, restart_carga: int,
 		shop_ready: bool, next_carga: String = "") -> void:
-	_energy.text = energy
+	_energy.text = _glitch(energy) if progress > 0.85 else energy
 	_rates.text = "%s  ·  %s" % [per_second, tr("OSD_PER_CLICK") % per_click]
 	_progress = clampf(progress, 0.0, 1.0)
 	_restart.visible = restart_carga >= 0
@@ -122,6 +122,16 @@ func show_extras(tape: float, combo: float, skills: Dictionary) -> void:
 			row["cd"] = skills[skill][0]
 			row["active"] = skills[skill][1]
 	queue_redraw()
+
+
+## Cerca del umbral el OSD pierde precisión: a veces un dígito sale mal un fotograma.
+func _glitch(text: String) -> String:
+	if randf() > 0.04:
+		return text
+	var i := randi() % text.length()
+	if text[i] < "0" or text[i] > "9":
+		return text
+	return text.substr(0, i) + str(randi() % 10) + text.substr(i + 1)
 
 
 ## Aviso abajo a la izquierda que se va solo («+ ANTENA»).

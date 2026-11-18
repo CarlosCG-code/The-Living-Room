@@ -193,7 +193,21 @@ func _restart() -> void:
 	if Game.restart():
 		Game.set_holding(false)
 		Game.running = false
+		await _end_of_broadcast()
 		_carga.open()
+
+
+## Carta de «fin de la emisión» con un tono de prueba que desafina, antes de la pantalla de Carga.
+func _end_of_broadcast() -> void:
+	var card := EndOfBroadcast.new()
+	add_child(card)
+	var tone := AudioStreamPlayer.new()
+	tone.stream = preload("res://assets/audio/tv/test_tone.wav")
+	tone.volume_db = -14.0
+	card.add_child(tone)
+	tone.play()
+	await get_tree().create_timer(EndOfBroadcast.DURATION).timeout
+	card.queue_free()
 
 
 func is_restarting() -> bool:

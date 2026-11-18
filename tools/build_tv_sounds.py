@@ -99,7 +99,21 @@ def click_relay():
     return out
 
 
+def test_tone():
+    # Tono de prueba de 1 kHz que desafina hacia abajo y se ensucia: el fin de la emisión.
+    n = int(RATE * 2.5)
+    out = []
+    phase = 0.0
+    for i in range(n):
+        t = i / RATE
+        f = 1000 - 140 * (t / 2.5) ** 2
+        phase += 2 * math.pi * f / RATE
+        out.append((math.sin(phase) + 0.15 * math.sin(phase * 3.01)) * env(t, 2.5, 0.02, 0.4))
+    return out
+
+
 if __name__ == "__main__":
+    save("test_tone", test_tone())
     save("click_relay", click_relay())
     save("event_interference", interference())
     save("event_shooting_star", shooting_star())

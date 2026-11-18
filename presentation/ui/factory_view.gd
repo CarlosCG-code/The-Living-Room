@@ -21,8 +21,16 @@ const TEX := "res://assets/textures/tv/"
 # Eventos (core/tv_event_def.gd): la estrella cruza el cielo; la silueta sale en uno de estos sitios.
 const STAR_FROM := Vector2(300, 14)
 const STAR_TO := Vector2(40, 58)
-# Pies de la silueta: en la nieve abierta, donde se recorta contra el blanco (entre árboles no se veía).
-const SILHOUETTE_SPOTS: Array[Vector2] = [Vector2(214, 162), Vector2(122, 198), Vector2(262, 194), Vector2(40, 190)]
+# Pies de la silueta en cada run: lejos y en el borde (1), al otro lado (2), junto a la fábrica (3) y justo
+# detrás del cristal (4: grande, quieta y sin ojos). Siempre en la nieve abierta, donde se recorta.
+const SILHOUETTE_SPOTS_BY_RUN := {
+	1: [Vector2(40, 190), Vector2(292, 170)],
+	2: [Vector2(262, 194), Vector2(122, 198)],
+	3: [Vector2(214, 162), Vector2(120, 150)],
+	4: [Vector2(160, 236)],
+}
+## Ventanas de la fábrica (en su dibujo): se apagan de una en una a lo largo de la run.
+const FACTORY_WINDOWS: Array[Rect2] = [Rect2(6, 22, 11, 8), Rect2(22, 22, 11, 8), Rect2(38, 22, 11, 8)]
 const SHADOW := Color("05060b")
 ## Texto en pantalla (números al clicar, aviso de la Señal clara): mismo fósforo que el OSD.
 const OSD_TEXT := Color("b8f5c4")
@@ -59,6 +67,14 @@ var _event_layer: Node2D
 var _marker: Node2D
 var _tapes: Array[TextureButton] = []
 var _click_sparks: CPUParticles2D
+var _snow: CPUParticles2D
+var _pool: TextureRect
+var _dark_windows: Node2D
+var _windows_off := 0
+var _run := 1
+var _dread := 0.0
+var _freeze_left := 0.0
+var _silhouette_scale := 1.0
 var _vignette: TextureRect
 var _event_id: StringName = &""
 var _event_t := 0.0
@@ -77,7 +93,8 @@ func _ready() -> void:
 	_event_layer = Node2D.new()
 	_event_layer.draw.connect(_draw_event)
 	add_child(_event_layer)
-	add_child(_particles(Vector2(160, -4), Vector2(170, 1), 70, 9.0, Vector2(4, 14), Color(0.75, 0.8, 0.92, 0.55)))
+	_snow = _particles(Vector2(160, -4), Vector2(170, 1), 70, 9.0, Vector2(4, 14), Color(0.75, 0.8, 0.92, 0.55))
+	add_child(_snow)
 	add_child(TvFog.make())
 
 	var cables: Array[FactoryCable] = []
@@ -89,6 +106,11 @@ func _ready() -> void:
 		cables.append(cable)
 	_factory = _sprite_button(load(TEX + "factory.png"), FACTORY_POS)
 	_factory.pressed.connect(shop_requested.emit)
+	_dark_windows = Node2D.new()
+	_dark_windows.draw.connect(func() -> void:
+		for k in _windows_off:
+			_dark_windows.draw_rect(FACTORY_WINDOWS[FACTORY_WINDOWS.size() - 1 - k], Color("0b0e16")))
+	_factory.add_child(_dark_windows)
 	# Humo lento de la chimenea, que se va hacia la izquierda con el viento.
 	var smoke := _particles(FACTORY_POS + Vector2(44, 0), Vector2(2, 1), 16, 5.0, Vector2(-6, -9), Color(0.45, 0.5, 0.6, 0.45))
 	smoke.scale_amount_min = 1.0
@@ -183,6 +205,12 @@ func _process(delta: float) -> void:
 	show_counts(eco.state.generators)
 	show_event(eco.active_event(), eco.event_progress())
 	show_packages(eco.packages())
+	set_dread(eco.state.energy_produced_run / eco.config.threshold, eco.state.run_index)
+	if _freeze_left > 0.0:
+		_freeze_left -= delta
+		_snow.speed_scale = 0.0
+	elif _run >= 3 and _dread > 0.5 and randf() < delta / 40.0:
+		_freeze_left = 1.0  # la nieve se para en el aire un segundo
 	_flicker(delta)
 	# Dial solo (y mantener pulsado): las máquinas dan saltitos solas, uno por clic automático.
 	_auto_acc += eco.auto_clicks_per_second(_any_held()) * delta
@@ -253,7 +281,8 @@ func _start_event(e: TvEventDef) -> void:
 			_faulty = powered.pick_random()
 			_faulty.sparking = true
 	elif id == &"silhouette":
-		_event_at = SILHOUETTE_SPOTS.pick_random()
+		_event_at = (SILHOUETTE_SPOTS_BY_RUN[_run] as Array).pick_random()
+		_silhouette_scale = 3.0 if _run >= 4 else 1.0
 	_sparks.emitting = id == &"interference"
 	_catch.visible = e != null and e.catchable()
 	# Solo la Señal clara se anuncia: lo demás hay que verlo (pedido del usuario, 2026-11-18).
@@ -284,7 +313,8 @@ func _draw_event() -> void:
 					c.draw_rect(Rect2(head + off, Vector2(1, 1)), halo)
 		&"clear_signal":
 			# Aurora: bandas verdosas que ondulan; entra y sale suave.
-			var alpha := sin(PI * _event_t) * 0.35
+			# Cada run, la aurora tiene menos color (en la 4.ª ya es gris).
+			var alpha := sin(PI * _event_t) * 0.35 * (1.0 - 0.2 * (_run - 1))
 			var time := Time.get_ticks_msec() / 1000.0
 			for band in 3:
 				for x in range(0, 320, 2):
@@ -296,10 +326,13 @@ func _draw_event() -> void:
 			if _event_t > 0.8 and fmod(_event_t * 20.0, 2.0) < 1.0:
 				a *= 0.3
 			var feet := _event_at
-			c.draw_rect(Rect2(feet + Vector2(-3, -16), Vector2(6, 16)), Color(SHADOW, a))  # cuerpo
-			c.draw_rect(Rect2(feet + Vector2(-4, -15), Vector2(1, 9)), Color(SHADOW, a))  # brazos largos
-			c.draw_rect(Rect2(feet + Vector2(3, -15), Vector2(1, 9)), Color(SHADOW, a))
-			c.draw_rect(Rect2(feet + Vector2(-2, -21), Vector2(4, 5)), Color(SHADOW, a))  # cabeza
+			var k := _silhouette_scale  # en la run 4 está justo detrás del cristal: enorme
+			c.draw_rect(Rect2(feet + Vector2(-3, -16) * k, Vector2(6, 16) * k), Color(SHADOW, a))  # cuerpo
+			c.draw_rect(Rect2(feet + Vector2(-4, -15) * k, Vector2(1, 9) * k), Color(SHADOW, a))  # brazos largos
+			c.draw_rect(Rect2(feet + Vector2(3, -15) * k, Vector2(1, 9) * k), Color(SHADOW, a))
+			c.draw_rect(Rect2(feet + Vector2(-2, -21) * k, Vector2(4, 5) * k), Color(SHADOW, a))  # cabeza
+			if _run >= 4:
+				return  # sin ojos
 			c.draw_rect(Rect2(feet + Vector2(-6, 0), Vector2(12, 2)), Color(SHADOW, a * 0.5))  # sombra en la nieve
 			# Ojos que brillan: lo primero que se ve.
 			for eye: Vector2 in [Vector2(-1, -19), Vector2(1, -19)]:
@@ -353,6 +386,33 @@ func _flicker(delta: float) -> void:
 	elif randf() < delta / 9.0:
 		_flicker_left = randf_range(0.06, 0.25)
 	_factory.modulate = Color(0.45, 0.45, 0.55) if _flicker_left > 0.0 else Color.WHITE
+
+
+## Terror progresivo (specs/incremental_v2.md §6): f = Energía producida / umbral; run = número de run.
+## Las ventanas se apagan de una en una (el juego se come la corriente), la nieve se vuelve gris y lenta y los
+## cables laten como un corazón. Todo depende de f y de la run, así que se recompone al cargar la partida.
+func set_dread(f: float, run: int) -> void:
+	_run = clampi(run, 1, 4)
+	_dread = clampf(f, 0.0, 1.0)
+	var lit_min := 1 if _run >= 4 else 0  # en la última run queda una sola ventana: la tuya
+	var off := mini(floori(inverse_lerp(0.2, 0.9, _dread) * 3.0 + 0.0001) if _dread >= 0.2 else 0, 3 - lit_min)
+	if _run >= 4:
+		off = maxi(off, 2)
+	if off != _windows_off:
+		_windows_off = off
+		_dark_windows.queue_redraw()
+		_pool.modulate.a = 1.0 - off / 3.0
+	var gray := clampf(inverse_lerp(0.5, 1.0, _dread), 0.0, 1.0)
+	_snow.color = Color(0.75, 0.8, 0.92, 0.55).lerp(Color(0.45, 0.47, 0.5, 0.5), gray)
+	if _freeze_left <= 0.0:
+		_snow.speed_scale = lerpf(1.0, 0.55, gray)
+	var beat := clampf(inverse_lerp(0.6, 1.0, _dread), 0.0, 1.0) + (0.3 if _run >= 3 else 0.0)
+	for id: StringName in _groups:
+		(_groups[id]["cable"] as FactoryCable).beat = minf(beat, 1.0)
+
+
+func windows_off() -> int:
+	return _windows_off
 
 
 ## Dibuja las cintas que hay en la nieve: cada una en su hueco, con el icono de su rareza; parpadea al final.
@@ -571,6 +631,7 @@ func _light_pool() -> void:
 	pool.size = Vector2(96, 30)
 	pool.position = FACTORY_POS + Vector2(-20, 48)
 	pool.mouse_filter = MOUSE_FILTER_IGNORE
+	_pool = pool
 	var add := CanvasItemMaterial.new()
 	add.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
 	pool.material = add

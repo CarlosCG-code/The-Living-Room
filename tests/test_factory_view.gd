@@ -85,3 +85,16 @@ func test_tapes_show_in_their_slot_and_can_be_clicked() -> void:
 	assert_signal_emitted_with_parameters(view, "package_pressed", [1])
 	view.show_packages([] as Array[Dictionary])
 	assert_false(view.get_tape(1).visible, "abierta o perdida, desaparece")
+
+
+func test_windows_go_dark_with_the_run() -> void:
+	view.set_dread(0.1, 1)
+	assert_eq(view.windows_off(), 0, "al principio, las tres encendidas")
+	view.set_dread(0.6, 1)
+	assert_between(view.windows_off(), 1, 2)
+	view.set_dread(1.0, 1)
+	assert_eq(view.windows_off(), 3, "al final de la run 1, todas apagadas")
+	view.set_dread(1.0, 4)
+	assert_eq(view.windows_off(), 2, "en la run 4 queda una: la tuya")
+	view.set_dread(0.0, 4)
+	assert_eq(view.windows_off(), 2)
