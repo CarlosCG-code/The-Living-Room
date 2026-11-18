@@ -157,6 +157,18 @@ Hecho el 2026-11-18 (`797ebf0`):
 
 **Opcional, cambia D5:** curvar también la imagen (barrel de crt-lottes, k = 0,031 / 0,041). Los clics siguen bien: se aplica la misma función al punto clicado, con test. Hay que dejar unos 8 px libres en el borde del OSD.
 
+## Estado de la implementación (2026-11-18)
+
+Pasos 1-7 hechos (commits 7201eb0 → este). Ajustes respecto a la propuesta, medidos con el test de ritmo:
+- Umbral de la run 1: 75 M. Activo 28-31 min, tranquilo 39-47 min (rangos del test: 26-32 y 35-47).
+- Crítico: base 0 %; Cable pelado 8 % ×3, Descarga ×4, Sin toma de tierra +4 %. Racha ×1,2 / ×1,35.
+- Cintas: 300 clics, 8 / 24 s de ingresos; mantener pulsado llena la mitad y hace racha (sin crítico).
+- Permanentes: Tu memoria (15 Antenas, 10 Válvulas, 5 Frecuencias y las primeras mejoras), Tus manos
+  (racha 3 s, crítico llena un 3 % de la barra), Tu costumbre −35 %, Tu pulso ×1,4, Tu nombre ×1,2.
+  Cada una acorta la run 2 un 5-25 %; con las seis dura ~11 min (test).
+- Pendiente para más adelante: espejo del mundo de la tele en la run 2, árboles que desaparecen, cifras de
+  runs anteriores en la run 4 y el aviso previo de «Tus ojos».
+
 ## 10. Orden de implementación
 
 1. **Núcleo:** tipos nuevos, crítico, racha, cintas, habilidades y requisitos; datos y test de ritmo con rangos por perfil (activo 28–34 min, tranquilo 34–40). Guardado v4 con migrador: devuelve en Carga los perks comprados.

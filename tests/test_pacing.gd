@@ -12,9 +12,9 @@ const GENERATOR_IDS: Array[StringName] = [&"antenna", &"valves", &"audio_frequen
 const SKILLS: Array[StringName] = [&"sweep", &"surge", &"seek"]  # Sobrecarga es una apuesta: el simulador no la usa
 ## Minutos al umbral por perfil (§10): premiar el clic separa al activo del tranquilo.
 const RANGES := {"activo": Vector2(26, 32), "tranquilo": Vector2(35, 47)}
-## Hueco máximo sin nada nuevo (s): el tranquilo avanza más despacio y todo se le estira. Los fragmentos de
-## lore (specs/incremental_v2.md §7, paso 7) llenarán el final de la run: entonces se bajan estos límites.
-const NOVELTY_GAP := {"activo": 260.0, "tranquilo": 480.0}
+## Hueco máximo sin nada nuevo (s), contando mejoras, máquinas y fragmentos de lore: el tranquilo avanza más
+## despacio y todo se le estira.
+const NOVELTY_GAP := {"activo": 150.0, "tranquilo": 400.0}
 
 var config: EconomyConfig
 
@@ -110,6 +110,7 @@ func _simulate(manual_cps: float, tranquil: bool, catch_interferences: bool, per
 	var bought_ids: Array = []
 	var appear := {}
 	_record_appearances(eco, appear, 0.0)
+	var lore := LoreFeed.ratios(load("res://data/lore.tres").get_meta(&"fragments"), eco.state.run_index)
 	var threshold_time := -1.0
 	while t < MAX_TIME:
 		# El perfil tranquilo pasa siempre holding = true: no tiene efecto hasta comprar Dial firme.
@@ -137,6 +138,9 @@ func _simulate(manual_cps: float, tranquil: bool, catch_interferences: bool, per
 		eco.tick(STEP, holding)
 		t += STEP
 		_record_appearances(eco, appear, t)
+		for r in lore:  # los fragmentos de lore también son algo nuevo en la tele
+			if eco.state.energy_produced_run >= r * config.threshold and not appear.has("lore_%s" % r):
+				appear["lore_%s" % r] = t
 		if eco.can_restart():
 			threshold_time = t
 			break

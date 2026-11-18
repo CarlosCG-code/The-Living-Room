@@ -9,6 +9,7 @@ extends Control
 # flechas e Intro se mueven por el árbol y compran.
 
 const CHANNEL_CHANGE := 0.4  # segundos de nieve al cambiar de canal
+const LORE := preload("res://data/lore.tres")
 
 @onready var _osd: TvOsd = $Osd
 @onready var _factory: FactoryView = $FactoryView
@@ -22,6 +23,8 @@ var _shake: Tween
 var _menu: MainMenuUI
 var _pause: MainMenuUI
 var _static: ColorRect
+var _lore_ratio := 0.0  # ratio de la run en el último fotograma
+var _lore_run := 0  # 0: aún no se ha mirado
 var _carga: CargaScreen
 
 
@@ -146,6 +149,7 @@ func _process(_delta: float) -> void:
 			var u: UpgradeDef = eco.mods.skills[skill]
 			skills[skill] = [eco.skill_cooldown(skill) / u.cooldown, eco.timer(skill) > 0.0]
 	_osd.show_extras(eco.bar_fraction() if eco.mods.packages else -1.0, eco.combo_fraction(), skills)
+	_feed_lore(eco)
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -171,6 +175,22 @@ func _unhandled_input(event: InputEvent) -> void:
 			_click(_factory.press_receptor())
 		Game.set_holding(event.is_pressed())
 		get_viewport().set_input_as_handled()
+
+
+# Fragmentos de lore al pasar cada ratio del umbral. Al cargar (o al cambiar de run) se parte del ratio actual:
+# no se repite nada de lo ya visto.
+func _feed_lore(eco: Economy) -> void:
+	var ratio := eco.state.energy_produced_run / eco.config.threshold
+	if _lore_run != eco.state.run_index or ratio < _lore_ratio:
+		_lore_ratio = ratio
+		_lore_run = eco.state.run_index
+		return
+	if not Game.running:
+		return
+	for f: LoreFragmentDef in LoreFeed.due(LORE.get_meta(&"fragments"), eco.state.run_index, _lore_ratio, ratio,
+			eco.state.perks):
+		_osd.show_lore(tr(f.text_key))
+	_lore_ratio = ratio
 
 
 ## Abre la cinta del hueco slot y enseña lo que da (Energía, o el ×3 de la cinta negra).

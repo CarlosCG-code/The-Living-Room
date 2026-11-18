@@ -140,3 +140,33 @@ OSD_NEXT_CARGA,+1 de Carga a %s
 UI_CARGA_HELP,"Reiniciar da Carga: 3 al llegar, más cuanto más esperes."
 UI_END_OF_BROADCAST,FIN DE LA EMISION
 UI_END_OF_BROADCAST_SUB,No apague el receptor.
+LORE_R1_01,"[3.º] Las de las ocho. Siempre con agua, nunca con leche."
+LORE_R1_02,[3.º] ¿Has visto mis gafas? Las dejé al lado de la tele.
+LORE_R1_03,RECORDS  1. A. FERRER ...... 212 reinicios
+LORE_R1_04,[3.º] Qué bien se ve desde aquí. Mejor que en mi piso.
+LORE_R1_05,RECORDS  2. M. ORTEGA ...... 97   3. J. LLORENTE ...... 40
+LORE_R1_06,"[3.º] No te levantes, hijo. Ya voy yo."
+LORE_R1_07,RECORDS  4. ______________ ...... 0
+LORE_R1_08,[3.º] Antes venías tan rápido cuando algo se estropeaba...
+LORE_R1_09,[3.º] Gracias por quedarte. De verdad.
+LORE_R1_10,"[3.º] Si te quedas un poco más, ya no hace falta que vuelvas."
+LORE_R2_01,[3.º] Se ha ido la luz otra vez. ¿Tú tienes linterna?
+LORE_R2_02,RECORDS  1. A. FERRER ...... 213 reinicios
+LORE_R2_03,[3.º] Mis gafas estaban del otro lado. Todo está del otro lado.
+LORE_R2_04,"[3.º] Cada vez que vuelves, la casa se parece más a ti."
+LORE_R2_05,RECORDS  4. ______________ ...... 1
+LORE_R2_06,RECORDS  4. TU ...... 1 reinicio
+LORE_R2_07,[3.º] No reinicies todavía. Aún no he terminado de hablar.
+LORE_R3_01,[3.º] La dentadura en el vaso. El vaso en la mesa. La mesa en tu salón.
+LORE_R3_02,RECORDS  1. A. FERRER ...... 214 reinicios
+LORE_R3_03,[3.º] El ascensor no funciona. Pero tú siempre subes por la escalera.
+LORE_R3_04,[3.º] Te dejé la tele encendida. Para que no estuvieras solo.
+LORE_R3_05,RECORDS  4. ______________ ...... 2
+LORE_R3_06,RECORDS  4. TU ...... 2 reinicios
+LORE_R3_07,[3.º] Yo también pulsé el botón. Muchas veces.
+LORE_R4_01,[3.º] Ya casi está. Siéntate donde me sentaba yo.
+LORE_R4_02,RECORDS  1. A. FERRER ...... ya no
+LORE_R4_03,[3.º] La tele no se apaga. Solo cambia quién la mira.
+LORE_R4_04,[3.º] Perdóname.
+LORE_R4_05,RECORDS  1. ______________ ...... 3
+LORE_R4_06,RECORDS  1. TU ...... 3 reinicios
