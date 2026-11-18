@@ -2,13 +2,13 @@ class_name CargaScreen
 extends Control
 
 # Pantalla tras pulsar Reiniciar (specs/incremental.md §5-6), con el estilo del menú azul de la tele:
-# la Carga que tienes, la rama de mejoras permanentes (se compran en orden) y «Empezar la run N».
+# la Carga que tienes, las mejoras permanentes (en cualquier orden) y «Empezar la run N».
 # Solo pinta: compra con Game.buy_perk y avisa con start_requested.
 
 signal start_requested
 
 const ROW_TOP := 34.0
-const ROW_H := 32.0
+const ROW_H := 29.0
 
 var _carga: Label
 var _rows := {}  # StringName -> {"button": Button, "desc": Label}
@@ -56,44 +56,45 @@ func _ready() -> void:
 	add_child(_start)
 
 
-## Al abrirse: pone los textos y el foco en la siguiente mejora si se puede pagar, si no en Empezar.
+## Al abrirse: pone los textos y el foco en la primera mejora que se pueda pagar, si no en Empezar.
 func open() -> void:
 	show()
 	_refresh()
-	var next := Game.economy.next_perk()
-	if next and Game.economy.state.carga >= next.cost:
-		(_rows[next.id]["button"] as Button).grab_focus()
-	else:
-		_start.grab_focus()
+	_focus_next()
 
 
 func _buy(id: StringName) -> void:
 	if Game.buy_perk(id):
 		_refresh()
-		var next := Game.economy.next_perk()
-		if next == null or Game.economy.state.carga < next.cost:
-			_start.grab_focus()
-		else:
-			(_rows[next.id]["button"] as Button).grab_focus()
+		_focus_next()
+
+
+func _affordable(p: PerkDef) -> bool:
+	return not Game.economy.has_perk(p.id) and Game.economy.state.carga >= p.cost
+
+
+func _focus_next() -> void:
+	for p in Game.economy.config.perks:
+		if _affordable(p):
+			(_rows[p.id]["button"] as Button).grab_focus()
+			return
+	_start.grab_focus()
 
 
 func _refresh() -> void:
 	var eco := Game.economy
 	_carga.text = tr("UI_CARGA") % eco.state.carga
 	_start.text = tr("UI_START_RUN") % eco.state.run_index
-	var next := eco.next_perk()
 	for p in eco.config.perks:
 		var b: Button = _rows[p.id]["button"]
 		var bought := eco.has_perk(p.id)
 		var cost := tr("UI_BOUGHT") if bought else tr("UI_CARGA_COST") % p.cost
 		b.text = "%s  ·  %s" % [tr(p.name_key), cost]
-		var color: Color = UpgradeTree.GREEN if bought else (UpgradeTree.CHALK if p == next else UpgradeTree.DIM)
-		if p == next and eco.state.carga < p.cost:
-			color = UpgradeTree.MIST
+		var color: Color = UpgradeTree.GREEN if bought else (UpgradeTree.CHALK if _affordable(p) else UpgradeTree.MIST)
 		b.add_theme_color_override(&"font_color", color)
 		b.add_theme_color_override(&"font_focus_color", UpgradeTree.GOLD)
 		b.add_theme_color_override(&"font_hover_color", UpgradeTree.GOLD)
-		(_rows[p.id]["desc"] as Label).modulate.a = 1.0 if bought or p == next else 0.45
+		(_rows[p.id]["desc"] as Label).modulate.a = 1.0 if bought or _affordable(p) else 0.5
 	queue_redraw()
 
 
@@ -102,19 +103,17 @@ func _draw() -> void:
 	draw_rect(Rect2(0, 0, size.x, 14), UpgradeTree.BAR)
 	draw_rect(Rect2(0, 210, size.x, 30), UpgradeTree.BAR)
 	draw_line(Vector2(0, 210), Vector2(size.x, 210), Color(UpgradeTree.MIST, 0.5))
-	# Rama vertical: un punto por mejora, unidos; lleno si está comprada.
+	# Un punto por mejora: lleno si está comprada, hueco si aún no.
 	var eco := Game.economy
 	var x := 8.0
 	var y := ROW_TOP + 6.0
 	for i in eco.config.perks.size():
 		var p: PerkDef = eco.config.perks[i]
-		if i > 0:
-			draw_line(Vector2(x, y - ROW_H + 3), Vector2(x, y - 3), UpgradeTree.DIM if not eco.has_perk(p.id) else UpgradeTree.GREEN)
 		var dot := Rect2(x - 2, y - 2, 5, 5)
 		if eco.has_perk(p.id):
 			draw_rect(dot, UpgradeTree.GREEN)
 		else:
-			draw_rect(dot, UpgradeTree.CHALK if p == eco.next_perk() else UpgradeTree.DIM, false)
+			draw_rect(dot, UpgradeTree.CHALK if _affordable(p) else UpgradeTree.DIM, false)
 		var b: Button = _rows[p.id]["button"]
 		if b.has_focus():
 			draw_rect(Rect2(10, y - 7, 300, ROW_H - 2), Color(UpgradeTree.GOLD, 0.12))

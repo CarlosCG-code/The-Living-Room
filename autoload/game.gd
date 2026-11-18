@@ -56,8 +56,17 @@ func tick(delta: float) -> void:
 		_save()
 
 
-func click() -> bool:
+## Clic a mano: Energía ganada (0 si no cuenta).
+func click() -> float:
 	return economy.click()
+
+
+func use_skill(skill: StringName) -> bool:
+	return economy.use_skill(skill)
+
+
+func open_package(i: int) -> float:
+	return economy.open_package(i)
 
 
 func buy_perk(id: StringName) -> bool:

@@ -71,15 +71,15 @@ func test_pause_stops_the_run_and_resume_restarts_it() -> void:
 func test_carga_screen_buys_next_perk_and_starts() -> void:
 	var saved_state := Game.economy.state
 	Game.economy.state = RunState.new()
-	Game.economy.state.carga = 1
+	Game.economy.state.carga = 2
 	var screen := CargaScreen.new()
 	menu.get_parent().add_child(screen)
 	screen.open()
 	await wait_process_frames(1)
 	var focused := screen.get_viewport().gui_get_focus_owner() as Button
-	assert_not_null(focused, "foco en la primera mejora, que se puede pagar")
+	assert_not_null(focused, "foco en la primera mejora que se puede pagar")
 	focused.pressed.emit()
-	assert_true(Game.economy.has_perk(&"hands"))
+	assert_true(Game.economy.has_perk(&"memory"))
 	assert_eq(screen.get_viewport().gui_get_focus_owner(), screen.get_start_button(), "sin Carga, el foco va a Empezar")
 	watch_signals(screen)
 	screen.get_start_button().pressed.emit()

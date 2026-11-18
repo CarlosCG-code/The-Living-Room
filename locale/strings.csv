@@ -13,19 +13,14 @@ GEN_REMOTE,Mando a distancia
 GEN_CHANNEL_3,Canal 3
 UPG_PULSE,Pulso
 UPG_DIAL_HOLD,Dial firme
-UPG_PULSE_STRONG,Pulso fuerte
 UPG_RESONANCE,Resonancia
 UPG_DIAL_AUTO,Dial solo
-UPG_DIAL_AUTO_2,Dial solo II
-UPG_PULSE_DESC,Golpeas el dial con más fuerza: cada clic vale el doble.
-UPG_PULSE_STRONG_DESC,Más fuerte todavía. Cada clic vuelve a valer el doble.
+UPG_DIAL_AUTO_2,Alguien más sintoniza
+UPG_PULSE_DESC,Golpeas el dial con más fuerza.
 UPG_DIAL_HOLD_DESC,No sueltes el dial: mantenlo pulsado y sigue sintonizando.
-UPG_RESONANCE_DESC,El zumbido de las máquinas se cuela en cada clic: suma parte de la producción.
+UPG_RESONANCE_DESC,Tu clic suma parte de lo que producen las máquinas.
 UPG_DIAL_AUTO_DESC,El dial empieza a girar sin que nadie lo toque.
 UPG_DIAL_AUTO_2_DESC,Gira más deprisa. No preguntes quién lo mueve.
-UPG_GEN_X2_10,%s ×2
-UPG_GEN_X2_25,%s ×2 (25)
-UPG_GEN_X2_DESC,%s trabaja el doble: duplica lo que da por clic y por segundo.
 UI_GENERATOR_TITLE,%s · tienes %s
 UI_EFFECT_OWNED,En total: +%s por clic y %s
 UI_EFFECT_GEN,+%s → +%s por clic · %s → %s
@@ -66,15 +61,15 @@ OSD_PER_CLICK,%s/clic
 OSD_SHOP_PROMPT,E  Mejoras
 UI_CLOSE_HINT,Esc  Salir
 PERK_HANDS,Tus manos
-PERK_HANDS_DESC,Cada run empieza con Dial firme y Dial solo: la tele clica sola.
+PERK_HANDS_DESC,La racha aguanta 3 s y cada crítico llena parte de la barra de cintas.
 PERK_MEMORY,Tu memoria
-PERK_MEMORY_DESC,Cada run empieza con 10 Antenas y 5 Válvulas.
+PERK_MEMORY_DESC,"Empiezas con 10 Antenas, 5 Válvulas, Pulso y Dial firme."
 PERK_HABIT,Tu costumbre
-PERK_HABIT_DESC,Los generadores cuestan un 25 % menos.
+PERK_HABIT_DESC,Máquinas un 25 % más baratas; sus mejoras piden la mitad.
 PERK_PULSE,Tu pulso
-PERK_PULSE_DESC,"Cada clic vale el doble, en todas las runs."
+PERK_PULSE_DESC,Tu clic a mano vale el doble.
 PERK_NAME,Tu nombre
-PERK_NAME_DESC,+1 de Carga en cada reinicio. La tele empieza a saber cómo te llamas.
+PERK_NAME_DESC,La tele aprende cómo te llamas.
 UI_CARGA_TITLE,Reinicio
 UI_CARGA,Carga: %d
 UI_CARGA_COST,%d de Carga
@@ -83,3 +78,61 @@ UI_PERK_LOCKED,"Antes, la anterior."
 UI_RESTART_CONFIRM,Reiniciar (+%d de Carga)
 UI_INTRO,"Ratón o Espacio: sintoniza.
 Si ves algo raro en la pantalla, tócalo."
+UPG_BARE_CABLE,Cable pelado
+UPG_BARE_CABLE_DESC,Más clics salen con chispa (crítico).
+UPG_DISCHARGE,Descarga
+UPG_DISCHARGE_DESC,El crítico pasa a ×10. La imagen pierde el sincronismo.
+UPG_NO_GROUND,Sin toma de tierra
+UPG_NO_GROUND_DESC,Todavía más críticos. Nadie revisa la instalación.
+UPG_HEARTBEAT,Latido
+UPG_HEARTBEAT_DESC,Clica seguido: la racha multiplica cada clic.
+UPG_TACHYCARDIA,Taquicardia
+UPG_TACHYCARDIA_DESC,La racha llega más alto. El latido se acelera.
+UPG_EVERY_ANTENNA,Cada antena escucha
+UPG_EVERY_ANTENNA_DESC,Cada máquina que tienes refuerza tu clic.
+UPG_ECHO,Eco
+UPG_ECHO_DESC,Los clics que no son tuyos también hacen racha y crítico.
+UPG_SWEEP,Barrido
+UPG_SWEEP_DESC,Tecla 1: la tele salta de canal en canal y clica sola un rato.
+UPG_SURGE,Sobretensión
+UPG_SURGE_DESC,Tecla 2: cada clic vale más durante unos segundos.
+UPG_SEEK,Buscar señal
+UPG_SEEK_DESC,Tecla 3: algo aparece en la pantalla ahora mismo.
+UPG_OVERLOAD,Sobrecarga
+UPG_OVERLOAD_DESC,"Tecla 4: casi siempre, producción ×5. A veces, la tele se apaga."
+UPG_TUNING,Sintonía
+UPG_TUNING_DESC,Tus clics llenan una barra; al llenarse cae una cinta en la nieve.
+UPG_TUNING_FINE,Sintonía fina
+UPG_TUNING_FINE_DESC,La barra se llena antes.
+UPG_BLANK_TAPE,Cinta virgen
+UPG_BLANK_TAPE_DESC,Caen más cintas raras y negras.
+UPG_DOUBLE_DECK,Doble pletina
+UPG_DOUBLE_DECK_DESC,Cada cinta da el doble. A veces cae una sin nombre.
+UPG_UNLABELED_TAPE,Cinta sin etiqueta
+UPG_UNLABELED_TAPE_DESC,"Muchas más cintas negras. Se oyen tus clics, con retraso."
+UPG_ANTENNA_TUNE,Antena orientada
+UPG_ANTENNA_TUNE_DESC,Las antenas giran hacia la fábrica: el doble.
+UPG_VALVES_HOT,Válvulas al blanco
+UPG_VALVES_HOT_DESC,Las válvulas dan el triple a cada clic.
+UPG_FEEDBACK,Acople
+UPG_FEEDBACK_DESC,La Frecuencia de audio sube con cada Válvula.
+UPG_TUNER_DOUBLE,Doble sintonizador
+UPG_TUNER_DOUBLE_DESC,"Los sintonizadores, el doble. Las voces son dos."
+UPG_ZAPPING,Zapping
+UPG_ZAPPING_DESC,Todas las máquinas suben con cada Mando a distancia.
+UPG_BYPASS,Puentear el contador
+UPG_BYPASS_DESC,La fábrica produce más. La corriente sale de algún sitio.
+UPG_DIVERT,Derivar
+UPG_DIVERT_DESC,Producción ×2. En el rellano alguien se queda a oscuras.
+UPG_SHARP_EYE,Ojo atento
+UPG_SHARP_EYE_DESC,Lo raro sale el doble de a menudo y paga el doble.
+UPG_DONT_LOOK_AWAY,No apartes la vista
+UPG_DONT_LOOK_AWAY_DESC,La silueta paga ×4. Cada vez sale más cerca.
+UPG_WARNING,Notarás algo en casa.
+PERK_EYES,Tus ojos
+PERK_EYES_DESC,Lo raro sale cada 1-2 min. Atraparlo mejora la siguiente cinta.
+UI_EFFECT_CRIT,Crítico: %s %% → %s %%
+UI_EFFECT_CRIT_MULT,Crítico: ×%s → ×%s
+UI_EFFECT_COMBO,Racha máxima: ×%s → ×%s
+UI_EFFECT_SKILL,Dura %s s · espera %s s
+UI_EFFECT_PROD,Producción: %s → %s

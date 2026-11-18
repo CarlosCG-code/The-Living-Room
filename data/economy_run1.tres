@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="EconomyConfig" load_steps=39 format=3]
+[gd_resource type="Resource" script_class="EconomyConfig" load_steps=52 format=3]
 
 [ext_resource type="Script" path="res://core/economy_config.gd" id="config_script"]
 [ext_resource type="Script" path="res://core/generator_def.gd" id="gen_script"]
@@ -66,197 +66,173 @@ click_bonus = 30.1970625
 req_energy_produced = 1135196.0
 requires_id = &""
 
-[sub_resource type="Resource" id="upg_antenna_x2_10"]
-script = ExtResource("upg_script")
-id = &"antenna_x2_10"
-name_key = "UPG_GEN_X2_10"
-desc_key = "UPG_GEN_X2_DESC"
-kind = 0
-target_id = &"antenna"
-value = 2.0
-cost = 180.0
-req_energy_produced = 424.0
-req_generator_count = 10
-requires_id = &"antenna"
-
-[sub_resource type="Resource" id="upg_antenna_x2_25"]
-script = ExtResource("upg_script")
-id = &"antenna_x2_25"
-name_key = "UPG_GEN_X2_25"
-desc_key = "UPG_GEN_X2_DESC"
-kind = 0
-target_id = &"antenna"
-value = 2.0
-cost = 1800.0
-req_energy_produced = 2927.0
-req_generator_count = 25
-requires_id = &"antenna_x2_10"
-
-[sub_resource type="Resource" id="upg_valves_x2_10"]
-script = ExtResource("upg_script")
-id = &"valves_x2_10"
-name_key = "UPG_GEN_X2_10"
-desc_key = "UPG_GEN_X2_DESC"
-kind = 0
-target_id = &"valves"
-value = 2.0
-cost = 1080.0
-req_energy_produced = 6260.0
-req_generator_count = 10
-requires_id = &"valves"
-
-[sub_resource type="Resource" id="upg_valves_x2_25"]
-script = ExtResource("upg_script")
-id = &"valves_x2_25"
-name_key = "UPG_GEN_X2_25"
-desc_key = "UPG_GEN_X2_DESC"
-kind = 0
-target_id = &"valves"
-value = 2.0
-cost = 10800.0
-req_energy_produced = 173361.0
-req_generator_count = 25
-requires_id = &"valves_x2_10"
-
-[sub_resource type="Resource" id="upg_audio_frequency_x2_10"]
-script = ExtResource("upg_script")
-id = &"audio_frequency_x2_10"
-name_key = "UPG_GEN_X2_10"
-desc_key = "UPG_GEN_X2_DESC"
-kind = 0
-target_id = &"audio_frequency"
-value = 2.0
-cost = 6480.0
-req_energy_produced = 21596.0
-req_generator_count = 10
-requires_id = &"audio_frequency"
-
-[sub_resource type="Resource" id="upg_audio_frequency_x2_25"]
-script = ExtResource("upg_script")
-id = &"audio_frequency_x2_25"
-name_key = "UPG_GEN_X2_25"
-desc_key = "UPG_GEN_X2_DESC"
-kind = 0
-target_id = &"audio_frequency"
-value = 2.0
-cost = 64800.0
-req_energy_produced = 1052136.0
-req_generator_count = 25
-requires_id = &"audio_frequency_x2_10"
-
-[sub_resource type="Resource" id="upg_tuner_x2_10"]
-script = ExtResource("upg_script")
-id = &"tuner_x2_10"
-name_key = "UPG_GEN_X2_10"
-desc_key = "UPG_GEN_X2_DESC"
-kind = 0
-target_id = &"tuner"
-value = 2.0
-cost = 38880.0
-req_energy_produced = 114767.0
-req_generator_count = 10
-requires_id = &"tuner"
-
-[sub_resource type="Resource" id="upg_tuner_x2_25"]
-script = ExtResource("upg_script")
-id = &"tuner_x2_25"
-name_key = "UPG_GEN_X2_25"
-desc_key = "UPG_GEN_X2_DESC"
-kind = 0
-target_id = &"tuner"
-value = 2.0
-cost = 388800.0
-req_energy_produced = 15772181.0
-req_generator_count = 25
-requires_id = &"tuner_x2_10"
-
-[sub_resource type="Resource" id="upg_remote_x2_10"]
-script = ExtResource("upg_script")
-id = &"remote_x2_10"
-name_key = "UPG_GEN_X2_10"
-desc_key = "UPG_GEN_X2_DESC"
-kind = 0
-target_id = &"remote"
-value = 2.0
-cost = 233280.0
-req_energy_produced = 895490.0
-req_generator_count = 10
-requires_id = &"remote"
-
-[sub_resource type="Resource" id="upg_remote_x2_25"]
-script = ExtResource("upg_script")
-id = &"remote_x2_25"
-name_key = "UPG_GEN_X2_25"
-desc_key = "UPG_GEN_X2_DESC"
-kind = 0
-target_id = &"remote"
-value = 2.0
-cost = 2332800.0
-req_energy_produced = 0.0
-req_generator_count = 25
-requires_id = &"remote_x2_10"
-
-[sub_resource type="Resource" id="upg_channel_3_x2_10"]
-script = ExtResource("upg_script")
-id = &"channel_3_x2_10"
-name_key = "UPG_GEN_X2_10"
-desc_key = "UPG_GEN_X2_DESC"
-kind = 0
-target_id = &"channel_3"
-value = 2.0
-cost = 1399680.0
-req_energy_produced = 0.0
-req_generator_count = 10
-requires_id = &"channel_3"
-
-[sub_resource type="Resource" id="upg_channel_3_x2_25"]
-script = ExtResource("upg_script")
-id = &"channel_3_x2_25"
-name_key = "UPG_GEN_X2_25"
-desc_key = "UPG_GEN_X2_DESC"
-kind = 0
-target_id = &"channel_3"
-value = 2.0
-cost = 13996800.0
-req_energy_produced = 0.0
-req_generator_count = 25
-requires_id = &"channel_3_x2_10"
-
 [sub_resource type="Resource" id="upg_pulse"]
 script = ExtResource("upg_script")
 id = &"pulse"
 name_key = "UPG_PULSE"
 desc_key = "UPG_PULSE_DESC"
 kind = 1
+target_id = &""
 value = 2.0
+value2 = 1.0
 cost = 5.0
 req_energy_produced = 0.0
 req_generator_count = 0
+req_manual_clicks = 0
+req_packages = 0
+req_events_caught = 0
 requires_id = &""
+skill = &""
+duration = 0.0
+cooldown = 0.0
+source_id = &""
+tree_cell = Vector2i(0, 0)
+icon = &"pulse"
+warning_key = ""
 
-[sub_resource type="Resource" id="upg_dial_hold"]
+[sub_resource type="Resource" id="upg_bare_cable"]
 script = ExtResource("upg_script")
-id = &"dial_hold"
-name_key = "UPG_DIAL_HOLD"
-desc_key = "UPG_DIAL_HOLD_DESC"
-kind = 2
-value = 6.0
-cost = 61.0
-req_energy_produced = 122.0
+id = &"bare_cable"
+name_key = "UPG_BARE_CABLE"
+desc_key = "UPG_BARE_CABLE_DESC"
+kind = 5
+target_id = &""
+value = 0.08
+value2 = 1.0
+cost = 175.0
+req_energy_produced = 350.0
 req_generator_count = 0
+req_manual_clicks = 0
+req_packages = 0
+req_events_caught = 0
 requires_id = &"pulse"
+skill = &""
+duration = 0.0
+cooldown = 0.0
+source_id = &""
+tree_cell = Vector2i(1, 0)
+icon = &"crit"
+warning_key = ""
 
-[sub_resource type="Resource" id="upg_pulse_strong"]
+[sub_resource type="Resource" id="upg_discharge"]
 script = ExtResource("upg_script")
-id = &"pulse_strong"
-name_key = "UPG_PULSE_STRONG"
-desc_key = "UPG_PULSE_STRONG_DESC"
-kind = 1
-value = 2.0
-cost = 4225.0
-req_energy_produced = 8449.0
+id = &"discharge"
+name_key = "UPG_DISCHARGE"
+desc_key = "UPG_DISCHARGE_DESC"
+kind = 6
+target_id = &""
+value = 4.0
+value2 = 1.0
+cost = 4000.0
+req_energy_produced = 0.0
 req_generator_count = 0
-requires_id = &"pulse"
+req_manual_clicks = 400
+req_packages = 0
+req_events_caught = 0
+requires_id = &"bare_cable"
+skill = &""
+duration = 0.0
+cooldown = 0.0
+source_id = &""
+tree_cell = Vector2i(2, 0)
+icon = &"pulse_strong"
+warning_key = ""
+
+[sub_resource type="Resource" id="upg_no_ground"]
+script = ExtResource("upg_script")
+id = &"no_ground"
+name_key = "UPG_NO_GROUND"
+desc_key = "UPG_NO_GROUND_DESC"
+kind = 5
+target_id = &""
+value = 0.04
+value2 = 1.0
+cost = 88000.0
+req_energy_produced = 0.0
+req_generator_count = 0
+req_manual_clicks = 1500
+req_packages = 0
+req_events_caught = 0
+requires_id = &"discharge"
+skill = &""
+duration = 0.0
+cooldown = 0.0
+source_id = &""
+tree_cell = Vector2i(3, 0)
+icon = &"crit"
+warning_key = ""
+
+[sub_resource type="Resource" id="upg_heartbeat"]
+script = ExtResource("upg_script")
+id = &"heartbeat"
+name_key = "UPG_HEARTBEAT"
+desc_key = "UPG_HEARTBEAT_DESC"
+kind = 7
+target_id = &""
+value = 1.2
+value2 = 1.0
+cost = 500.0
+req_energy_produced = 1000.0
+req_generator_count = 0
+req_manual_clicks = 0
+req_packages = 0
+req_events_caught = 0
+requires_id = &"bare_cable"
+skill = &""
+duration = 0.0
+cooldown = 0.0
+source_id = &""
+tree_cell = Vector2i(1, 1)
+icon = &"combo"
+warning_key = ""
+
+[sub_resource type="Resource" id="upg_tachycardia"]
+script = ExtResource("upg_script")
+id = &"tachycardia"
+name_key = "UPG_TACHYCARDIA"
+desc_key = "UPG_TACHYCARDIA_DESC"
+kind = 7
+target_id = &""
+value = 1.35
+value2 = 1.0
+cost = 19000.0
+req_energy_produced = 38000.0
+req_generator_count = 0
+req_manual_clicks = 0
+req_packages = 0
+req_events_caught = 0
+requires_id = &"heartbeat"
+skill = &""
+duration = 0.0
+cooldown = 0.0
+source_id = &""
+tree_cell = Vector2i(2, 1)
+icon = &"combo"
+warning_key = ""
+
+[sub_resource type="Resource" id="upg_every_antenna"]
+script = ExtResource("upg_script")
+id = &"every_antenna"
+name_key = "UPG_EVERY_ANTENNA"
+desc_key = "UPG_EVERY_ANTENNA_DESC"
+kind = 9
+target_id = &""
+value = 0.003
+value2 = 1.0
+cost = 3500.0
+req_energy_produced = 7000.0
+req_generator_count = 0
+req_manual_clicks = 0
+req_packages = 0
+req_events_caught = 0
+requires_id = &"bare_cable"
+skill = &""
+duration = 0.0
+cooldown = 0.0
+source_id = &""
+tree_cell = Vector2i(3, 1)
+icon = &"listen"
+warning_key = ""
 
 [sub_resource type="Resource" id="upg_resonance"]
 script = ExtResource("upg_script")
@@ -264,11 +240,47 @@ id = &"resonance"
 name_key = "UPG_RESONANCE"
 desc_key = "UPG_RESONANCE_DESC"
 kind = 3
+target_id = &""
 value = 0.02
-cost = 13288.0
-req_energy_produced = 26575.0
+value2 = 1.0
+cost = 6000.0
+req_energy_produced = 12000.0
 req_generator_count = 0
-requires_id = &"pulse"
+req_manual_clicks = 0
+req_packages = 0
+req_events_caught = 0
+requires_id = &"every_antenna"
+skill = &""
+duration = 0.0
+cooldown = 0.0
+source_id = &""
+tree_cell = Vector2i(4, 1)
+icon = &"resonance"
+warning_key = ""
+
+[sub_resource type="Resource" id="upg_dial_hold"]
+script = ExtResource("upg_script")
+id = &"dial_hold"
+name_key = "UPG_DIAL_HOLD"
+desc_key = "UPG_DIAL_HOLD_DESC"
+kind = 2
+target_id = &""
+value = 6.0
+value2 = 1.0
+cost = 61.0
+req_energy_produced = 122.0
+req_generator_count = 0
+req_manual_clicks = 0
+req_packages = 0
+req_events_caught = 0
+requires_id = &""
+skill = &""
+duration = 0.0
+cooldown = 0.0
+source_id = &""
+tree_cell = Vector2i(5, 0)
+icon = &"dial_hold"
+warning_key = ""
 
 [sub_resource type="Resource" id="upg_dial_auto"]
 script = ExtResource("upg_script")
@@ -276,11 +288,47 @@ id = &"dial_auto"
 name_key = "UPG_DIAL_AUTO"
 desc_key = "UPG_DIAL_AUTO_DESC"
 kind = 4
+target_id = &""
 value = 2.0
+value2 = 1.0
 cost = 56500.0
-req_energy_produced = 112999.0
+req_energy_produced = 113000.0
 req_generator_count = 0
-requires_id = &"resonance"
+req_manual_clicks = 0
+req_packages = 0
+req_events_caught = 0
+requires_id = &"dial_hold"
+skill = &""
+duration = 0.0
+cooldown = 0.0
+source_id = &""
+tree_cell = Vector2i(6, 0)
+icon = &"dial_auto"
+warning_key = ""
+
+[sub_resource type="Resource" id="upg_echo"]
+script = ExtResource("upg_script")
+id = &"echo"
+name_key = "UPG_ECHO"
+desc_key = "UPG_ECHO_DESC"
+kind = 18
+target_id = &""
+value = 1.0
+value2 = 1.0
+cost = 2000000.0
+req_energy_produced = 4000000.0
+req_generator_count = 0
+req_manual_clicks = 0
+req_packages = 0
+req_events_caught = 0
+requires_id = &"dial_auto"
+skill = &""
+duration = 0.0
+cooldown = 0.0
+source_id = &""
+tree_cell = Vector2i(7, 0)
+icon = &"echo"
+warning_key = ""
 
 [sub_resource type="Resource" id="upg_dial_auto_2"]
 script = ExtResource("upg_script")
@@ -288,18 +336,519 @@ id = &"dial_auto_2"
 name_key = "UPG_DIAL_AUTO_2"
 desc_key = "UPG_DIAL_AUTO_2_DESC"
 kind = 4
-value = 5.0
-cost = 221637.0
-req_energy_produced = 443274.0
+target_id = &""
+value = 4.0
+value2 = 1.0
+cost = 14000000.0
+req_energy_produced = 28000000.0
 req_generator_count = 0
-requires_id = &"dial_auto"
+req_manual_clicks = 0
+req_packages = 0
+req_events_caught = 0
+requires_id = &"echo"
+skill = &""
+duration = 0.0
+cooldown = 0.0
+source_id = &""
+tree_cell = Vector2i(8, 0)
+icon = &"dial_auto_2"
+warning_key = ""
+
+[sub_resource type="Resource" id="upg_sweep"]
+script = ExtResource("upg_script")
+id = &"sweep"
+name_key = "UPG_SWEEP"
+desc_key = "UPG_SWEEP_DESC"
+kind = 17
+target_id = &""
+value = 1.0
+value2 = 1.0
+cost = 3000.0
+req_energy_produced = 6000.0
+req_generator_count = 0
+req_manual_clicks = 0
+req_packages = 0
+req_events_caught = 0
+requires_id = &"dial_hold"
+skill = &"sweep"
+duration = 10.0
+cooldown = 180.0
+source_id = &""
+tree_cell = Vector2i(6, 1)
+icon = &"sweep"
+warning_key = ""
+
+[sub_resource type="Resource" id="upg_surge"]
+script = ExtResource("upg_script")
+id = &"surge"
+name_key = "UPG_SURGE"
+desc_key = "UPG_SURGE_DESC"
+kind = 17
+target_id = &""
+value = 3.0
+value2 = 1.0
+cost = 12000.0
+req_energy_produced = 24000.0
+req_generator_count = 0
+req_manual_clicks = 0
+req_packages = 0
+req_events_caught = 0
+requires_id = &"sweep"
+skill = &"surge"
+duration = 12.0
+cooldown = 240.0
+source_id = &""
+tree_cell = Vector2i(7, 1)
+icon = &"surge"
+warning_key = ""
+
+[sub_resource type="Resource" id="upg_seek"]
+script = ExtResource("upg_script")
+id = &"seek"
+name_key = "UPG_SEEK"
+desc_key = "UPG_SEEK_DESC"
+kind = 17
+target_id = &""
+value = 1.0
+value2 = 1.0
+cost = 150000.0
+req_energy_produced = 300000.0
+req_generator_count = 0
+req_manual_clicks = 0
+req_packages = 0
+req_events_caught = 0
+requires_id = &"surge"
+skill = &"seek"
+duration = 0.0
+cooldown = 300.0
+source_id = &""
+tree_cell = Vector2i(8, 1)
+icon = &"seek"
+warning_key = ""
+
+[sub_resource type="Resource" id="upg_overload"]
+script = ExtResource("upg_script")
+id = &"overload"
+name_key = "UPG_OVERLOAD"
+desc_key = "UPG_OVERLOAD_DESC"
+kind = 17
+target_id = &""
+value = 5.0
+value2 = 8.0
+cost = 9000000.0
+req_energy_produced = 18000000.0
+req_generator_count = 0
+req_manual_clicks = 0
+req_packages = 0
+req_events_caught = 0
+requires_id = &"seek"
+skill = &"overload"
+duration = 20.0
+cooldown = 300.0
+source_id = &""
+tree_cell = Vector2i(9, 1)
+icon = &"overload"
+warning_key = "UPG_WARNING"
+
+[sub_resource type="Resource" id="upg_tuning"]
+script = ExtResource("upg_script")
+id = &"tuning"
+name_key = "UPG_TUNING"
+desc_key = "UPG_TUNING_DESC"
+kind = 12
+target_id = &""
+value = 1.0
+value2 = 1.0
+cost = 1500.0
+req_energy_produced = 3000.0
+req_generator_count = 0
+req_manual_clicks = 0
+req_packages = 0
+req_events_caught = 0
+requires_id = &""
+skill = &""
+duration = 0.0
+cooldown = 0.0
+source_id = &""
+tree_cell = Vector2i(6, 2)
+icon = &"tape"
+warning_key = ""
+
+[sub_resource type="Resource" id="upg_tuning_fine"]
+script = ExtResource("upg_script")
+id = &"tuning_fine"
+name_key = "UPG_TUNING_FINE"
+desc_key = "UPG_TUNING_FINE_DESC"
+kind = 13
+target_id = &""
+value = 0.75
+value2 = 1.0
+cost = 8000.0
+req_energy_produced = 0.0
+req_generator_count = 0
+req_manual_clicks = 0
+req_packages = 3
+req_events_caught = 0
+requires_id = &"tuning"
+skill = &""
+duration = 0.0
+cooldown = 0.0
+source_id = &""
+tree_cell = Vector2i(7, 2)
+icon = &"tape"
+warning_key = ""
+
+[sub_resource type="Resource" id="upg_blank_tape"]
+script = ExtResource("upg_script")
+id = &"blank_tape"
+name_key = "UPG_BLANK_TAPE"
+desc_key = "UPG_BLANK_TAPE_DESC"
+kind = 14
+target_id = &""
+value = 0.25
+value2 = 0.06
+cost = 11000.0
+req_energy_produced = 0.0
+req_generator_count = 0
+req_manual_clicks = 0
+req_packages = 6
+req_events_caught = 0
+requires_id = &"tuning_fine"
+skill = &""
+duration = 0.0
+cooldown = 0.0
+source_id = &""
+tree_cell = Vector2i(8, 2)
+icon = &"tape_rare"
+warning_key = ""
+
+[sub_resource type="Resource" id="upg_double_deck"]
+script = ExtResource("upg_script")
+id = &"double_deck"
+name_key = "UPG_DOUBLE_DECK"
+desc_key = "UPG_DOUBLE_DECK_DESC"
+kind = 15
+target_id = &""
+value = 1.5
+value2 = 1.0
+cost = 200000.0
+req_energy_produced = 400000.0
+req_generator_count = 0
+req_manual_clicks = 0
+req_packages = 0
+req_events_caught = 0
+requires_id = &"blank_tape"
+skill = &""
+duration = 0.0
+cooldown = 0.0
+source_id = &""
+tree_cell = Vector2i(9, 2)
+icon = &"tape"
+warning_key = ""
+
+[sub_resource type="Resource" id="upg_unlabeled_tape"]
+script = ExtResource("upg_script")
+id = &"unlabeled_tape"
+name_key = "UPG_UNLABELED_TAPE"
+desc_key = "UPG_UNLABELED_TAPE_DESC"
+kind = 14
+target_id = &""
+value = 0.25
+value2 = 0.12
+cost = 6000000.0
+req_energy_produced = 12000000.0
+req_generator_count = 0
+req_manual_clicks = 0
+req_packages = 0
+req_events_caught = 0
+requires_id = &"double_deck"
+skill = &""
+duration = 0.0
+cooldown = 0.0
+source_id = &""
+tree_cell = Vector2i(9, 3)
+icon = &"tape_black"
+warning_key = ""
+
+[sub_resource type="Resource" id="upg_antenna_tune"]
+script = ExtResource("upg_script")
+id = &"antenna_tune"
+name_key = "UPG_ANTENNA_TUNE"
+desc_key = "UPG_ANTENNA_TUNE_DESC"
+kind = 0
+target_id = &"antenna"
+value = 2.0
+value2 = 1.0
+cost = 180.0
+req_energy_produced = 0.0
+req_generator_count = 10
+req_manual_clicks = 0
+req_packages = 0
+req_events_caught = 0
+requires_id = &"antenna"
+skill = &""
+duration = 0.0
+cooldown = 0.0
+source_id = &""
+tree_cell = Vector2i(0, 3)
+icon = &"antenna"
+warning_key = ""
+
+[sub_resource type="Resource" id="upg_valves_hot"]
+script = ExtResource("upg_script")
+id = &"valves_hot"
+name_key = "UPG_VALVES_HOT"
+desc_key = "UPG_VALVES_HOT_DESC"
+kind = 10
+target_id = &"valves"
+value = 3.0
+value2 = 1.0
+cost = 1080.0
+req_energy_produced = 0.0
+req_generator_count = 10
+req_manual_clicks = 0
+req_packages = 0
+req_events_caught = 0
+requires_id = &"valves"
+skill = &""
+duration = 0.0
+cooldown = 0.0
+source_id = &""
+tree_cell = Vector2i(1, 3)
+icon = &"valves"
+warning_key = ""
+
+[sub_resource type="Resource" id="upg_feedback"]
+script = ExtResource("upg_script")
+id = &"feedback"
+name_key = "UPG_FEEDBACK"
+desc_key = "UPG_FEEDBACK_DESC"
+kind = 11
+target_id = &"audio_frequency"
+value = 0.03
+value2 = 1.0
+cost = 6480.0
+req_energy_produced = 0.0
+req_generator_count = 10
+req_manual_clicks = 0
+req_packages = 0
+req_events_caught = 0
+requires_id = &"audio_frequency"
+skill = &""
+duration = 0.0
+cooldown = 0.0
+source_id = &"valves"
+tree_cell = Vector2i(2, 3)
+icon = &"audio_frequency"
+warning_key = ""
+
+[sub_resource type="Resource" id="upg_tuner_double"]
+script = ExtResource("upg_script")
+id = &"tuner_double"
+name_key = "UPG_TUNER_DOUBLE"
+desc_key = "UPG_TUNER_DOUBLE_DESC"
+kind = 0
+target_id = &"tuner"
+value = 2.0
+value2 = 1.0
+cost = 38880.0
+req_energy_produced = 0.0
+req_generator_count = 10
+req_manual_clicks = 0
+req_packages = 0
+req_events_caught = 0
+requires_id = &"tuner"
+skill = &""
+duration = 0.0
+cooldown = 0.0
+source_id = &""
+tree_cell = Vector2i(3, 3)
+icon = &"tuner"
+warning_key = ""
+
+[sub_resource type="Resource" id="upg_zapping"]
+script = ExtResource("upg_script")
+id = &"zapping"
+name_key = "UPG_ZAPPING"
+desc_key = "UPG_ZAPPING_DESC"
+kind = 11
+target_id = &""
+value = 0.02
+value2 = 1.0
+cost = 300000.0
+req_energy_produced = 600000.0
+req_generator_count = 0
+req_manual_clicks = 0
+req_packages = 0
+req_events_caught = 0
+requires_id = &"remote"
+skill = &""
+duration = 0.0
+cooldown = 0.0
+source_id = &"remote"
+tree_cell = Vector2i(4, 3)
+icon = &"remote"
+warning_key = ""
+
+[sub_resource type="Resource" id="upg_bypass"]
+script = ExtResource("upg_script")
+id = &"bypass"
+name_key = "UPG_BYPASS"
+desc_key = "UPG_BYPASS_DESC"
+kind = 19
+target_id = &""
+value = 1.5
+value2 = 1.0
+cost = 45000.0
+req_energy_produced = 90000.0
+req_generator_count = 0
+req_manual_clicks = 0
+req_packages = 0
+req_events_caught = 0
+requires_id = &"tuner_double"
+skill = &""
+duration = 0.0
+cooldown = 0.0
+source_id = &""
+tree_cell = Vector2i(3, 4)
+icon = &"meter"
+warning_key = "UPG_WARNING"
+
+[sub_resource type="Resource" id="upg_divert"]
+script = ExtResource("upg_script")
+id = &"divert"
+name_key = "UPG_DIVERT"
+desc_key = "UPG_DIVERT_DESC"
+kind = 19
+target_id = &""
+value = 2.0
+value2 = 1.0
+cost = 4000000.0
+req_energy_produced = 8000000.0
+req_generator_count = 0
+req_manual_clicks = 0
+req_packages = 0
+req_events_caught = 0
+requires_id = &"bypass"
+skill = &""
+duration = 0.0
+cooldown = 0.0
+source_id = &""
+tree_cell = Vector2i(4, 4)
+icon = &"meter"
+warning_key = "UPG_WARNING"
+
+[sub_resource type="Resource" id="upg_sharp_eye"]
+script = ExtResource("upg_script")
+id = &"sharp_eye"
+name_key = "UPG_SHARP_EYE"
+desc_key = "UPG_SHARP_EYE_DESC"
+kind = 16
+target_id = &""
+value = 1.5
+value2 = 0.75
+cost = 5200.0
+req_energy_produced = 0.0
+req_generator_count = 0
+req_manual_clicks = 0
+req_packages = 0
+req_events_caught = 1
+requires_id = &""
+skill = &""
+duration = 0.0
+cooldown = 0.0
+source_id = &""
+tree_cell = Vector2i(6, 4)
+icon = &"eye"
+warning_key = ""
+
+[sub_resource type="Resource" id="upg_dont_look_away"]
+script = ExtResource("upg_script")
+id = &"dont_look_away"
+name_key = "UPG_DONT_LOOK_AWAY"
+desc_key = "UPG_DONT_LOOK_AWAY_DESC"
+kind = 16
+target_id = &"silhouette"
+value = 2.0
+value2 = 1.0
+cost = 570000.0
+req_energy_produced = 0.0
+req_generator_count = 0
+req_manual_clicks = 0
+req_packages = 0
+req_events_caught = 4
+requires_id = &"sharp_eye"
+skill = &""
+duration = 0.0
+cooldown = 0.0
+source_id = &""
+tree_cell = Vector2i(7, 4)
+icon = &"eye"
+warning_key = ""
+
+[sub_resource type="Resource" id="perk_memory"]
+script = ExtResource("perk_script")
+id = &"memory"
+name_key = "PERK_MEMORY"
+desc_key = "PERK_MEMORY_DESC"
+cost = 2
+kind = 1
+upgrade_ids = Array[StringName]([&"pulse", &"dial_hold"])
+generators = {&"antenna": 10, &"valves": 5}
+
+[sub_resource type="Resource" id="perk_hands"]
+script = ExtResource("perk_script")
+id = &"hands"
+name_key = "PERK_HANDS"
+desc_key = "PERK_HANDS_DESC"
+cost = 2
+kind = 5
+value = 3.0
+value2 = 0.2
+
+[sub_resource type="Resource" id="perk_eyes"]
+script = ExtResource("perk_script")
+id = &"eyes"
+name_key = "PERK_EYES"
+desc_key = "PERK_EYES_DESC"
+cost = 3
+kind = 6
+value = 60.0
+value2 = 120.0
+
+[sub_resource type="Resource" id="perk_habit"]
+script = ExtResource("perk_script")
+id = &"habit"
+name_key = "PERK_HABIT"
+desc_key = "PERK_HABIT_DESC"
+cost = 3
+kind = 2
+value = 0.75
+value2 = 0.5
+
+[sub_resource type="Resource" id="perk_pulse"]
+script = ExtResource("perk_script")
+id = &"pulse"
+name_key = "PERK_PULSE"
+desc_key = "PERK_PULSE_DESC"
+cost = 3
+kind = 3
+value = 2.0
+
+[sub_resource type="Resource" id="perk_name"]
+script = ExtResource("perk_script")
+id = &"name"
+name_key = "PERK_NAME"
+desc_key = "PERK_NAME_DESC"
+cost = 4
+kind = 7
 
 [sub_resource type="Resource" id="evt_interference"]
 script = ExtResource("evt_script")
 id = &"interference"
 weight = 4.0
 duration = 8.0
-reward_production_seconds = 15.0
+reward_production_seconds = 10.0
 reward_min_clicks = 50.0
 production_mult = 1.0
 
@@ -308,7 +857,7 @@ script = ExtResource("evt_script")
 id = &"shooting_star"
 weight = 3.0
 duration = 5.0
-reward_production_seconds = 8.0
+reward_production_seconds = 6.0
 reward_min_clicks = 25.0
 production_mult = 1.0
 
@@ -326,63 +875,22 @@ script = ExtResource("evt_script")
 id = &"silhouette"
 weight = 2.0
 duration = 7.0
-reward_production_seconds = 45.0
+reward_production_seconds = 30.0
 reward_min_clicks = 150.0
 production_mult = 1.0
-
-[sub_resource type="Resource" id="perk_hands"]
-script = ExtResource("perk_script")
-id = &"hands"
-name_key = "PERK_HANDS"
-desc_key = "PERK_HANDS_DESC"
-cost = 1
-kind = 0
-upgrade_ids = Array[StringName]([&"dial_hold", &"dial_auto"])
-
-[sub_resource type="Resource" id="perk_memory"]
-script = ExtResource("perk_script")
-id = &"memory"
-name_key = "PERK_MEMORY"
-desc_key = "PERK_MEMORY_DESC"
-cost = 2
-kind = 1
-generators = {&"antenna": 10, &"valves": 5}
-
-[sub_resource type="Resource" id="perk_habit"]
-script = ExtResource("perk_script")
-id = &"habit"
-name_key = "PERK_HABIT"
-desc_key = "PERK_HABIT_DESC"
-cost = 3
-kind = 2
-value = 0.75
-
-[sub_resource type="Resource" id="perk_pulse"]
-script = ExtResource("perk_script")
-id = &"pulse"
-name_key = "PERK_PULSE"
-desc_key = "PERK_PULSE_DESC"
-cost = 4
-kind = 3
-value = 2.0
-
-[sub_resource type="Resource" id="perk_name"]
-script = ExtResource("perk_script")
-id = &"name"
-name_key = "PERK_NAME"
-desc_key = "PERK_NAME_DESC"
-cost = 6
-kind = 4
-value = 1.0
 
 [resource]
 script = ExtResource("config_script")
 generators = Array[ExtResource("gen_script")]([SubResource("gen_antenna"), SubResource("gen_valves"), SubResource("gen_audio_frequency"), SubResource("gen_tuner"), SubResource("gen_remote"), SubResource("gen_channel_3")])
-upgrades = Array[ExtResource("upg_script")]([SubResource("upg_antenna_x2_10"), SubResource("upg_antenna_x2_25"), SubResource("upg_valves_x2_10"), SubResource("upg_valves_x2_25"), SubResource("upg_audio_frequency_x2_10"), SubResource("upg_audio_frequency_x2_25"), SubResource("upg_tuner_x2_10"), SubResource("upg_tuner_x2_25"), SubResource("upg_remote_x2_10"), SubResource("upg_remote_x2_25"), SubResource("upg_channel_3_x2_10"), SubResource("upg_channel_3_x2_25"), SubResource("upg_pulse"), SubResource("upg_dial_hold"), SubResource("upg_pulse_strong"), SubResource("upg_resonance"), SubResource("upg_dial_auto"), SubResource("upg_dial_auto_2")])
+upgrades = Array[ExtResource("upg_script")]([SubResource("upg_pulse"), SubResource("upg_bare_cable"), SubResource("upg_discharge"), SubResource("upg_no_ground"), SubResource("upg_heartbeat"), SubResource("upg_tachycardia"), SubResource("upg_every_antenna"), SubResource("upg_resonance"), SubResource("upg_dial_hold"), SubResource("upg_dial_auto"), SubResource("upg_echo"), SubResource("upg_dial_auto_2"), SubResource("upg_sweep"), SubResource("upg_surge"), SubResource("upg_seek"), SubResource("upg_overload"), SubResource("upg_tuning"), SubResource("upg_tuning_fine"), SubResource("upg_blank_tape"), SubResource("upg_double_deck"), SubResource("upg_unlabeled_tape"), SubResource("upg_antenna_tune"), SubResource("upg_valves_hot"), SubResource("upg_feedback"), SubResource("upg_tuner_double"), SubResource("upg_zapping"), SubResource("upg_bypass"), SubResource("upg_divert"), SubResource("upg_sharp_eye"), SubResource("upg_dont_look_away")])
 cost_growth = 1.15
-threshold = 16846002.0
+threshold = 75000000.0
 base_click_value = 1.0
 events = Array[ExtResource("evt_script")]([SubResource("evt_interference"), SubResource("evt_shooting_star"), SubResource("evt_clear_signal"), SubResource("evt_silhouette")])
-perks = Array[ExtResource("perk_script")]([SubResource("perk_hands"), SubResource("perk_memory"), SubResource("perk_habit"), SubResource("perk_pulse"), SubResource("perk_name")])
+perks = Array[ExtResource("perk_script")]([SubResource("perk_memory"), SubResource("perk_hands"), SubResource("perk_eyes"), SubResource("perk_habit"), SubResource("perk_pulse"), SubResource("perk_name")])
+crit_chance = 0.0
+crit_mult = 3.0
+package_bar = 300.0
+package_seconds = Vector2(8, 24)
 event_min = 120.0
 event_max = 240.0

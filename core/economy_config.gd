@@ -16,6 +16,15 @@ extends Resource
 @export var perks: Array[PerkDef] = []
 ## Carga al reiniciar: carga_base × raíz(producida / umbral). 3 al llegar; 6 con 4 veces el umbral.
 @export var carga_base: float = 3.0
+## Crítico de partida (solo clic a mano): probabilidad y multiplicador.
+@export var crit_chance: float = 0.05
+@export var crit_mult: float = 5.0
+## Clics para llenar la barra de cintas, y premio de cada rareza en segundos de ingresos
+## (común, rara) y de la negra (producción × black_mult durante black_seconds).
+@export var package_bar: float = 60.0
+@export var package_seconds: Vector2 = Vector2(20, 60)
+@export var black_mult: float = 3.0
+@export var black_seconds: float = 15.0
 ## Tope de clics a mano por segundo (ratón y Espacio juntos): frena los autoclickers y el doble clic.
 @export var max_clicks_per_second: float = 10.0
 

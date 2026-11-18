@@ -21,7 +21,7 @@ func before_each() -> void:
 
 func _valid_dict() -> Dictionary:
 	return {
-		"version": 3,
+		"version": 4,
 		"run_index": 2,
 		"energy": 12.5,
 		"energy_produced_run": 40.0,
@@ -31,6 +31,11 @@ func _valid_dict() -> Dictionary:
 		"play_time": 33.0,
 		"carga": 0,
 		"perks": [],
+		"manual_clicks": 0,
+		"packages_opened": 0,
+		"events_caught": 0,
+		"package_bar": 0.0,
+		"timers": {},
 	}
 
 
@@ -55,7 +60,7 @@ func test_round_trip() -> void:
 func test_accepts_json_types() -> void:
 	# Tras pasar por JSON, los números llegan como float y los id como String.
 	var d := _valid_dict()
-	d["version"] = 3.0
+	d["version"] = 4.0
 	d["run_index"] = 2.0
 	d["generators"] = {"antenna": 3.0}
 	var w: PackedStringArray = []
@@ -103,7 +108,7 @@ func test_missing_or_newer_version_is_unreadable() -> void:
 	d.erase("version")
 	assert_null(RunState.from_dict(d, config, PackedStringArray()))
 	d = _valid_dict()
-	d["version"] = 4
+	d["version"] = 5
 	assert_null(RunState.from_dict(d, config, PackedStringArray()))
 
 
@@ -127,7 +132,7 @@ func test_migrates_v1_active_interference() -> void:
 	assert_not_null(s)
 	assert_eq(s.event_id, &"interference")
 	assert_almost_eq(s.event_left, 3.0, 0.0001)
-	assert_eq(int(s.to_dict()["version"]), 3)
+	assert_eq(int(s.to_dict()["version"]), 4)
 
 
 func test_migrates_v1_idle_interference() -> void:
@@ -155,8 +160,8 @@ func test_unknown_event_dropped_with_warning() -> void:
 
 func test_migrates_v2_gives_carga_for_past_restarts() -> void:
 	var d := _valid_dict()
-	d.erase("carga")
-	d.erase("perks")
+	for key in ["carga", "perks", "manual_clicks", "packages_opened", "events_caught", "package_bar", "timers"]:
+		d.erase(key)
 	d["version"] = 2
 	d["run_index"] = 3
 	var s := RunState.from_dict(d, config, PackedStringArray())
@@ -172,3 +177,26 @@ func test_round_trip_keeps_carga_and_perks() -> void:
 	var back := RunState.from_dict(JSON.parse_string(JSON.stringify(s.to_dict())), config, PackedStringArray())
 	assert_eq(back.carga, 4)
 	assert_eq(back.perks, [&"hands"] as Array[StringName])
+
+
+func test_migrates_v3_refunds_old_perks() -> void:
+	var d := _valid_dict()
+	for key in ["manual_clicks", "packages_opened", "events_caught", "package_bar", "timers"]:
+		d.erase(key)
+	d["version"] = 3
+	d["carga"] = 1
+	d["perks"] = ["hands", "memory"]  # costaban 1 y 2 en la rama fija de la v3
+	var s := RunState.from_dict(d, config, PackedStringArray())
+	assert_not_null(s)
+	assert_eq(s.carga, 4, "1 sin gastar + 3 devueltos")
+	assert_eq(s.perks.size(), 0, "las permanentes cambian: se vuelven a elegir")
+	assert_eq(s.manual_clicks, 0)
+
+
+func test_timers_round_trip() -> void:
+	var s := RunState.new()
+	s.timers["cd_sweep"] = 42.0
+	s.package_bar = 12.5
+	var back := RunState.from_dict(JSON.parse_string(JSON.stringify(s.to_dict())), config, PackedStringArray())
+	assert_almost_eq(float(back.timers["cd_sweep"]), 42.0, 0.0001)
+	assert_almost_eq(back.package_bar, 12.5, 0.0001)

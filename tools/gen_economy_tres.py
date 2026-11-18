@@ -1,17 +1,16 @@
-"""Genera data/economy_run1.tres con los valores del ajuste del ritmo (specs/hito1.md §3.5, §6 paso 3).
+"""Genera data/economy_run1.tres (specs/incremental_v2.md: árbol de 30 mejoras, 6 permanentes, eventos).
 
 Uso: python tools/gen_economy_tres.py
-Los valores salen del ajuste del 2026-11-17 (calendario de apariciones «variante I»): cada novedad de la
-tienda tiene un minuto objetivo y su requisito de Energía producida la coloca ahí. Reajuste del 2026-11-18
-(economía centrada en el clic): cada generador suma Energía a cada clic; mismos minutos objetivo, requisitos
-y umbral recalculados con la media geométrica de los 4 perfiles del test de ritmo.
+Generadores: curva del ajuste del 2026-11-18 (cada generador suma Energía a cada clic). Mejoras: cada una
+con su minuto objetivo; el coste es una primera pasada que el test de ritmo ajusta. El requisito de Energía
+producida es 2 × el coste salvo que la mejora se abra por otra cosa (clics a mano, cintas, eventos, unidades).
 """
 
 A = 6.0  # coste de los generadores: 15 × A^posición
 B = 5.5  # escala de los generadores: 0,2 × B^posición
 P = 0.4  # producción por segundo: P × 0,2 × B^posición
 C = 0.03  # bono por clic (antes del multiplicador de clic): C × 0,2 × B^posición
-THRESHOLD = 16_846_002.0
+THRESHOLD = 75_000_000.0
 
 # id, clave, energía producida para aparecer
 GENERATORS = [
@@ -22,62 +21,126 @@ GENERATORS = [
     ("remote", "GEN_REMOTE", 258_101),
     ("channel_3", "GEN_CHANNEL_3", 1_135_196),
 ]
-GEN_UPGRADE_COST = {10: 12, 25: 120}  # × coste base
-# Energía producida que piden además las mejoras ×2 (sin entrada: 0), para repartirlas en los huecos.
-GEN_UPGRADE_REQ = {
-    "antenna_x2_10": 424, "antenna_x2_25": 2_927,
-    "valves_x2_10": 6_260, "valves_x2_25": 173_361,
-    "audio_frequency_x2_10": 21_596, "audio_frequency_x2_25": 1_052_136,
-    "tuner_x2_10": 114_767, "tuner_x2_25": 15_772_181,
-    "remote_x2_10": 895_490,
-}
 
-# Kind: 0 GENERATOR_MULT, 1 CLICK_MULT, 2 HOLD_RATE, 3 CLICK_PRODUCTION_SHARE, 4 AUTO_CLICK_RATE
-# id, clave, kind, value, cost, req_energy_produced
-CLICK_UPGRADES = [
-    ("pulse", "UPG_PULSE", 1, 2.0, 5, 0),
-    ("dial_hold", "UPG_DIAL_HOLD", 2, 6.0, 61, 122),
-    ("pulse_strong", "UPG_PULSE_STRONG", 1, 2.0, 4_225, 8_449),
-    ("resonance", "UPG_RESONANCE", 3, 0.02, 13_288, 26_575),
-    ("dial_auto", "UPG_DIAL_AUTO", 4, 2.0, 56_500, 112_999),
-    ("dial_auto_2", "UPG_DIAL_AUTO_2", 4, 5.0, 221_637, 443_274),
+CRIT = (0.0, 3.0)  # crítico de partida: probabilidad, multiplicador
+PACKAGE_BAR = 300.0  # clics a mano por cinta
+PACKAGE_SECONDS = (8, 24)  # premio de la común y la rara, en segundos de ingresos
+
+# UpgradeDef.Kind
+GEN_MULT, CLICK_MULT, HOLD, SHARE, AUTO, CRIT_CHANCE, CRIT_MULT, COMBO, MANUAL_MULT, PER_OWNED, \
+    GEN_CLICK_MULT, SYNERGY, PKG_UNLOCK, PKG_RATE, PKG_RARITY, PKG_REWARD, EVENT_REWARD, SKILL, ECHO, PROD_MULT = range(20)
+
+# id, kind, coste, padre, celda (columna, fila), icono, campos extra.
+# Celdas: rejilla de 10 × 5 en la tele; los generadores van en la fila 2, columnas 0-5.
+UPGRADES = [
+    # P: pulso a mano
+    ("pulse", CLICK_MULT, 5, "", (0, 0), "pulse", {"value": 2.0, "req_energy": 0}),
+    ("bare_cable", CRIT_CHANCE, 175, "pulse", (1, 0), "crit", {"value": 0.08}),
+    ("discharge", CRIT_MULT, 4_000, "bare_cable", (2, 0), "pulse_strong", {"value": 4.0, "req_manual_clicks": 400}),
+    ("no_ground", CRIT_CHANCE, 88_000, "discharge", (3, 0), "crit", {"value": 0.04, "req_manual_clicks": 1500}),
+    ("heartbeat", COMBO, 500, "bare_cable", (1, 1), "combo", {"value": 1.2}),
+    ("tachycardia", COMBO, 19_000, "heartbeat", (2, 1), "combo", {"value": 1.35}),
+    ("every_antenna", PER_OWNED, 3_500, "bare_cable", (3, 1), "listen", {"value": 0.003}),
+    ("resonance", SHARE, 6_000, "every_antenna", (4, 1), "resonance", {"value": 0.02}),
+    # D: dial automático
+    ("dial_hold", HOLD, 61, "", (5, 0), "dial_hold", {"value": 6.0}),
+    ("dial_auto", AUTO, 56_500, "dial_hold", (6, 0), "dial_auto", {"value": 2.0}),
+    ("echo", ECHO, 2_000_000, "dial_auto", (7, 0), "echo", {}),
+    ("dial_auto_2", AUTO, 14_000_000, "echo", (8, 0), "dial_auto_2", {"value": 4.0}),
+    # H: habilidades del mando
+    ("sweep", SKILL, 3_000, "dial_hold", (6, 1), "sweep", {"skill": "sweep", "duration": 10.0, "cooldown": 180.0}),
+    ("surge", SKILL, 12_000, "sweep", (7, 1), "surge",
+     {"skill": "surge", "value": 3.0, "duration": 12.0, "cooldown": 240.0}),
+    ("seek", SKILL, 150_000, "surge", (8, 1), "seek", {"skill": "seek", "cooldown": 300.0}),
+    ("overload", SKILL, 9_000_000, "seek", (9, 1), "overload",
+     {"skill": "overload", "value": 5.0, "value2": 8.0, "duration": 20.0, "cooldown": 300.0, "warning": True}),
+    # C: cintas
+    ("tuning", PKG_UNLOCK, 1_500, "", (6, 2), "tape", {}),
+    ("tuning_fine", PKG_RATE, 8_000, "tuning", (7, 2), "tape", {"value": 0.75, "req_packages": 3}),
+    ("blank_tape", PKG_RARITY, 11_000, "tuning_fine", (8, 2), "tape_rare",
+     {"value": 0.25, "value2": 0.06, "req_packages": 6}),
+    ("double_deck", PKG_REWARD, 200_000, "blank_tape", (9, 2), "tape", {"value": 1.5}),
+    ("unlabeled_tape", PKG_RARITY, 6_000_000, "double_deck", (9, 3), "tape_black", {"value": 0.25, "value2": 0.12}),
+    # M: máquinas
+    ("antenna_tune", GEN_MULT, 180, "antenna", (0, 3), "antenna",
+     {"target": "antenna", "value": 2.0, "req_generator_count": 10}),
+    ("valves_hot", GEN_CLICK_MULT, 1_080, "valves", (1, 3), "valves",
+     {"target": "valves", "value": 3.0, "req_generator_count": 10}),
+    ("feedback", SYNERGY, 6_480, "audio_frequency", (2, 3), "audio_frequency",
+     {"target": "audio_frequency", "source": "valves", "value": 0.03, "req_generator_count": 10}),
+    ("tuner_double", GEN_MULT, 38_880, "tuner", (3, 3), "tuner",
+     {"target": "tuner", "value": 2.0, "req_generator_count": 10}),
+    ("zapping", SYNERGY, 300_000, "remote", (4, 3), "remote",
+     {"source": "remote", "value": 0.02, "req_energy": 600_000}),  # sin target: todas las máquinas
+    # X: consumo
+    ("bypass", PROD_MULT, 45_000, "tuner_double", (3, 4), "meter", {"value": 1.5, "warning": True}),
+    ("divert", PROD_MULT, 4_000_000, "bypass", (4, 4), "meter", {"value": 2.0, "warning": True}),
+    # E: eventos
+    ("sharp_eye", EVENT_REWARD, 5_200, "", (6, 4), "eye", {"value": 1.5, "value2": 0.75, "req_events_caught": 1}),
+    ("dont_look_away", EVENT_REWARD, 570_000, "sharp_eye", (7, 4), "eye",
+     {"target": "silhouette", "value": 2.0, "req_events_caught": 4}),
 ]
 
+# Mejoras permanentes (specs/incremental_v2.md §4), en cualquier orden: id, clave, coste, PerkDef.Kind, datos.
+PERKS = [
+    ("memory", "PERK_MEMORY", 2, 1,
+     'upgrade_ids = Array[StringName]([&"pulse", &"dial_hold"])\ngenerators = {&"antenna": 10, &"valves": 5}'),
+    ("hands", "PERK_HANDS", 2, 5, "value = 3.0\nvalue2 = 0.2"),
+    ("eyes", "PERK_EYES", 3, 6, "value = 60.0\nvalue2 = 120.0"),
+    ("habit", "PERK_HABIT", 3, 2, "value = 0.75\nvalue2 = 0.5"),
+    ("pulse", "PERK_PULSE", 3, 3, "value = 2.0"),
+    ("name", "PERK_NAME", 4, 7, ""),
+]
 
-# Árbol de la línea de los clics: Dial firme es una rama aparte de Pulso; el resto, una cadena.
-CLICK_PARENT = {"pulse": "", "dial_hold": "pulse", "pulse_strong": "pulse", "resonance": "pulse",
-                "dial_auto": "resonance", "dial_auto_2": "dial_auto"}
+# Eventos de la tele: id, peso, duración (s), recompensa (s de ingresos, clics mínimos), multiplicador.
+EVENTS = [
+    ("interference", 4, 8, 10, 50, 1),
+    ("shooting_star", 3, 5, 6, 25, 1),
+    ("clear_signal", 2, 20, 0, 0, 2),
+    ("silhouette", 2, 7, 30, 150, 1),
+]
 
 
 def num(x: float) -> str:
     return repr(float(x))
 
 
-# Mejoras permanentes (specs/incremental.md §6), en orden: id, clave, coste, tipo (PerkDef.Kind), datos.
-# «Tu pulso» sustituye a «Tu paciencia» (producción ×2): las mejoras deben premiar el clic (usuario, 2026-11-18).
-PERKS = [
-    ("hands", "PERK_HANDS", 1, 0, 'upgrade_ids = Array[StringName]([&"dial_hold", &"dial_auto"])'),
-    ("memory", "PERK_MEMORY", 2, 1, 'generators = {&"antenna": 10, &"valves": 5}'),
-    ("habit", "PERK_HABIT", 3, 2, "value = 0.75"),
-    ("pulse", "PERK_PULSE", 4, 3, "value = 2.0"),
-    ("name", "PERK_NAME", 6, 4, "value = 1.0"),
-]
-
-# Eventos de la tele: id, peso, duración (s), recompensa (s de producción, clics mínimos), multiplicador.
-EVENTS = [
-    ("interference", 4, 8, 15, 50, 1),
-    ("shooting_star", 3, 5, 8, 25, 1),
-    ("clear_signal", 2, 20, 0, 0, 2),
-    ("silhouette", 2, 7, 45, 150, 1),
-]
+def upgrade_block(uid, kind, cost, parent, cell, icon, extra):
+    key = "UPG_" + uid.upper()
+    req_energy = extra.get("req_energy", 0 if any(k.startswith("req_") for k in extra) else 2 * cost)
+    target = extra.get("target", "")
+    lines = [
+        f'[sub_resource type="Resource" id="upg_{uid}"]',
+        'script = ExtResource("upg_script")',
+        f'id = &"{uid}"',
+        f'name_key = "{key}"',
+        f'desc_key = "{key}_DESC"',
+        f"kind = {kind}",
+        f'target_id = &"{target}"',
+        f"value = {num(extra.get('value', 1.0))}",
+        f"value2 = {num(extra.get('value2', 1.0))}",
+        f"cost = {num(cost)}",
+        f"req_energy_produced = {num(req_energy)}",
+        f"req_generator_count = {extra.get('req_generator_count', 0)}",
+        f"req_manual_clicks = {extra.get('req_manual_clicks', 0)}",
+        f"req_packages = {extra.get('req_packages', 0)}",
+        f"req_events_caught = {extra.get('req_events_caught', 0)}",
+        f'requires_id = &"{parent}"',
+        f'skill = &"{extra.get("skill", "")}"',
+        f"duration = {num(extra.get('duration', 0.0))}",
+        f"cooldown = {num(extra.get('cooldown', 0.0))}",
+        f'source_id = &"{extra.get("source", "")}"',
+        f"tree_cell = Vector2i({cell[0]}, {cell[1]})",
+        f'icon = &"{icon}"',
+        f'warning_key = "{"UPG_WARNING" if extra.get("warning") else ""}"',
+    ]
+    return "\n".join(lines) + "\n"
 
 
 def main() -> None:
     subs = []
     gen_ids = []
-    upg_ids = []
     for i, (gid, key, req) in enumerate(GENERATORS):
-        base_cost = 15 * A ** i
         sid = f"gen_{gid}"
         gen_ids.append(sid)
         subs.append(
@@ -85,49 +148,30 @@ def main() -> None:
             f'script = ExtResource("gen_script")\n'
             f'id = &"{gid}"\n'
             f'name_key = "{key}"\n'
-            f"base_cost = {num(round(base_cost))}\n"
+            f"base_cost = {num(round(15 * A ** i))}\n"
             f"base_production = {num(P * 0.2 * B ** i)}\n"
             f"click_bonus = {num(C * 0.2 * B ** i)}\n"
             f"req_energy_produced = {num(req)}\n"
             # La cadena de generadores solo se dibuja en el árbol: exigir el anterior retrasa al jugador tranquilo.
             'requires_id = &""\n'
         )
-    for gid, _key, _req in GENERATORS:
-        i = [g[0] for g in GENERATORS].index(gid)
-        base_cost = round(15 * A ** i)
-        for count, factor in GEN_UPGRADE_COST.items():
-            uid = f"{gid}_x2_{count}"
-            sid = f"upg_{uid}"
-            upg_ids.append(sid)
-            subs.append(
-                f'[sub_resource type="Resource" id="{sid}"]\n'
-                f'script = ExtResource("upg_script")\n'
-                f'id = &"{uid}"\n'
-                f'name_key = "UPG_GEN_X2_{count}"\n'
-                f'desc_key = "UPG_GEN_X2_DESC"\n'
-                f"kind = 0\n"
-                f'target_id = &"{gid}"\n'
-                f"value = 2.0\n"
-                f"cost = {num(base_cost * factor)}\n"
-                f"req_energy_produced = {num(GEN_UPGRADE_REQ.get(uid, 0))}\n"
-                f"req_generator_count = {count}\n"
-                f'requires_id = &"{gid if count == 10 else gid + "_x2_10"}"\n'
-            )
-    for uid, key, kind, value, cost, req in CLICK_UPGRADES:
-        sid = f"upg_{uid}"
-        upg_ids.append(sid)
+    upg_ids = []
+    for uid, kind, cost, parent, cell, icon, extra in UPGRADES:
+        upg_ids.append(f"upg_{uid}")
+        subs.append(upgrade_block(uid, kind, cost, parent, cell, icon, extra))
+    perk_ids = []
+    for pid, key, cost, kind, data in PERKS:
+        sid = f"perk_{pid}"
+        perk_ids.append(sid)
         subs.append(
             f'[sub_resource type="Resource" id="{sid}"]\n'
-            f'script = ExtResource("upg_script")\n'
-            f'id = &"{uid}"\n'
+            f'script = ExtResource("perk_script")\n'
+            f'id = &"{pid}"\n'
             f'name_key = "{key}"\n'
             f'desc_key = "{key}_DESC"\n'
+            f"cost = {cost}\n"
             f"kind = {kind}\n"
-            f"value = {num(value)}\n"
-            f"cost = {num(cost)}\n"
-            f"req_energy_produced = {num(req)}\n"
-            f"req_generator_count = 0\n"
-            f'requires_id = &"{CLICK_PARENT[uid]}"\n'
+            + (f"{data}\n" if data else "")
         )
     event_ids = []
     for eid, weight, duration, reward_s, reward_clicks, mult in EVENTS:
@@ -142,20 +186,6 @@ def main() -> None:
             f"reward_production_seconds = {num(reward_s)}\n"
             f"reward_min_clicks = {num(reward_clicks)}\n"
             f"production_mult = {num(mult)}\n"
-        )
-    perk_ids = []
-    for pid, key, cost, kind, data in PERKS:
-        sid = f"perk_{pid}"
-        perk_ids.append(sid)
-        subs.append(
-            f'[sub_resource type="Resource" id="{sid}"]\n'
-            f'script = ExtResource("perk_script")\n'
-            f'id = &"{pid}"\n'
-            f'name_key = "{key}"\n'
-            f'desc_key = "{key}_DESC"\n'
-            f"cost = {cost}\n"
-            f"kind = {kind}\n"
-            f"{data}\n"
         )
     steps = 5 + len(subs) + 1
     out = [
@@ -175,6 +205,10 @@ def main() -> None:
         "base_click_value = 1.0",
         "events = Array[ExtResource(\"evt_script\")]([" + ", ".join(f'SubResource("{s}")' for s in event_ids) + "])",
         "perks = Array[ExtResource(\"perk_script\")]([" + ", ".join(f'SubResource("{s}")' for s in perk_ids) + "])",
+        f"crit_chance = {num(CRIT[0])}",
+        f"crit_mult = {num(CRIT[1])}",
+        f"package_bar = {num(PACKAGE_BAR)}",
+        f"package_seconds = Vector2({PACKAGE_SECONDS[0]}, {PACKAGE_SECONDS[1]})",
         "event_min = 120.0",
         "event_max = 240.0",
         "",

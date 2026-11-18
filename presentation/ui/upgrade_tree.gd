@@ -1,8 +1,9 @@
 class_name UpgradeTree
 extends Control
 
-# Árbol de mejoras (specs/hito2.md D19): cada mejora es un nodo unido a su padre (requires_id del .tres).
-# Se navega con el ratón o con las flechas, se compra con clic o Intro y se cierra con Esc o la X.
+# Árbol de mejoras (specs/incremental_v2.md §3): cada mejora es un nodo en su celda (tree_cell del .tres) unido
+# a su padre. Se revela por anillos: solo se ve lo que cuelga de algo ya comprado; lo que aún no se puede
+# comprar sale como «???». Se navega con el ratón o con las flechas, se compra con clic o Intro y se cierra con Esc.
 # Solo pinta: lee Game.economy y pide las compras con buy_requested.
 
 signal buy_requested(id: StringName)
@@ -10,15 +11,10 @@ signal close_requested
 
 const NODE := Vector2(20, 20)
 const ICONS := "res://assets/textures/tv/icon_"
-# Posición (esquina superior izquierda) de cada nodo en la pantalla de 320 × 240.
-const POSITIONS := {
-	&"pulse": Vector2(20, 24), &"resonance": Vector2(116, 24), &"dial_auto": Vector2(164, 24),
-	&"dial_auto_2": Vector2(212, 24), &"pulse_strong": Vector2(56, 54), &"dial_hold": Vector2(92, 54),
-	&"antenna": Vector2(20, 92), &"valves": Vector2(68, 92), &"audio_frequency": Vector2(116, 92),
-	&"tuner": Vector2(164, 92), &"remote": Vector2(212, 92), &"channel_3": Vector2(260, 92),
-}
-const ROW_X2_10 := 122.0
-const ROW_X2_25 := 154.0
+# Rejilla de 10 × 5 celdas en la pantalla de 320 × 240 (esquina de la celda 0,0 y paso).
+const GRID_ORIGIN := Vector2(8, 22)
+const GRID_STEP := Vector2(31, 31)
+const GENERATOR_ROW := 2
 # Estilo: el menú azul de una tele de los 90 (OSD). Azul de fondo, texto blanco, selección ámbar.
 const CHALK := Color("e6ecff")
 const DIM := Color("2a3d9e")
@@ -42,13 +38,11 @@ var _card := {}  # "title" | "cost" | "body" | "effect" -> Label
 func _ready() -> void:
 	mouse_filter = MOUSE_FILTER_STOP
 	var config := Game.economy.config
-	for g in config.generators:
-		_add_node(g.id, POSITIONS[g.id], g.id)
-		_add_node(StringName("%s_x2_10" % g.id), Vector2(POSITIONS[g.id].x, ROW_X2_10), g.id)
-		_add_node(StringName("%s_x2_25" % g.id), Vector2(POSITIONS[g.id].x, ROW_X2_25), g.id)
+	for i in config.generators.size():
+		var g := config.generators[i]
+		_add_node(g.id, cell_position(Vector2i(i, GENERATOR_ROW)), g.id)
 	for u in config.upgrades:
-		if POSITIONS.has(u.id):
-			_add_node(u.id, POSITIONS[u.id], u.id)
+		_add_node(u.id, cell_position(u.tree_cell), u.icon)
 	var title := Label.new()
 	title.text = tr("UI_SHOP_TITLE").to_upper()
 	title.position = Vector2(8, 3)
@@ -82,7 +76,21 @@ func _process(_delta: float) -> void:
 		for key: String in _card:
 			(_card[key] as Label).text = c.get(key, "")
 		(_card["cost"] as Label).add_theme_color_override(&"font_color", c.get("cost_color", CHALK))
+		for id: StringName in _buttons:
+			(_buttons[id] as Button).visible = is_revealed(id)
 		queue_redraw()
+
+
+static func cell_position(cell: Vector2i) -> Vector2:
+	return GRID_ORIGIN + Vector2(cell) * GRID_STEP
+
+
+## Se ve en el árbol (aunque sea como «???»): no tiene padre o su padre ya está comprado o poseído.
+func is_revealed(id: StringName) -> bool:
+	var parent := _parent_of(id)
+	if parent == &"" or Game.economy.config.find_generator(id) != null:
+		return true
+	return Game.economy.owned(parent) > 0 or Game.economy.is_bought(parent)
 
 
 ## Lleva el foco al primer nodo comprable (o al primero) para usar el teclado.
@@ -92,7 +100,7 @@ func focus_first() -> void:
 		if eco.is_visible(id) and not eco.is_bought(id):
 			_buttons[id].grab_focus()
 			return
-	_buttons.values()[0].grab_focus()
+	_buttons[Game.economy.config.generators[0].id].grab_focus()
 
 
 func get_node_button(id: StringName) -> Button:
@@ -132,10 +140,10 @@ func card(id: StringName) -> Dictionary:
 			"effect": tr("UI_EFFECT_OWNED") % [NumberFormat.per_click(eco.generator_click_bonus(id)),
 				NumberFormat.rate(eco.generator_production(id))]}
 	var u := eco.config.find_upgrade(id)
-	var target := tr(eco.config.find_generator(u.target_id).name_key) if u.target_id != &"" else ""
-	var title := tr(u.name_key) % target if target != "" else tr(u.name_key)
-	var body := tr(u.desc_key) % target if target != "" else tr(u.desc_key)
-	return {"title": title, "cost": cost_text, "cost_color": cost_color, "body": body,
+	var body := tr(u.desc_key)
+	if u.warning_key != "" and state != &"bought":
+		body += " " + tr(u.warning_key)
+	return {"title": tr(u.name_key), "cost": cost_text, "cost_color": cost_color, "body": body,
 		"effect": "" if state == &"bought" else _effect(u)}
 
 
@@ -157,6 +165,23 @@ func _effect(u: UpgradeDef) -> String:
 			return tr("UI_EFFECT_HOLD") % _num(u.value)
 		UpgradeDef.Kind.AUTO_CLICK_RATE:
 			return tr("UI_EFFECT_AUTO") % [_num(eco.auto_clicks_per_second(false)), _num(u.value)]
+		UpgradeDef.Kind.CRIT_CHANCE:
+			var c := eco.mods.crit_chance * 100.0
+			return tr("UI_EFFECT_CRIT") % [_num(c), _num(c + u.value * 100.0)]
+		UpgradeDef.Kind.CRIT_MULT:
+			return tr("UI_EFFECT_CRIT_MULT") % [_num(eco.mods.crit_mult), _num(u.value)]
+		UpgradeDef.Kind.COMBO:
+			return tr("UI_EFFECT_COMBO") % [_num(eco.mods.combo_max), _num(u.value)]
+		UpgradeDef.Kind.SKILL:
+			return tr("UI_EFFECT_SKILL") % [_num(u.duration), _num(u.cooldown)]
+		UpgradeDef.Kind.PRODUCTION_MULT, UpgradeDef.Kind.GENERATOR_SYNERGY:
+			var p := eco.production_per_second()
+			var gain := eco.gain_if_bought(u.id, 0.0, false)
+			return tr("UI_EFFECT_PROD") % [NumberFormat.rate(p), NumberFormat.rate(p + gain)]
+		UpgradeDef.Kind.MANUAL_CLICK_MULT, UpgradeDef.Kind.CLICK_PER_OWNED, UpgradeDef.Kind.GENERATOR_CLICK_MULT:
+			var now := eco.manual_click_value()
+			var gain := eco.gain_if_bought(u.id, 1.0, false) / (1.0 + eco.auto_clicks_per_second(false))
+			return tr("UI_EFFECT_CLICK") % [NumberFormat.per_click(now), NumberFormat.per_click(now + gain)]
 	return ""
 
 
@@ -198,11 +223,13 @@ func _draw() -> void:
 	draw_line(Vector2(0, CARD_TOP), Vector2(size.x, CARD_TOP), Color(MIST, 0.5))
 	for id: StringName in _buttons:
 		var parent := _parent_of(id)
-		if parent != &"" and _buttons.has(parent):
+		if parent != &"" and _buttons.has(parent) and is_revealed(id):
 			var lit := state_of(id) != &"locked"
 			draw_line(_center(parent), _center(id), Color(CHALK, 0.55) if lit else DIM)
 	var font := get_theme_default_font()
 	for id: StringName in _buttons:
+		if not is_revealed(id):
+			continue
 		var b: Button = _buttons[id]
 		var r := Rect2(b.position, NODE)
 		var state := state_of(id)
@@ -211,22 +238,17 @@ func _draw() -> void:
 		var border: Color = {&"bought": GREEN, &"affordable": CHALK, &"available": Color(CHALK, 0.6),
 			&"locked": DIM}[state]
 		draw_rect(r, border, false)
-		var icon: Texture2D = _icons[id]
-		draw_texture(icon, r.position + Vector2(4, 4), Color(1, 1, 1, 0.2) if state == &"locked" else ICON_LIFT)
+		if state == &"locked":
+			# Lo que aún no se puede comprar: solo se intuye.
+			draw_string(font, r.position + Vector2(7, 14), "?", HORIZONTAL_ALIGNMENT_LEFT, -1, 8, MIST)
+		else:
+			draw_texture(_icons[id], r.position + Vector2(4, 4), ICON_LIFT)
 		if state == &"affordable":
 			draw_rect(Rect2(r.end - Vector2(4, 4), Vector2(3, 3)), GOLD)  # se puede comprar
 		var count := Game.economy.owned(id)
-		var tag := ""
-		if String(id).ends_with("_x2_10"):
-			tag = "x2"
-		elif String(id).ends_with("_x2_25"):
-			tag = "x4"
-		elif count > 0:
-			tag = str(count)
-		if tag != "":
-			# A la derecha del nodo, donde no pasan las ramas.
-			draw_string(font, r.position + Vector2(r.size.x + 2, 9), tag, HORIZONTAL_ALIGNMENT_LEFT, -1, 8,
-				CHALK if state != &"locked" else DIM)
+		if count > 0:
+			# Unidades del generador, en la esquina de abajo del nodo.
+			draw_string(font, r.position + Vector2(1, r.size.y + 7), str(count), HORIZONTAL_ALIGNMENT_LEFT, -1, 8, CHALK)
 		if b.has_focus() or id == _selected:
 			draw_rect(r.grow(2), GOLD, false)
 			draw_rect(r.grow(3), Color(GOLD, 0.35), false)

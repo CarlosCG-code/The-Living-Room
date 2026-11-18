@@ -28,14 +28,22 @@ func test_every_upgrade_and_generator_has_a_node() -> void:
 
 func test_states_follow_the_economy() -> void:
 	assert_eq(tree.state_of(&"pulse"), &"available", "Pulso se ve desde el principio")
-	assert_eq(tree.state_of(&"dial_hold"), &"locked", "Dial firme cuelga de Pulso")
-	assert_eq(tree.describe(&"dial_hold"), tr("UI_LOCKED"))
+	assert_false(tree.is_revealed(&"bare_cable"), "Cable pelado cuelga de Pulso: ni se ve")
 	Game.economy.state.energy = 100.0
 	Game.economy.state.energy_produced_run = 200.0
 	assert_eq(tree.state_of(&"pulse"), &"affordable")
 	Game.economy.buy(&"pulse")
 	assert_eq(tree.state_of(&"pulse"), &"bought")
-	assert_ne(tree.state_of(&"dial_hold"), &"locked", "comprado Pulso, se desbloquea su rama")
+	assert_true(tree.is_revealed(&"bare_cable"), "comprado Pulso, se ve su rama")
+	assert_eq(tree.state_of(&"bare_cable"), &"locked", "pero pide más Energía producida")
+	assert_eq(tree.describe(&"bare_cable"), tr("UI_LOCKED"))
+	Game.economy.state.energy_produced_run = 400.0
+	assert_ne(tree.state_of(&"bare_cable"), &"locked")
+
+
+func test_nodes_sit_in_their_cells() -> void:
+	for u in Game.economy.config.upgrades:
+		assert_eq(tree.get_node_button(u.id).position, UpgradeTree.cell_position(u.tree_cell), "celda de %s" % u.id)
 
 
 func test_pressing_a_node_asks_to_buy_it() -> void:

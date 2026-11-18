@@ -1,7 +1,7 @@
 class_name RunState
 extends RefCounted
 
-const VERSION := 3
+const VERSION := 4
 
 var run_index: int = 1
 var energy: float = 0.0
@@ -15,6 +15,13 @@ var play_time: float = 0.0
 ## Carga sin gastar y mejoras permanentes compradas: pasan de una run a la siguiente.
 var carga: int = 0
 var perks: Array[StringName] = []
+## Contadores que abren mejoras (clics a mano, cintas abiertas, eventos atrapados) y barra de cintas.
+var manual_clicks: int = 0
+var packages_opened: int = 0
+var events_caught: int = 0
+var package_bar: float = 0.0
+## Temporizadores en segundos: efectos activos y enfriamientos de habilidades (nombre -> s).
+var timers: Dictionary = {}
 
 
 static func new_run(config: EconomyConfig, p_run_index: int, rng: RandomNumberGenerator) -> RunState:
@@ -43,6 +50,11 @@ func to_dict() -> Dictionary:
 		"event": {"next_in": event_next_in, "id": String(event_id), "left": event_left},
 		"play_time": play_time,
 		"carga": carga,
+		"manual_clicks": manual_clicks,
+		"packages_opened": packages_opened,
+		"events_caught": events_caught,
+		"package_bar": package_bar,
+		"timers": timers.duplicate(),
 		"perks": Array(perks).map(func(p: StringName) -> String: return String(p)),
 	}
 
@@ -55,6 +67,8 @@ static func from_dict(d: Dictionary, config: EconomyConfig, warnings: PackedStri
 		d = migrate_v1(d)
 	if int(d["version"]) == 2:
 		d = migrate_v2(d)
+	if int(d["version"]) == 3:
+		d = migrate_v3(d)
 	if int(d["version"]) != VERSION:
 		return null
 	for key in ["run_index", "energy", "energy_produced_run", "play_time"]:
@@ -65,6 +79,12 @@ static func from_dict(d: Dictionary, config: EconomyConfig, warnings: PackedStri
 	var ev = d.get("event")
 	var perks_in = d.get("perks")
 	if not _is_num(d.get("carga")) or typeof(perks_in) != TYPE_ARRAY:
+		return null
+	for key in ["manual_clicks", "packages_opened", "events_caught", "package_bar"]:
+		if not _is_num(d.get(key)):
+			return null
+	var timers_in = d.get("timers")
+	if typeof(timers_in) != TYPE_DICTIONARY:
 		return null
 	for item in perks_in:
 		if not _is_id(item):
@@ -86,6 +106,13 @@ static func from_dict(d: Dictionary, config: EconomyConfig, warnings: PackedStri
 	state.energy_produced_run = maxf(0.0, float(d["energy_produced_run"]))
 	state.play_time = maxf(0.0, float(d["play_time"]))
 	state.carga = maxi(0, int(d["carga"]))
+	state.manual_clicks = maxi(0, int(d["manual_clicks"]))
+	state.packages_opened = maxi(0, int(d["packages_opened"]))
+	state.events_caught = maxi(0, int(d["events_caught"]))
+	state.package_bar = maxf(0.0, float(d["package_bar"]))
+	for key in timers_in:
+		if _is_num(timers_in[key]) and float(timers_in[key]) > 0.0:
+			state.timers[String(key)] = float(timers_in[key])
 	for item in perks_in:
 		var id := StringName(item)
 		if config.find_perk(id) == null:
@@ -136,6 +163,29 @@ static func migrate_v2(d: Dictionary) -> Dictionary:
 	out["carga"] = 3 * runs_done
 	out["perks"] = []
 	out["version"] = 3
+	return out
+
+
+## v3 → v4: el árbol y las mejoras permanentes cambian (specs/incremental_v2.md). Las permanentes compradas
+## se devuelven en Carga (se compran ahora en cualquier orden) y empiezan los contadores nuevos.
+const V3_PERK_COSTS := {"hands": 1, "memory": 2, "habit": 3, "pulse": 4, "name": 6}
+
+
+static func migrate_v3(d: Dictionary) -> Dictionary:
+	var out := d.duplicate(true)
+	var refund := 0
+	var old = out.get("perks")
+	if typeof(old) == TYPE_ARRAY:
+		for item in old:
+			refund += int(V3_PERK_COSTS.get(String(item), 0))
+	out["carga"] = (int(out["carga"]) if _is_num(out.get("carga")) else 0) + refund
+	out["perks"] = []
+	out["manual_clicks"] = 0
+	out["packages_opened"] = 0
+	out["events_caught"] = 0
+	out["package_bar"] = 0.0
+	out["timers"] = {}
+	out["version"] = 4
 	return out
 
 

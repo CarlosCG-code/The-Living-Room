@@ -1,6 +1,6 @@
 # Incremental v2 — diseño completo (propuesta, 2026-11-18)
 
-> Estado: **propuesta, pendiente de aprobación del usuario**. Sustituye, si se aprueba, al árbol de la run 1 y a las mejoras permanentes de `specs/incremental.md` §4 y §6. Sale de cuatro investigaciones (mejoras de otros incrementales, estética de terror, cristal CRT y revisión de nuestro código con el test de ritmo). Fuentes al final.
+> Estado: **aprobada por el usuario (2026-11-18)**, con Carga en cualquier orden y curvatura de la imagen (cambia D5). Sustituye, si se aprueba, al árbol de la run 1 y a las mejoras permanentes de `specs/incremental.md` §4 y §6. Sale de cuatro investigaciones (mejoras de otros incrementales, estética de terror, cristal CRT y revisión de nuestro código con el test de ritmo). Fuentes al final.
 
 ## 0. Diagnóstico (test de ritmo actual)
 

@@ -43,6 +43,7 @@ func before_each() -> void:
 		_upg(&"auto2", UpgradeDef.Kind.AUTO_CLICK_RATE, 5, 5),
 		_upg(&"late", UpgradeDef.Kind.CLICK_MULT, 2, 5, 1000),
 	]
+	config.crit_chance = 0.0  # sin azar en los tests de valores; el crítico tiene los suyos
 	config.cost_growth = 1.15
 	config.threshold = 1000
 	config.base_click_value = 1
@@ -140,6 +141,7 @@ func test_tree_parent_must_be_bought_or_owned() -> void:
 
 
 func test_generator_click_bonus() -> void:
+	config.events = []  # gain_if_bought cuenta también lo que dan los eventos atrapados
 	config.generators[0].click_bonus = 0.5
 	_give(200)
 	eco.buy(&"a")
@@ -157,7 +159,8 @@ func test_click_production_share() -> void:
 	_give(100)
 	eco.buy(&"a")
 	eco.buy(&"share")
-	assert_almost_eq(eco.click_value(), 1.0 + 0.5 * 1.0, 0.0001)
+	assert_almost_eq(eco.manual_click_value(), 1.0 + 0.5 * 1.0, 0.0001, "solo el clic a mano")
+	assert_almost_eq(eco.click_value(), 1.0, 0.0001)
 
 
 func test_hold_rate_only_when_holding() -> void:
@@ -215,7 +218,7 @@ func test_catch_interference_pays_once() -> void:
 	eco.tick(eco.state.event_next_in + 0.1, false)
 	var e0 := eco.state.energy
 	assert_true(eco.catch_event())
-	assert_almost_eq(eco.state.energy - e0, 50.0, 0.0001)  # sin producción: mínimo de 50 clics
+	assert_almost_eq(eco.state.energy - e0, 60.0, 0.0001)  # sin producción: 60 s a un clic por segundo (> 50 clics)
 	assert_false(eco.catch_event())
 	assert_false(_active())
 
@@ -248,6 +251,7 @@ func test_restart_cancels_active_interference() -> void:
 
 
 func test_gain_if_bought_does_not_change_state() -> void:
+	config.events = []
 	_give(100)
 	eco.buy(&"a")
 	var snapshot := eco.state.to_dict()
@@ -357,10 +361,10 @@ func test_restart_keeps_carga_and_perks() -> void:
 	assert_true(eco.has_perk(&"p1"))
 
 
-func test_perks_in_order_and_need_carga() -> void:
+func test_perks_any_order_and_need_carga() -> void:
 	config.perks = [_perk(&"p1", 2, PerkDef.Kind.CLICK_MULT, 2.0), _perk(&"p2", 1, PerkDef.Kind.CARGA_BONUS)]
-	eco.state.carga = 5
-	assert_false(eco.buy_perk(&"p2"), "antes, la anterior")
+	eco.state.carga = 3
+	assert_true(eco.buy_perk(&"p2"), "en cualquier orden")
 	assert_true(eco.buy_perk(&"p1"))
 	assert_false(eco.buy_perk(&"p1"), "no se compra dos veces")
 	eco.state.carga = 0
@@ -378,7 +382,7 @@ func test_perk_effects() -> void:
 		assert_true(eco.buy_perk(p.id))
 	assert_true(eco.is_bought(&"hold"), "Tus manos: la mejora viene comprada")
 	assert_eq(eco.owned(&"a"), 3, "Tu memoria: generadores al empezar")
-	assert_almost_eq(eco.click_value(), 2.0, 0.0001, "Tu pulso dobla el clic (base 1)")
+	assert_almost_eq(eco.manual_click_value(), 2.0, 0.0001, "Tu pulso dobla el clic a mano (base 1)")
 	assert_eq(eco.cost_of(&"a"), ceilf(10 * pow(1.15, 3) * 0.5), "Tu costumbre abarata")
 	eco.state.energy_produced_run = 1000
 	assert_eq(eco.carga_if_restarted(), 4, "Tu nombre: +1")
@@ -395,3 +399,110 @@ func test_first_event_of_the_game_is_fixed_and_early() -> void:
 	assert_almost_eq(eco.state.event_next_in, 90.0, 0.0001)
 	eco.tick(90.1, false)
 	assert_eq(eco.state.event_id, &"interference")
+
+
+func _buy_upgrade(u: UpgradeDef) -> void:
+	config.upgrades.append(u)
+	eco.state.upgrades.append(u.id)
+	eco._recalc()
+
+
+func test_crit_only_on_manual_clicks() -> void:
+	config.crit_chance = 1.0
+	config.crit_mult = 3.0
+	eco._recalc()
+	assert_almost_eq(eco.click(), 3.0, 0.0001, "crítico seguro: ×3")
+	assert_true(eco.last_click_crit)
+	var e0 := eco.state.energy
+	_buy_upgrade(_upg(&"auto_t", UpgradeDef.Kind.AUTO_CLICK_RATE, 2, 0))
+	eco.tick(1.0, false)
+	assert_almost_eq(eco.state.energy - e0, 2.0, 0.0001, "los automáticos no hacen crítico")
+
+
+func test_combo_grows_with_quick_clicks_and_resets() -> void:
+	_buy_upgrade(_upg(&"combo_t", UpgradeDef.Kind.COMBO, 2, 0))
+	for i in Economy.STREAK_FULL:
+		eco.click()
+		eco.tick(0.1, false)
+	assert_almost_eq(eco.combo_mult(), 2.0, 0.0001, "racha llena")
+	eco.tick(2.0, false)
+	assert_almost_eq(eco.combo_mult(), 1.0, 0.0001, "sin clicar, se pierde")
+
+
+func test_package_drops_and_pays_income() -> void:
+	config.package_bar = 5.0
+	config.package_seconds = Vector2(10, 30)
+	_buy_upgrade(_upg(&"tuning_t", UpgradeDef.Kind.PACKAGE_UNLOCK, 0, 0))
+	for i in 5:
+		eco.click()
+	assert_eq(eco.packages().size(), 1, "barra llena: cae una cinta")
+	var amount := eco.open_package(0)
+	assert_gt(amount, 0.0)
+	assert_eq(eco.state.packages_opened, 1)
+	assert_eq(eco.packages().size(), 0)
+
+
+func test_package_expires() -> void:
+	config.package_bar = 1.0
+	_buy_upgrade(_upg(&"tuning_t", UpgradeDef.Kind.PACKAGE_UNLOCK, 0, 0))
+	eco.click()
+	eco.tick(Economy.PACKAGE_LIFE + 0.1, false)
+	assert_eq(eco.packages().size(), 0, "sin abrir, se pierde")
+
+
+func test_skill_cooldown_and_surge() -> void:
+	var surge := _upg(&"surge_t", UpgradeDef.Kind.SKILL, 3, 0)
+	surge.skill = &"surge"
+	surge.duration = 10.0
+	surge.cooldown = 60.0
+	_buy_upgrade(surge)
+	assert_true(eco.use_skill(&"surge"))
+	assert_almost_eq(eco.click_value(), 3.0, 0.0001, "Sobretensión ×3")
+	assert_false(eco.use_skill(&"surge"), "en enfriamiento")
+	eco.tick(11.0, false)
+	assert_almost_eq(eco.click_value(), 1.0, 0.0001, "se acaba")
+	eco.tick(50.0, false)
+	assert_true(eco.use_skill(&"surge"), "enfriamiento cumplido")
+
+
+func test_overload_failure_turns_tv_off() -> void:
+	var o := _upg(&"over_t", UpgradeDef.Kind.SKILL, 5, 0)
+	o.skill = &"overload"
+	o.duration = 20.0
+	o.value2 = 8.0
+	o.cooldown = 300.0
+	_buy_upgrade(o)
+	# Se prueba hasta que salga apagón (30 %): la semilla del test lo hace determinista.
+	for i in 40:
+		eco.state.timers.clear()
+		eco.use_skill(&"overload")
+		if eco.timer(&"tv_off") > 0.0:
+			break
+	assert_gt(eco.timer(&"tv_off"), 0.0, "alguna vez falla")
+	assert_eq(eco.click(), 0.0, "con la tele apagada no se clica")
+	assert_eq(eco.production_per_second(), 0.0)
+
+
+func test_synergy_and_per_owned() -> void:
+	_give(1000)
+	for i in 4:
+		eco.buy(&"a")
+	var base := eco.generator_production(&"a")
+	var syn := _upg(&"syn_t", UpgradeDef.Kind.GENERATOR_SYNERGY, 0.1, 0)
+	syn.target_id = &"a"
+	syn.source_id = &"a"
+	_buy_upgrade(syn)
+	assert_almost_eq(eco.generator_production(&"a"), base * 1.4, 0.0001, "+10 % por cada «a»")
+	_buy_upgrade(_upg(&"per_t", UpgradeDef.Kind.CLICK_PER_OWNED, 0.05, 0))
+	assert_almost_eq(eco.click_value(), 1.0 * 1.2, 0.0001, "+5 % por cada una de las 4")
+
+
+func test_hold_fills_bar_at_half_and_uses_combo() -> void:
+	config.package_bar = 100.0
+	_buy_upgrade(_upg(&"tuning_t", UpgradeDef.Kind.PACKAGE_UNLOCK, 0, 0))
+	_buy_upgrade(_upg(&"hold_t", UpgradeDef.Kind.HOLD_RATE, 4, 0))
+	_buy_upgrade(_upg(&"combo_t", UpgradeDef.Kind.COMBO, 1.5, 0))
+	var e0 := eco.state.energy
+	eco.tick(1.0, true)
+	assert_almost_eq(eco.state.energy - e0, 4.0 * 1.5, 0.0001, "mantener: racha llena, sin crítico")
+	assert_almost_eq(eco.state.package_bar, 2.0, 0.0001, "4 clics × 0,5")
