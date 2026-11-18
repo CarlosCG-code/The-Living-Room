@@ -34,6 +34,11 @@ func forward(origin: Vector3, dir: Vector3, event: InputEventMouse) -> void:
 			_subviewport.notification(Node.NOTIFICATION_VP_MOUSE_EXIT)
 
 
+## El teclado va tal cual a la UI de la tele (Espacio, E, Esc, flechas, Intro).
+func forward_key(event: InputEventKey) -> void:
+	_subviewport.push_input(event, true)
+
+
 func _forward_button(event: InputEventMouseButton, inside: bool, pos: Vector2) -> void:
 	var wheel := event.button_index in [MOUSE_BUTTON_WHEEL_UP, MOUSE_BUTTON_WHEEL_DOWN,
 			MOUSE_BUTTON_WHEEL_LEFT, MOUSE_BUTTON_WHEEL_RIGHT]

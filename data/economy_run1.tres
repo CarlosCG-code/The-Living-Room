@@ -12,6 +12,7 @@ base_cost = 15.0
 base_production = 0.08000000000000002
 click_bonus = 0.006
 req_energy_produced = 0.0
+requires_id = &""
 
 [sub_resource type="Resource" id="gen_valves"]
 script = ExtResource("gen_script")
@@ -21,6 +22,7 @@ base_cost = 90.0
 base_production = 0.44000000000000006
 click_bonus = 0.033
 req_energy_produced = 4800.0
+requires_id = &""
 
 [sub_resource type="Resource" id="gen_audio_frequency"]
 script = ExtResource("gen_script")
@@ -30,6 +32,7 @@ base_cost = 540.0
 base_production = 2.4200000000000004
 click_bonus = 0.1815
 req_energy_produced = 15527.0
+requires_id = &""
 
 [sub_resource type="Resource" id="gen_tuner"]
 script = ExtResource("gen_script")
@@ -39,6 +42,7 @@ base_cost = 3240.0
 base_production = 13.310000000000002
 click_bonus = 0.99825
 req_energy_produced = 52114.0
+requires_id = &""
 
 [sub_resource type="Resource" id="gen_remote"]
 script = ExtResource("gen_script")
@@ -48,6 +52,7 @@ base_cost = 19440.0
 base_production = 73.20500000000001
 click_bonus = 5.490375
 req_energy_produced = 258101.0
+requires_id = &""
 
 [sub_resource type="Resource" id="gen_channel_3"]
 script = ExtResource("gen_script")
@@ -57,6 +62,7 @@ base_cost = 116640.0
 base_production = 402.62750000000005
 click_bonus = 30.1970625
 req_energy_produced = 1135196.0
+requires_id = &""
 
 [sub_resource type="Resource" id="upg_antenna_x2_10"]
 script = ExtResource("upg_script")
@@ -69,6 +75,7 @@ value = 2.0
 cost = 180.0
 req_energy_produced = 424.0
 req_generator_count = 10
+requires_id = &"antenna"
 
 [sub_resource type="Resource" id="upg_antenna_x2_25"]
 script = ExtResource("upg_script")
@@ -81,6 +88,7 @@ value = 2.0
 cost = 1800.0
 req_energy_produced = 2927.0
 req_generator_count = 25
+requires_id = &"antenna_x2_10"
 
 [sub_resource type="Resource" id="upg_valves_x2_10"]
 script = ExtResource("upg_script")
@@ -93,6 +101,7 @@ value = 2.0
 cost = 1080.0
 req_energy_produced = 6260.0
 req_generator_count = 10
+requires_id = &"valves"
 
 [sub_resource type="Resource" id="upg_valves_x2_25"]
 script = ExtResource("upg_script")
@@ -105,6 +114,7 @@ value = 2.0
 cost = 10800.0
 req_energy_produced = 173361.0
 req_generator_count = 25
+requires_id = &"valves_x2_10"
 
 [sub_resource type="Resource" id="upg_audio_frequency_x2_10"]
 script = ExtResource("upg_script")
@@ -117,6 +127,7 @@ value = 2.0
 cost = 6480.0
 req_energy_produced = 21596.0
 req_generator_count = 10
+requires_id = &"audio_frequency"
 
 [sub_resource type="Resource" id="upg_audio_frequency_x2_25"]
 script = ExtResource("upg_script")
@@ -129,6 +140,7 @@ value = 2.0
 cost = 64800.0
 req_energy_produced = 1052136.0
 req_generator_count = 25
+requires_id = &"audio_frequency_x2_10"
 
 [sub_resource type="Resource" id="upg_tuner_x2_10"]
 script = ExtResource("upg_script")
@@ -141,6 +153,7 @@ value = 2.0
 cost = 38880.0
 req_energy_produced = 114767.0
 req_generator_count = 10
+requires_id = &"tuner"
 
 [sub_resource type="Resource" id="upg_tuner_x2_25"]
 script = ExtResource("upg_script")
@@ -153,6 +166,7 @@ value = 2.0
 cost = 388800.0
 req_energy_produced = 15772181.0
 req_generator_count = 25
+requires_id = &"tuner_x2_10"
 
 [sub_resource type="Resource" id="upg_remote_x2_10"]
 script = ExtResource("upg_script")
@@ -165,6 +179,7 @@ value = 2.0
 cost = 233280.0
 req_energy_produced = 895490.0
 req_generator_count = 10
+requires_id = &"remote"
 
 [sub_resource type="Resource" id="upg_remote_x2_25"]
 script = ExtResource("upg_script")
@@ -177,6 +192,7 @@ value = 2.0
 cost = 2332800.0
 req_energy_produced = 0.0
 req_generator_count = 25
+requires_id = &"remote_x2_10"
 
 [sub_resource type="Resource" id="upg_channel_3_x2_10"]
 script = ExtResource("upg_script")
@@ -189,6 +205,7 @@ value = 2.0
 cost = 1399680.0
 req_energy_produced = 0.0
 req_generator_count = 10
+requires_id = &"channel_3"
 
 [sub_resource type="Resource" id="upg_channel_3_x2_25"]
 script = ExtResource("upg_script")
@@ -201,6 +218,7 @@ value = 2.0
 cost = 13996800.0
 req_energy_produced = 0.0
 req_generator_count = 25
+requires_id = &"channel_3_x2_10"
 
 [sub_resource type="Resource" id="upg_pulse"]
 script = ExtResource("upg_script")
@@ -212,6 +230,7 @@ value = 2.0
 cost = 5.0
 req_energy_produced = 0.0
 req_generator_count = 0
+requires_id = &""
 
 [sub_resource type="Resource" id="upg_dial_hold"]
 script = ExtResource("upg_script")
@@ -223,6 +242,7 @@ value = 6.0
 cost = 61.0
 req_energy_produced = 122.0
 req_generator_count = 0
+requires_id = &"pulse"
 
 [sub_resource type="Resource" id="upg_pulse_strong"]
 script = ExtResource("upg_script")
@@ -234,6 +254,7 @@ value = 2.0
 cost = 4225.0
 req_energy_produced = 8449.0
 req_generator_count = 0
+requires_id = &"pulse"
 
 [sub_resource type="Resource" id="upg_resonance"]
 script = ExtResource("upg_script")
@@ -245,6 +266,7 @@ value = 0.02
 cost = 13288.0
 req_energy_produced = 26575.0
 req_generator_count = 0
+requires_id = &"pulse"
 
 [sub_resource type="Resource" id="upg_dial_auto"]
 script = ExtResource("upg_script")
@@ -256,6 +278,7 @@ value = 2.0
 cost = 56500.0
 req_energy_produced = 112999.0
 req_generator_count = 0
+requires_id = &"resonance"
 
 [sub_resource type="Resource" id="upg_dial_auto_2"]
 script = ExtResource("upg_script")
@@ -267,6 +290,7 @@ value = 5.0
 cost = 221637.0
 req_energy_produced = 443274.0
 req_generator_count = 0
+requires_id = &"dial_auto"
 
 [resource]
 script = ExtResource("config_script")

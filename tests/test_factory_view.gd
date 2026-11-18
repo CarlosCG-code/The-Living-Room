@@ -10,7 +10,7 @@ func before_each() -> void:
 	view.set_process(false)  # sin leer Game.economy: el test le pasa las cantidades
 
 
-func _machines(id: StringName) -> Array[FactoryMachine]:
+func _machines(id: StringName) -> Array[TextureButton]:
 	return view.get_group(id)["machines"]
 
 
@@ -39,6 +39,12 @@ func test_every_generator_has_machines() -> void:
 	var config: EconomyConfig = load("res://data/economy_run1.tres")
 	for g in config.generators:
 		assert_false(view.get_group(g.id).is_empty(), "máquinas de %s" % g.id)
+
+
+func test_pressing_a_machine_asks_for_a_click() -> void:
+	watch_signals(view)
+	view.get_receptor().pressed.emit()
+	assert_signal_emitted(view, "machine_pressed", "el receptor sintoniza desde el principio")
 
 
 func test_interference_sparks_from_a_powered_cable() -> void:

@@ -115,6 +115,18 @@ func test_multipliers_multiply() -> void:
 	assert_almost_eq(eco.click_value(), 4.0, 0.0001)
 
 
+func test_tree_parent_must_be_bought_or_owned() -> void:
+	config.find_upgrade(&"pulse2").requires_id = &"pulse"
+	config.find_generator(&"b").requires_id = &"a"
+	_give(200)
+	assert_false(eco.is_visible(&"pulse2"), "sin Pulso no aparece su hija")
+	assert_false(eco.is_visible(&"b"), "sin ninguna «a» no aparece «b»")
+	eco.buy(&"pulse")
+	eco.buy(&"a")
+	assert_true(eco.is_visible(&"pulse2"))
+	assert_true(eco.is_visible(&"b"))
+
+
 func test_generator_click_bonus() -> void:
 	config.generators[0].click_bonus = 0.5
 	_give(200)

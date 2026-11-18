@@ -1,16 +1,14 @@
 keys,es
 TITLE,The Living Room
-UI_ENERGY,Energía: %s
-UI_PRODUCTION,Producción: %s
-UI_PER_CLICK,Por clic: %s
-UI_DIAL,Sintonizar
 UI_RESTART,Reiniciar
-UI_RESTART_PROGRESS,%s / %s
+UI_HUD,Energía %s · %s · %s/clic · reinicio %d%%
+UI_HINT_CLICK,¡Clica!
+UI_LOCKED,??? — Se desbloquea al comprar la mejora de la que sale.
+UI_BOUGHT,comprada
 UI_INTERFERENCE,¡Atrápalas!
 UI_GENERATOR_ROW,%s — tienes %s — +%s por clic — %s — coste %s
 UI_UPGRADE_ROW,%s: %s — coste %s
 UI_SHOP_TITLE,Mejoras
-UI_FACTORY,Fábrica
 UI_CLOSE,X
 GEN_ANTENNA,Antena
 GEN_VALVES,Válvulas

@@ -44,6 +44,11 @@ CLICK_UPGRADES = [
 ]
 
 
+# Árbol de la línea de los clics: Dial firme es una rama aparte de Pulso; el resto, una cadena.
+CLICK_PARENT = {"pulse": "", "dial_hold": "pulse", "pulse_strong": "pulse", "resonance": "pulse",
+                "dial_auto": "resonance", "dial_auto_2": "dial_auto"}
+
+
 def num(x: float) -> str:
     return repr(float(x))
 
@@ -65,6 +70,8 @@ def main() -> None:
             f"base_production = {num(P * 0.2 * B ** i)}\n"
             f"click_bonus = {num(C * 0.2 * B ** i)}\n"
             f"req_energy_produced = {num(req)}\n"
+            # La cadena de generadores solo se dibuja en el árbol: exigir el anterior retrasa al jugador tranquilo.
+            'requires_id = &""\n'
         )
     for gid, _key, _req in GENERATORS:
         i = [g[0] for g in GENERATORS].index(gid)
@@ -85,6 +92,7 @@ def main() -> None:
                 f"cost = {num(base_cost * factor)}\n"
                 f"req_energy_produced = {num(GEN_UPGRADE_REQ.get(uid, 0))}\n"
                 f"req_generator_count = {count}\n"
+                f'requires_id = &"{gid if count == 10 else gid + "_x2_10"}"\n'
             )
     for uid, key, kind, value, cost, req in CLICK_UPGRADES:
         sid = f"upg_{uid}"
@@ -100,6 +108,7 @@ def main() -> None:
             f"cost = {num(cost)}\n"
             f"req_energy_produced = {num(req)}\n"
             f"req_generator_count = 0\n"
+            f'requires_id = &"{CLICK_PARENT[uid]}"\n'
         )
     steps = 3 + len(subs) + 1
     out = [

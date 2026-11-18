@@ -111,9 +111,9 @@ func cost_of(id: StringName) -> float:
 func is_visible(id: StringName) -> bool:
 	var g := config.find_generator(id)
 	if g != null:
-		return state.energy_produced_run >= g.req_energy_produced
+		return state.energy_produced_run >= g.req_energy_produced and _parent_met(g.requires_id)
 	var u := config.find_upgrade(id)
-	if u == null:
+	if u == null or not _parent_met(u.requires_id):
 		return false
 	if state.energy_produced_run < u.req_energy_produced:
 		return false
@@ -190,6 +190,12 @@ func gain_if_bought(id: StringName, manual_cps: float, holding: bool) -> float:
 
 
 # --- Internos ---
+
+func _parent_met(parent: StringName) -> bool:
+	if parent == &"":
+		return true
+	return owned(parent) > 0 if config.find_generator(parent) != null else is_bought(parent)
+
 
 func _gain(amount: float) -> void:
 	state.energy += amount

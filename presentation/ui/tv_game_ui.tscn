@@ -1,9 +1,10 @@
-[gd_scene load_steps=11 format=3]
+[gd_scene load_steps=12 format=3]
 
 [ext_resource type="Script" path="res://presentation/ui/tv_game_ui.gd" id="1_ui"]
 [ext_resource type="AudioStream" path="res://assets/audio/ui/purchase.ogg" id="2_snd"]
 [ext_resource type="Script" path="res://presentation/ui/factory_view.gd" id="3_factory"]
 [ext_resource type="FontFile" path="res://assets/fonts/pixel_operator/PixelOperator8.ttf" id="4_font"]
+[ext_resource type="Script" path="res://presentation/ui/upgrade_tree.gd" id="5_tree"]
 
 [sub_resource type="StyleBoxFlat" id="sb_normal"]
 content_margin_left = 3.0
@@ -86,100 +87,42 @@ grow_vertical = 2
 theme = SubResource("Theme_tv")
 script = ExtResource("1_ui")
 
-[node name="Background" type="ColorRect" parent="."]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-color = Color(0.02, 0.02, 0.025, 1)
-
 [node name="FactoryView" type="Control" parent="."]
 layout_mode = 0
-offset_right = 212.0
+offset_right = 320.0
 offset_bottom = 240.0
 mouse_filter = 2
 script = ExtResource("3_factory")
 
-[node name="Side" type="VBoxContainer" parent="."]
+[node name="Hud" type="ColorRect" parent="."]
 layout_mode = 0
-offset_left = 214.0
-offset_top = 6.0
-offset_right = 314.0
-offset_bottom = 234.0
-theme_override_constants/separation = 4
+offset_right = 320.0
+offset_bottom = 13.0
+mouse_filter = 2
+color = Color(0.043, 0.055, 0.102, 0.75)
 
-[node name="EnergyLabel" type="Label" parent="Side"]
-layout_mode = 2
-autowrap_mode = 3
+[node name="Text" type="Label" parent="Hud"]
+layout_mode = 0
+offset_left = 3.0
+offset_top = 1.0
+offset_right = 260.0
+offset_bottom = 12.0
 
-[node name="ProductionLabel" type="Label" parent="Side"]
-layout_mode = 2
-autowrap_mode = 3
-
-[node name="ClickLabel" type="Label" parent="Side"]
-layout_mode = 2
-autowrap_mode = 3
-
-[node name="Dial" type="Button" parent="Side"]
-custom_minimum_size = Vector2(0, 70)
-layout_mode = 2
-size_flags_vertical = 3
-focus_mode = 0
-
-[node name="RestartButton" type="Button" parent="Side"]
-layout_mode = 2
-focus_mode = 0
-
-[node name="RestartProgress" type="Label" parent="Side"]
-layout_mode = 2
-horizontal_alignment = 1
-autowrap_mode = 3
-
-[node name="ShopWindow" type="Panel" parent="."]
+[node name="RestartButton" type="Button" parent="Hud"]
 visible = false
 layout_mode = 0
-offset_left = 6.0
-offset_top = 6.0
-offset_right = 314.0
-offset_bottom = 234.0
-
-[node name="Box" type="VBoxContainer" parent="ShopWindow"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = 4.0
-offset_top = 4.0
-offset_right = -4.0
-offset_bottom = -4.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_constants/separation = 4
-
-[node name="Header" type="HBoxContainer" parent="ShopWindow/Box"]
-layout_mode = 2
-
-[node name="Title" type="Label" parent="ShopWindow/Box/Header"]
-layout_mode = 2
-size_flags_horizontal = 3
-
-[node name="Close" type="Button" parent="ShopWindow/Box/Header"]
-custom_minimum_size = Vector2(16, 12)
-layout_mode = 2
+offset_left = 262.0
+offset_top = 0.0
+offset_right = 318.0
+offset_bottom = 12.0
 focus_mode = 0
 
-[node name="ShopScroll" type="ScrollContainer" parent="ShopWindow/Box"]
-layout_mode = 2
-size_flags_vertical = 3
-horizontal_scroll_mode = 0
-
-[node name="ShopList" type="VBoxContainer" parent="ShopWindow/Box/ShopScroll"]
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_constants/separation = 2
+[node name="UpgradeTree" type="Control" parent="."]
+visible = false
+layout_mode = 0
+offset_right = 320.0
+offset_bottom = 240.0
+script = ExtResource("5_tree")
 
 [node name="PurchaseSound" type="AudioStreamPlayer" parent="."]
 stream = ExtResource("2_snd")

@@ -12,3 +12,5 @@ enum Kind { GENERATOR_MULT, CLICK_MULT, HOLD_RATE, CLICK_PRODUCTION_SHARE, AUTO_
 @export var cost: float
 @export var req_energy_produced: float
 @export var req_generator_count: int
+## Padre en el árbol de mejoras: debe estar comprado (o, si es un generador, tener al menos uno).
+@export var requires_id: StringName

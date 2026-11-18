@@ -50,6 +50,8 @@ La primera compra de cada uno activa su sonido en el piso; las siguientes lo hac
 
 **Centrados en el clic (cambio del usuario, 2026-11-18):** cada generador suma Energía a cada clic (su bono, al que también afectan *Pulso* y *Pulso fuerte*) y produce algo por segundo, menos que antes. Con el ajuste, el clic (manual, mantenido o automático) da ~3/4 de la Energía desde el minuto 15. La tienda muestra en cada generador lo que suma por clic y por segundo, y el panel muestra «Por clic».
 
+**Árbol de mejoras (2026-11-18):** cada mejora tiene un padre (`requires_id`) y solo aparece cuando el padre está comprado: *Pulso* es la raíz de la línea de los clics (de ella salen *Pulso fuerte*, *Dial firme* y *Resonancia* → *Dial solo* → *Dial solo II*) y cada ×2 (25) cuelga de su ×2 (10). La cadena de generadores solo se dibuja: exigir el anterior retrasaba al jugador tranquilo. Con este árbol el test de ritmo sigue en verde sin cambiar los números.
+
 Mejoras de generador: **×2 al tener 10** de un generador y otra vez **al tener 25** (12 mejoras). El coste de cada generador crece en torno a ×1,15 por compra. Los números exactos se ajustan con el test de ritmo del hito 1.
 
 ## 4. Interferencias (el evento que premia mirar la tele)

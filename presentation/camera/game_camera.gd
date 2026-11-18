@@ -30,3 +30,5 @@ func _unhandled_input(event: InputEvent) -> void:
 	if _tv_input and event is InputEventMouse and current:
 		var pos: Vector2 = (event as InputEventMouse).position
 		_tv_input.forward(project_ray_origin(pos), project_ray_normal(pos), event)
+	elif _tv_input and event is InputEventKey and current:
+		_tv_input.forward_key(event)
