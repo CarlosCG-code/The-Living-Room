@@ -12,12 +12,15 @@ signal shop_requested
 signal event_pressed
 ## Primera máquina de un generador (para el aviso del OSD); no salta al cargar la partida.
 signal generator_shown(id: StringName)
+## Empieza un evento (para su sonido).
+signal event_started(id: StringName)
 
 const TEX := "res://assets/textures/tv/"
 # Eventos (core/tv_event_def.gd): la estrella cruza el cielo; la silueta sale en uno de estos sitios.
 const STAR_FROM := Vector2(300, 14)
 const STAR_TO := Vector2(40, 58)
-const SILHOUETTE_SPOTS: Array[Vector2] = [Vector2(196, 131), Vector2(300, 134), Vector2(112, 129), Vector2(24, 133)]
+# Pies de la silueta: en la nieve abierta, donde se recorta contra el blanco (entre árboles no se veía).
+const SILHOUETTE_SPOTS: Array[Vector2] = [Vector2(214, 162), Vector2(122, 198), Vector2(262, 194), Vector2(40, 190)]
 const SHADOW := Color("05060b")
 ## Texto en pantalla (números al clicar, aviso de la Señal clara): mismo fósforo que el OSD.
 const OSD_TEXT := Color("b8f5c4")
@@ -27,7 +30,7 @@ const FADE_IN := 0.6
 const LABEL_HOLD := 3.0
 const FACTORY_POS := Vector2(132, 92)
 const RECEPTOR_FEET := Vector2(147, 174)
-const CATCH_SIZE := Vector2(40, 32)
+const CATCH_SIZE := Vector2(48, 40)
 ## Zona de clic del receptor, mucho mayor que su dibujo (26 × 24): al clicar deprisa el ratón se mueve.
 const RECEPTOR_HITBOX := Vector2(64, 52)
 # Por generador: pies de cada hueco (abajo a la izquierda), etiqueta y cable (desde, hasta, caída).
@@ -48,6 +51,7 @@ var _sparks: CPUParticles2D
 var _catch: Button
 var _hint: Label
 var _event_layer: Node2D
+var _marker: Node2D
 var _vignette: TextureRect
 var _event_id: StringName = &""
 var _event_t := 0.0
@@ -120,6 +124,11 @@ func _ready() -> void:
 	add_child(_catch)
 	_vignette = _make_vignette()
 	add_child(_vignette)
+	# Marcas de OSD alrededor de lo que se puede atrapar: por encima de la viñeta, para que se vean siempre.
+	_marker = Node2D.new()
+	_marker.name = "Marker"
+	_marker.draw.connect(_draw_marker)
+	add_child(_marker)
 	_hint = _label(tr("UI_EVENT_CLEAR_SIGNAL"), Vector2.ZERO, Color("8fe8b8"))
 	_hint.visible = false
 	# Los textos van por encima de la viñeta para que se lean en los bordes.
@@ -174,10 +183,16 @@ func show_event(e: TvEventDef, t: float) -> void:
 		&"clear_signal":
 			_event_at = Vector2(160, 30)
 	_sparks.position = _event_at
-	_catch.position = (_event_at - CATCH_SIZE / 2).clamp(Vector2.ZERO, size - CATCH_SIZE)
+	_catch.position = (event_center() - CATCH_SIZE / 2).clamp(Vector2.ZERO, size - CATCH_SIZE)
 	var hint_size := _hint.get_combined_minimum_size()
 	_hint.position = (_event_at + Vector2(-hint_size.x / 2, 10)).round().clamp(Vector2(0, 14), size - hint_size)
 	_event_layer.queue_redraw()
+	_marker.queue_redraw()
+
+
+## Centro de lo que hay que clicar (la silueta se mide desde los pies).
+func event_center() -> Vector2:
+	return _event_at + (Vector2(0, -10) if _event_id == &"silhouette" else Vector2.ZERO)
 
 
 func _start_event(e: TvEventDef) -> void:
@@ -202,17 +217,29 @@ func _start_event(e: TvEventDef) -> void:
 	# Solo la Señal clara se anuncia: lo demás hay que verlo (pedido del usuario, 2026-11-18).
 	_hint.visible = id == &"clear_signal"
 	_event_layer.queue_redraw()
+	_marker.queue_redraw()
+	if id != &"":
+		event_started.emit(id)
 
 
 func _draw_event() -> void:
 	var c := _event_layer
 	match _event_id:
 		&"shooting_star":
+			# Estela larga que se apaga, cabeza de 3 × 3 con halo en cruz y un destello que gira.
 			var dir := (STAR_TO - STAR_FROM).normalized()
-			for k in 10:
-				var p := (_event_at - dir * k * 2.0).round()
-				c.draw_rect(Rect2(p, Vector2(1, 1)), Color(1, 1, 0.9, 1.0 - k / 10.0))
-			c.draw_rect(Rect2(_event_at.round() - Vector2(1, 1), Vector2(2, 2)), Color.WHITE)
+			for k in 26:
+				var p := (_event_at - dir * k).round()
+				var fade := 1.0 - k / 26.0
+				c.draw_rect(Rect2(p, Vector2(1, 1)), Color(1.0, 0.95, 0.75, fade * fade))
+			var head := _event_at.round()
+			c.draw_rect(Rect2(head - Vector2(1, 1), Vector2(3, 3)), Color.WHITE)
+			var halo := Color(1.0, 0.9, 0.6, 0.55)
+			for off: Vector2 in [Vector2(-3, 0), Vector2(3, 0), Vector2(0, -3), Vector2(0, 3)]:
+				c.draw_rect(Rect2(head + off, Vector2(1, 1)), halo)
+			if fmod(Time.get_ticks_msec() / 250.0, 2.0) < 1.0:
+				for off: Vector2 in [Vector2(-2, -2), Vector2(2, 2), Vector2(-2, 2), Vector2(2, -2)]:
+					c.draw_rect(Rect2(head + off, Vector2(1, 1)), halo)
 		&"clear_signal":
 			# Aurora: bandas verdosas que ondulan; entra y sale suave.
 			var alpha := sin(PI * _event_t) * 0.35
@@ -222,17 +249,36 @@ func _draw_event() -> void:
 					var y := 22.0 + band * 7.0 + sin(x * 0.03 + time * 0.8 + band) * 6.0
 					c.draw_rect(Rect2(x, y, 2, 10 - band * 2), Color(0.4, 1.0, 0.7 - band * 0.15, alpha * (1.0 - band * 0.25)))
 		&"silhouette":
-			# Figura quieta entre los árboles: aparece despacio y parpadea al final.
-			var a := clampf(_event_t * 4.0, 0.0, 1.0)
-			if _event_t > 0.8 and fmod(_event_t * 40.0, 2.0) < 1.0:
+			# Figura quieta en la nieve: aparece despacio (no es un susto) y al final se va apagando a golpes.
+			var a := clampf(_event_t * 3.0, 0.0, 1.0)
+			if _event_t > 0.8 and fmod(_event_t * 20.0, 2.0) < 1.0:
 				a *= 0.3
 			var feet := _event_at
 			c.draw_rect(Rect2(feet + Vector2(-3, -16), Vector2(6, 16)), Color(SHADOW, a))  # cuerpo
 			c.draw_rect(Rect2(feet + Vector2(-4, -15), Vector2(1, 9)), Color(SHADOW, a))  # brazos largos
 			c.draw_rect(Rect2(feet + Vector2(3, -15), Vector2(1, 9)), Color(SHADOW, a))
 			c.draw_rect(Rect2(feet + Vector2(-2, -21), Vector2(4, 5)), Color(SHADOW, a))  # cabeza
-			c.draw_rect(Rect2(feet + Vector2(-1, -19), Vector2(1, 1)), Color(0.9, 0.85, 0.8, a * 0.9))  # ojos
-			c.draw_rect(Rect2(feet + Vector2(1, -19), Vector2(1, 1)), Color(0.9, 0.85, 0.8, a * 0.9))
+			c.draw_rect(Rect2(feet + Vector2(-6, 0), Vector2(12, 2)), Color(SHADOW, a * 0.5))  # sombra en la nieve
+			# Ojos que brillan: lo primero que se ve.
+			for eye: Vector2 in [Vector2(-1, -19), Vector2(1, -19)]:
+				c.draw_rect(Rect2(feet + eye, Vector2(1, 1)), Color(1.0, 0.95, 0.85, a))
+				c.draw_rect(Rect2(feet + eye + Vector2(0, -1), Vector2(1, 1)), Color(1.0, 0.9, 0.7, a * 0.35))
+
+
+## Esquinas de OSD que laten (2 por segundo como mucho) alrededor de lo que se puede atrapar.
+func _draw_marker() -> void:
+	if not _catch.visible:
+		return
+	var pulse := 0.55 + 0.45 * sin(Time.get_ticks_msec() / 1000.0 * TAU * 2.0)
+	var color := Color(0.72, 0.96, 0.77, 0.4 + 0.6 * pulse)
+	var half := Vector2(14, 14) + Vector2(2, 2) * pulse
+	var r := Rect2((event_center() - half).round(), (half * 2).round())
+	var arm := 5.0
+	for corner: Vector2 in [r.position, Vector2(r.end.x, r.position.y), Vector2(r.position.x, r.end.y), r.end]:
+		var sx := 1.0 if corner.x == r.position.x else -1.0
+		var sy := 1.0 if corner.y == r.position.y else -1.0
+		_marker.draw_line(corner, corner + Vector2(arm * sx, 0), color)
+		_marker.draw_line(corner, corner + Vector2(0, arm * sy), color)
 
 
 ## Viñeta: oscurece los bordes de la pantalla.

@@ -199,7 +199,7 @@ func test_restart_requires_threshold_and_resets() -> void:
 
 func test_interference_appears_in_range_and_lasts() -> void:
 	var next := eco.state.event_next_in
-	assert_between(next, 120.0, 240.0)
+	assert_almost_eq(next, 90.0, 0.0001, "el primero de la partida, a los 90 s")
 	eco.tick(next - 0.5, false)
 	assert_false(_active())
 	eco.tick(1.0, false)
@@ -385,3 +385,13 @@ func test_perk_effects() -> void:
 	_restart_with(1000)
 	assert_eq(eco.owned(&"a"), 3, "la run nueva empieza con ellos")
 	assert_true(eco.is_bought(&"hold"))
+
+
+func test_first_event_of_the_game_is_fixed_and_early() -> void:
+	config.first_event_at = 90.0
+	config.first_event_id = &"interference"
+	config.events = [_event(&"clear_signal", 20, 0, 0, 2), _event(&"interference", 8, 60, 50, 1)]
+	eco = Economy.new(config, null, 7)
+	assert_almost_eq(eco.state.event_next_in, 90.0, 0.0001)
+	eco.tick(90.1, false)
+	assert_eq(eco.state.event_id, &"interference")

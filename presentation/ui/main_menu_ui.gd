@@ -95,6 +95,8 @@ func show_options() -> void:
 
 
 func show_main() -> void:
+	if not pause_menu:
+		_play.text = tr("UI_CONTINUE") if Game.has_progress() else tr("UI_PLAY")
 	_options.hide()
 	_main.show()
 	_play.grab_focus()

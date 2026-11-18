@@ -66,9 +66,9 @@ PERKS = [
 # Eventos de la tele: id, peso, duración (s), recompensa (s de producción, clics mínimos), multiplicador.
 EVENTS = [
     ("interference", 4, 8, 15, 50, 1),
-    ("shooting_star", 3, 3, 8, 25, 1),
+    ("shooting_star", 3, 5, 8, 25, 1),
     ("clear_signal", 2, 20, 0, 0, 2),
-    ("silhouette", 1, 5, 45, 150, 1),
+    ("silhouette", 2, 7, 45, 150, 1),
 ]
 
 

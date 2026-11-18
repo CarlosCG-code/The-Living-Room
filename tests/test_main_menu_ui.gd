@@ -86,3 +86,23 @@ func test_carga_screen_buys_next_perk_and_starts() -> void:
 	assert_signal_emitted(screen, "start_requested")
 	Game.economy.state = saved_state
 	Game.economy._recalc()
+
+
+func test_tv_starts_in_menu_and_play_changes_channel() -> void:
+	var vp := SubViewport.new()
+	vp.size = Vector2i(320, 240)
+	add_child_autofree(vp)
+	var ui: Node = (load("res://presentation/ui/tv_game_ui.tscn") as PackedScene).instantiate()
+	vp.add_child(ui)
+	ui.start_in_menu()
+	assert_true(ui.is_in_menu())
+	assert_false(Game.running, "en el menú la partida no avanza")
+	var tv_menu: MainMenuUI = null
+	for child in ui.get_children():
+		if child is MainMenuUI and not child.pause_menu:
+			tv_menu = child
+	tv_menu.play_requested.emit()
+	await wait_seconds(0.6)
+	assert_false(ui.is_in_menu())
+	assert_true(Game.running, "tras el cambio de canal, a jugar")
+	Game.running = false

@@ -9,6 +9,9 @@ extends Resource
 @export var events: Array[TvEventDef] = []
 @export var event_min: float = 120.0
 @export var event_max: float = 240.0
+## La primera run enseña los eventos: el primero sale a los first_event_at segundos y es first_event_id.
+@export var first_event_at: float = 90.0
+@export var first_event_id: StringName = &"interference"
 ## Mejoras permanentes, en el orden en que se compran.
 @export var perks: Array[PerkDef] = []
 ## Carga al reiniciar: carga_base × raíz(producida / umbral). 3 al llegar; 6 con 4 veces el umbral.

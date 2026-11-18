@@ -262,6 +262,12 @@ func _gain(amount: float) -> void:
 
 
 func _start_event() -> void:
+	# El primer evento de la partida es siempre el mismo (enseña a clicar lo raro).
+	var first := config.find_event(config.first_event_id)
+	if first and state.run_index == 1 and state.play_time <= config.first_event_at + 1.0:
+		state.event_id = first.id
+		state.event_left = first.duration
+		return
 	var total := 0.0
 	for e in config.events:
 		total += e.weight

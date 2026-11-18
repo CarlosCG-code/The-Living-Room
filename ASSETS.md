@@ -24,6 +24,7 @@ Fuente: `COPYRIGHT.txt` de https://github.com/godotengine/godot/blob/4.7.2-stabl
 | Archivo | Cómo se hizo | Fecha |
 |---|---|---|
 | `assets/textures/tv/*.png` (fondo, fábrica, receptor, máquinas e iconos del árbol) | Pixel art dibujado por código con `tools/build_tv_sprites.gd` (sin assets externos) | 2026-11-18 |
+| `assets/audio/tv/event_*.wav` (avisos de los eventos de la tele) | Sintetizados por código con `tools/build_tv_sounds.py` (sin muestras externas ni IA) | 2026-11-18 |
 | `assets/models/tv.glb` (tele de tubo: mueble, marco, panel con rejilla y mandos, piloto, antena de cuernos) | Modelada en Blender por `tools/blender/build_living_room.py` (`MODE = "tv"`), materiales planos sin texturas | 2026-11-18 |
 
 ## Solo desarrollo (no van en la build)

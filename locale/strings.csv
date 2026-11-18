@@ -1,7 +1,6 @@
 keys,es
 TITLE,The Living Room
 UI_RESTART,Reiniciar
-UI_HINT_CLICK,¡Clica!
 UI_LOCKED,Se desbloquea al comprar la mejora de la que sale.
 UI_BOUGHT,Comprada
 UI_SHOP_TITLE,Mejoras
@@ -82,3 +81,5 @@ UI_CARGA_COST,%d de Carga
 UI_START_RUN,Empezar la run %d
 UI_PERK_LOCKED,"Antes, la anterior."
 UI_RESTART_CONFIRM,Reiniciar (+%d de Carga)
+UI_INTRO,"Ratón o Espacio: sintoniza.
+Si ves algo raro en la pantalla, tócalo."

@@ -21,6 +21,8 @@ static func new_run(config: EconomyConfig, p_run_index: int, rng: RandomNumberGe
 	var state := RunState.new()
 	state.run_index = p_run_index
 	state.event_next_in = rng.randf_range(config.event_min, config.event_max)
+	if p_run_index == 1:
+		state.event_next_in = config.first_event_at
 	return state
 
 

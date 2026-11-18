@@ -23,6 +23,7 @@ var _notice: Label
 var _restart: Button
 var _progress := 0.0
 var _notice_tween: Tween
+var _intro: Label
 
 
 func _ready() -> void:
@@ -40,6 +41,16 @@ func _ready() -> void:
 	_prompt.size.x = 154
 	_prompt.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	_prompt.text = tr("OSD_SHOP_PROMPT")
+	# Carta de ajuste del principio: centrada, sobre una franja oscura para leerse encima de la nieve.
+	# Debajo del receptor, para no tapar la fábrica ni lo que hay que clicar.
+	_intro = _label(Vector2(0, 180), 8, PHOSPHOR)
+	_intro.size = Vector2(320, 30)
+	_intro.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_intro.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	var plate := StyleBoxFlat.new()
+	plate.bg_color = Color(0, 0, 0, 0.6)
+	_intro.add_theme_stylebox_override(&"normal", plate)
+	_intro.hide()
 	_restart = Button.new()
 	_restart.text = tr("UI_RESTART")
 	_restart.focus_mode = FOCUS_NONE
@@ -63,6 +74,19 @@ func show_values(energy: String, per_second: String, per_click: String, progress
 	# Parpadeo de OSD: encendido y apagado secos, no un fundido.
 	_prompt.visible = shop_ready and fmod(Time.get_ticks_msec() / 1000.0, 1.2) < 0.8
 	queue_redraw()
+
+
+func show_intro(text: String) -> void:
+	_intro.text = text
+	_intro.show()
+
+
+func hide_intro() -> void:
+	_intro.hide()
+
+
+func is_intro_visible() -> bool:
+	return _intro.visible
 
 
 ## Aviso abajo a la izquierda que se va solo («+ ANTENA»).

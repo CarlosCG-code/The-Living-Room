@@ -1,6 +1,7 @@
 extends Node
 
-# Punto de montaje (specs/hito2.md D1, §5): salón, tele, cámara, luces y ajustes gráficos.
+# Punto de montaje (specs/hito2.md D1, §5): salón, tele, cámara, luces y ajustes gráficos. Es también
+# la escena de arranque: el menú principal se muestra en la tele, con el salón a oscuras.
 # Variables TLR_* solo en la build de depuración; la exportada las ignora.
 
 const ROOM := preload("res://world/player_flat/living_room.tscn")
@@ -38,7 +39,15 @@ func _ready() -> void:
 	if _dev("TLR_GI") == "0":
 		settings.set_gi(false)
 	tv.screen_state_changed.connect(mixer.set_tv_state)
-	set_lighting_state(&"dark" if _dev("TLR_DARK") == "1" else &"normal")
+	var play_light: StringName = &"dark" if _dev("TLR_DARK") == "1" else &"normal"
+	EventBus.tv_menu_changed.connect(func(open: bool) -> void: set_lighting_state(&"menu" if open else play_light))
+	# El juego arranca en el menú de la tele; las capturas y el benchmark entran directamente a jugar.
+	var ui: Node = tv.get_subviewport().get_child(0)
+	var skip_menu := _dev("TLR_SKIP_MENU") == "1" or _dev("TLR_BENCHMARK") == "1" or _dev("TLR_VIEW") not in ["", "game"]
+	if skip_menu:
+		ui.start_playing()
+	else:
+		ui.start_in_menu()
 
 	var view := _dev("TLR_VIEW")
 	if view != "" and view != "game":
@@ -53,7 +62,6 @@ func _ready() -> void:
 		for v in VIEWS.slice(1):
 			bench.cameras.append(room.get_capture_camera(v))
 		add_child(bench)
-	Game.running = true
 	tree_exiting.connect(func() -> void: Game.running = false)
 	print("BOOT_OK")
 

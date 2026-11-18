@@ -1,20 +1,23 @@
 extends Control
 
 # Solo pinta: lee Game.economy y reenvía la entrada a Game. Sin lógica de juego.
+# La tele empieza en el menú principal (canal del menú); «Jugar» cambia de canal con nieve y pasa al
+# incremental. «Menú principal» en la pausa hace lo contrario. Todo en la misma escena del salón.
 # Pantalla de 320 × 240 en pixel art (specs/hito2.md D19): la fábrica ocupa toda la pantalla, arriba una
 # barra con los datos y el árbol de mejoras se abre encima al pulsar la fábrica (o con E).
 # Teclado: Espacio sintoniza (mantenerlo = mantener pulsado), E abre o cierra las mejoras, Esc las cierra,
 # flechas e Intro se mueven por el árbol y compran.
 
-const MENU_SCENE := "res://world/main_menu/main_menu.tscn"
+const CHANNEL_CHANGE := 0.4  # segundos de nieve al cambiar de canal
 
 @onready var _osd: TvOsd = $Osd
 @onready var _factory: FactoryView = $FactoryView
 @onready var _tree: UpgradeTree = $UpgradeTree
 @onready var _purchase_sound: AudioStreamPlayer = $PurchaseSound
 
-var _hinted := false
+var _menu: MainMenuUI
 var _pause: MainMenuUI
+var _static: ColorRect
 var _carga: CargaScreen
 
 
@@ -27,6 +30,15 @@ func _ready() -> void:
 	_factory.hold_changed.connect(Game.set_holding)
 	_factory.shop_requested.connect(_open_shop)
 	_factory.event_pressed.connect(Game.catch_event)
+	# Cada evento suena siempre igual: el jugador aprende a girarse hacia la tele al oírlo.
+	var event_sound := AudioStreamPlayer.new()
+	event_sound.volume_db = -6.0
+	add_child(event_sound)
+	_factory.event_started.connect(func(id: StringName) -> void:
+		var path := "res://assets/audio/tv/event_%s.wav" % id
+		if ResourceLoader.exists(path):
+			event_sound.stream = load(path)
+			event_sound.play())
 	_tree.buy_requested.connect(Game.buy)
 	_tree.close_requested.connect(_close_shop)
 	EventBus.purchase_made.connect(func(_id: StringName) -> void: _purchase_sound.play())
@@ -38,12 +50,74 @@ func _ready() -> void:
 		Game.running = true)
 	_pause = (load("res://presentation/ui/main_menu_ui.tscn") as PackedScene).instantiate()
 	_pause.pause_menu = true
+	_pause.name = "PauseMenu"
 	_pause.hide()
 	add_child(_pause)
 	_pause.resume_requested.connect(close_pause)
-	_pause.menu_requested.connect(func() -> void: get_tree().change_scene_to_file(MENU_SCENE))
-	# Salir pasa por el cierre normal: Game guarda la partida antes de cerrar.
-	_pause.quit_requested.connect(func() -> void: get_tree().root.propagate_notification(NOTIFICATION_WM_CLOSE_REQUEST))
+	_pause.menu_requested.connect(func() -> void: _change_channel(_show_menu))
+	_pause.quit_requested.connect(_quit)
+	_menu = (load("res://presentation/ui/main_menu_ui.tscn") as PackedScene).instantiate()
+	_menu.name = "TvMenu"
+	_menu.hide()
+	add_child(_menu)
+	_menu.play_requested.connect(func() -> void: _change_channel(_start_playing))
+	_menu.quit_requested.connect(_quit)
+	_static = ColorRect.new()
+	_static.name = "Static"
+	_static.size = Vector2(320, 240)
+	_static.mouse_filter = MOUSE_FILTER_STOP  # durante la nieve no se puede clicar nada
+	var mat := ShaderMaterial.new()
+	mat.shader = preload("res://presentation/ui/tv_static.gdshader")
+	_static.material = mat
+	_static.hide()
+	add_child(_static)
+
+
+## Arranque del juego: la tele muestra el menú y la partida está parada.
+func start_in_menu() -> void:
+	_show_menu()
+
+
+## Arranque directo a la partida (capturas y benchmark).
+func start_playing() -> void:
+	_start_playing()
+
+
+func is_in_menu() -> bool:
+	return _menu.visible
+
+
+func _show_menu() -> void:
+	Game.set_holding(false)
+	Game.running = false
+	_pause.hide()
+	_tree.hide()
+	_osd.hide_intro()
+	_menu.show()
+	_menu.show_main()
+	EventBus.tv_menu_changed.emit(true)
+
+
+func _start_playing() -> void:
+	_menu.hide()
+	Game.running = true
+	EventBus.tv_menu_changed.emit(false)
+	# Partida nueva: carta de ajuste con lo básico (se va con el primer clic).
+	if Game.economy.state.run_index == 1 and Game.economy.state.energy_produced_run == 0.0:
+		_osd.show_intro(tr("UI_INTRO"))
+
+
+## Cambio de canal: nieve un instante y después lo que toque.
+func _change_channel(then: Callable) -> void:
+	_static.show()
+	await get_tree().create_timer(CHANNEL_CHANGE).timeout
+	then.call()
+	_static.hide()
+
+
+# Salir pasa por el cierre normal: Game guarda la partida antes de cerrar.
+func _quit() -> void:
+	get_tree().root.propagate_notification(NOTIFICATION_WM_CLOSE_REQUEST)
 
 
 func _process(_delta: float) -> void:
@@ -52,13 +126,10 @@ func _process(_delta: float) -> void:
 	_osd.show_values(NumberFormat.energy(state.energy), NumberFormat.rate(eco.production_per_second()),
 		NumberFormat.per_click(eco.click_value()), state.energy_produced_run / eco.config.threshold,
 		eco.carga_if_restarted() if eco.can_restart() else -1, not _tree.visible and _has_affordable(eco))
-	if not _hinted and state.energy_produced_run == 0.0:
-		_hinted = true
-		_factory.float_text(_factory.top_of(_factory.get_receptor()), tr("UI_HINT_CLICK"))
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if _pause.visible or _carga.visible:
+	if _pause.visible or _carga.visible or _menu.visible or _static.visible:
 		return
 	if event.is_action_pressed("ui_cancel") and not _tree.visible:
 		open_pause()
@@ -93,6 +164,7 @@ func is_restarting() -> bool:
 
 
 func _click(at: Vector2) -> void:
+	_osd.hide_intro()
 	if not Game.click():
 		return  # por encima del tope de clics por segundo: no cuenta ni se ve
 	_factory.float_text(at, "+" + NumberFormat.per_click(Game.economy.click_value()))

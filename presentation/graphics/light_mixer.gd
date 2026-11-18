@@ -5,6 +5,8 @@ extends RefCounted
 # energía = base(estado) × factor. Cada luz del salón lleva en metadatos base_normal y base_dark.
 
 const TV_SCREEN_SCALE := {&"on": 1.0, &"interference": 1.6, &"off": 0.0}
+## En el menú la tele apenas ilumina la pared: el salón se intuye, no se ve (medido en capturas).
+const MENU_SCREEN_SCALE := 0.1
 
 var _room_lights: Array[Light3D]
 var _screen_light: Light3D
@@ -53,19 +55,23 @@ func set_ambient_gi_scale(f: float) -> void:
 
 
 func apply() -> void:
-	var key := "base_dark" if _state == &"dark" else "base_normal"
+	# «menu»: el salón a oscuras salvo la calle y la tele, sin linterna (el menú no debe enseñar el sofá).
+	var key := "base_dark" if _state in [&"dark", &"menu"] else "base_normal"
 	for light in _room_lights:
 		var energy: float = light.get_meta(key, 0.0) * _factor
 		light.light_energy = energy
 		light.visible = energy > 0.0
 	if _screen_light:
 		var screen_energy: float = _screen_base * TV_SCREEN_SCALE.get(_tv_state, 1.0) * _factor
+		if _state == &"menu":
+			screen_energy *= MENU_SCREEN_SCALE
 		_screen_light.light_energy = screen_energy
 		_screen_light.visible = screen_energy > 0.0
 	if _flashlight:
 		_flashlight.light_energy = _flashlight_base
 		_flashlight.visible = _state == &"dark"
-	if _environment and _ambient.has(_state):
-		var amb: Dictionary = _ambient[_state]
+	var amb_key: StringName = &"dark" if _state == &"menu" else _state
+	if _environment and _ambient.has(amb_key):
+		var amb: Dictionary = _ambient[amb_key]
 		_environment.ambient_light_color = amb["color"]
 		_environment.ambient_light_energy = float(amb["energy"]) * _ambient_gi_scale * _factor
