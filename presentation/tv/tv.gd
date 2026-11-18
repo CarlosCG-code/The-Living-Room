@@ -32,6 +32,7 @@ func _ready() -> void:
 	_material = ShaderMaterial.new()
 	_material.shader = SCREEN_SHADER
 	_material.set_shader_parameter(&"screen_tex", _subviewport.get_texture())
+	_material.set_shader_parameter(&"warp", TvScreenMath.WARP)
 	_screen.material_override = _material
 	# La luz de la pantalla está delante del cristal: si lo iluminara, dejaría una mancha en el centro.
 	_screen.layers = SCREEN_LAYER

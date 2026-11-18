@@ -17,7 +17,7 @@ const BAR_SEGMENTS := 20
 ## Habilidades del mando en orden de tecla (1-4) e icono de cada una.
 const SKILLS: Array[StringName] = [&"sweep", &"surge", &"seek", &"overload"]
 ## Arriba a la izquierda, bajo la barra de cintas: abajo a la derecha pisaba los sintonizadores.
-const SKILL_ROW := Vector2(14, 50)
+const SKILL_ROW := Vector2(18, 54)
 
 var _energy: Label
 var _energy_caption: Label
@@ -37,15 +37,16 @@ var _skills := {}  # skill -> {"button": TextureButton, "cd": fracción de esper
 func _ready() -> void:
 	mouse_filter = MOUSE_FILTER_IGNORE
 	set_anchors_preset(PRESET_FULL_RECT)
-	_energy_caption = _label(Vector2(6, 4), 8, PHOSPHOR_DIM)
+	# Un poco hacia dentro: la imagen curvada se come las esquinas.
+	_energy_caption = _label(Vector2(10, 7), 8, PHOSPHOR_DIM)
 	_energy_caption.text = tr("OSD_ENERGY")
-	_energy = _label(Vector2(6, 13), 16, PHOSPHOR)
-	_rates = _label(Vector2(6, 31), 8, PHOSPHOR_DIM)
-	_restart_caption = _label(Vector2(6, 218), 8, PHOSPHOR_DIM)
+	_energy = _label(Vector2(10, 16), 16, PHOSPHOR)
+	_rates = _label(Vector2(10, 34), 8, PHOSPHOR_DIM)
+	_restart_caption = _label(Vector2(10, 214), 8, PHOSPHOR_DIM)
 	_restart_caption.text = tr("OSD_RESTART")
-	_notice = _label(Vector2(6, 204), 8, PHOSPHOR)
+	_notice = _label(Vector2(10, 200), 8, PHOSPHOR)
 	_notice.modulate.a = 0.0
-	_prompt = _label(Vector2(160, 226), 8, AMBER)
+	_prompt = _label(Vector2(152, 222), 8, AMBER)
 	_prompt.size.x = 154
 	_prompt.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	_prompt.text = tr("OSD_SHOP_PROMPT")
@@ -139,14 +140,14 @@ func _draw() -> void:
 	# Barra de cintas: diez segmentos bajo el ritmo; se llena con tus clics.
 	if _tape >= 0.0:
 		for i in 10:
-			var r := Rect2(Vector2(6 + i * 4, 42), Vector2(3, 3))
+			var r := Rect2(Vector2(10 + i * 4, 46), Vector2(3, 3))
 			draw_rect(Rect2(r.position + Vector2(1, 1), r.size), SHADOW)
 			draw_rect(r, PHOSPHOR if float(i) < _tape * 10.0 else Color(PHOSPHOR_DIM, 0.35))
 	# Latido de la racha: un punto ámbar que crece y late más deprisa cuanto más alta va.
 	if _combo > 0.0:
 		var beat := 0.5 + 0.5 * sin(Time.get_ticks_msec() / 1000.0 * TAU * (1.0 + 2.0 * _combo))
 		var side := 2.0 + roundf(_combo * 3.0 * beat)
-		draw_rect(Rect2(Vector2(50, 43.5) - Vector2(side, side) / 2.0, Vector2(side, side)), AMBER)
+		draw_rect(Rect2(Vector2(54, 47.5) - Vector2(side, side) / 2.0, Vector2(side, side)), AMBER)
 	# Habilidades: oscurecidas según la espera, con su tecla; la activa, recuadrada.
 	for i in SKILLS.size():
 		var row: Dictionary = _skills[SKILLS[i]]
@@ -162,7 +163,7 @@ func _draw() -> void:
 		draw_string(font, r.position + Vector2(-5, 12), str(i + 1), HORIZONTAL_ALIGNMENT_LEFT, -1, 8,
 			PHOSPHOR if cd <= 0.0 else PHOSPHOR_DIM)
 	# Barra de reinicio en segmentos, como la del volumen de una tele.
-	var origin := Vector2(6, 228)
+	var origin := Vector2(10, 224)
 	for i in BAR_SEGMENTS:
 		var r := Rect2(origin + Vector2(i * 5, 0), Vector2(4, 6))
 		var lit := float(i) < _progress * BAR_SEGMENTS

@@ -14,9 +14,10 @@ const mat4 BAYER = mat4(
 
 void fragment() {
 	vec2 px = floor(UV * pixels);
+	float t = floor(TIME * 10.0) / 10.0;  // a 10 fps, como el resto del mundo
 	vec2 uv = px / pixels;
-	float a = texture(noise, uv * vec2(1.0, 0.45) + vec2(TIME * speed, 0.0)).r;
-	float b = texture(noise, uv * vec2(1.8, 0.8) + vec2(-TIME * speed * 0.6, 0.31)).r;
+	float a = texture(noise, uv * vec2(1.0, 0.45) + vec2(t * speed, 0.0)).r;
+	float b = texture(noise, uv * vec2(1.8, 0.8) + vec2(-t * speed * 0.6, 0.31)).r;
 	float d = a * 0.65 + b * 0.35;
 	// Más densa abajo, nada arriba: el borde superior se deshace.
 	float body = smoothstep(0.0, 0.6, UV.y) * smoothstep(0.32, 0.68, d);

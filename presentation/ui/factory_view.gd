@@ -156,6 +156,15 @@ func _ready() -> void:
 		t.pressed.connect(package_pressed.emit.bind(slot))
 		add_child(t)
 		_tapes.append(t)
+	# Paleta fija: todo lo de debajo (el mundo) cae en 12 colores. Las marcas, los números y el OSD, encima.
+	var palette := ColorRect.new()
+	palette.name = "Palette"
+	palette.size = Vector2(320, 240)
+	palette.mouse_filter = MOUSE_FILTER_IGNORE
+	var palette_mat := ShaderMaterial.new()
+	palette_mat.shader = preload("res://presentation/ui/palette.gdshader")
+	palette.material = palette_mat
+	add_child(palette)
 	# Marcas de OSD alrededor de lo que se puede atrapar: por encima de la viñeta, para que se vean siempre.
 	_marker = Node2D.new()
 	_marker.name = "Marker"
@@ -280,7 +289,7 @@ func _draw_event() -> void:
 			for band in 3:
 				for x in range(0, 320, 2):
 					var y := 22.0 + band * 7.0 + sin(x * 0.03 + time * 0.8 + band) * 6.0
-					c.draw_rect(Rect2(x, y, 2, 10 - band * 2), Color(0.4, 1.0, 0.7 - band * 0.15, alpha * (1.0 - band * 0.25)))
+					c.draw_rect(Rect2(x, y, 2, 10 - band * 2), Color(0.62, 0.85, 0.68, alpha * (1.0 - band * 0.25)))
 		&"silhouette":
 			# Figura quieta en la nieve: aparece despacio (no es un susto) y al final se va apagando a golpes.
 			var a := clampf(_event_t * 3.0, 0.0, 1.0)
@@ -486,6 +495,7 @@ func _particles(pos: Vector2, extents: Vector2, amount: int, lifetime: float, ve
 	p.initial_velocity_max = velocity.length() * 1.3
 	p.color = color
 	p.preprocess = lifetime
+	p.fixed_fps = 10  # el mundo se mueve a 10 fps, como stop-motion (§5)
 	return p
 
 

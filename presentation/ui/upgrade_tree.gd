@@ -15,16 +15,17 @@ const ICONS := "res://assets/textures/tv/icon_"
 const GRID_ORIGIN := Vector2(8, 22)
 const GRID_STEP := Vector2(31, 31)
 const GENERATOR_ROW := 2
-# Estilo: el menú azul de una tele de los 90 (OSD). Azul de fondo, texto blanco, selección ámbar.
-const CHALK := Color("e6ecff")
-const DIM := Color("2a3d9e")
-const GOLD := Color("ffc861")
-const GREEN := Color("8fd6a0")
-const RED := Color("ff8a7a")
-const MIST := Color("a9b8f0")
-const PANEL := Color("0b1c70")
-const BAR := Color("06104a")
-const TILE := Color("0a165c")
+# Estilo: el menú de una tele de los 90 (OSD), desaturado (specs/incremental_v2.md §5): azul sucio de fondo,
+# texto gris claro, selección en el ámbar de la luz, comprado en el verde del fósforo.
+const CHALK := Color("c8d0dc")
+const DIM := Color("2b3a5c")
+const GOLD := Color("e0a048")
+const GREEN := Color("9fd9ae")
+const RED := Color("b0564a")
+const MIST := Color("8a96ae")
+const PANEL := Color("1c2a4a")
+const BAR := Color("0f1729")
+const TILE := Color("16223d")
 ## Los iconos usan la paleta nocturna del mundo: sobre el azul del menú se aclaran un poco.
 const ICON_LIFT := Color(1.6, 1.6, 1.7)
 const CARD_TOP := 180.0
@@ -234,7 +235,7 @@ func _draw() -> void:
 		var r := Rect2(b.position, NODE)
 		var state := state_of(id)
 		draw_rect(Rect2(r.position + Vector2(2, 2), r.size), Color(0, 0, 0.1, 0.5))  # sombra dura de OSD
-		draw_rect(r, Color("1d3bb0") if state == &"bought" else TILE)
+		draw_rect(r, Color("2a3f5e") if state == &"bought" else TILE)
 		var border: Color = {&"bought": GREEN, &"affordable": CHALK, &"available": Color(CHALK, 0.6),
 			&"locked": DIM}[state]
 		draw_rect(r, border, false)

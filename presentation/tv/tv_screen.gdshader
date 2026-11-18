@@ -3,11 +3,13 @@ shader_type spatial;
 // - la imagen del SubViewport es emisión (con líneas de barrido, color corrido, grano y franja VHS);
 // - el cristal es la superficie: el motor pone el Fresnel, el brillo de la lámpara y el reflejo de la sonda;
 // - el abombado del cristal solo está en la normal: la malla es plana y los clics no cambian (D5).
-// Sin curvar la imagen (D5). Muestreo «sharp bilinear»: píxeles nítidos a cualquier escala, sin escalera (D19).
+// Imagen curvada como un tubo con la misma función que TvScreenMath.warp (los clics caen donde se ve).
+// Muestreo «sharp bilinear»: píxeles nítidos a cualquier escala, sin escalera (D19).
 render_mode cull_back;
 
 uniform sampler2D screen_tex : source_color, filter_linear, repeat_disable;
 uniform vec2 source_size = vec2(320.0, 240.0);
+uniform vec2 warp = vec2(0.031, 0.041);  // = TvScreenMath.WARP (tv.gd lo pasa)
 uniform float brightness = 1.15;
 uniform float vignette = 0.35;
 // 0 = imagen limpia; 1 = filtro completo. Ajuste de accesibilidad y de calidad.
@@ -32,8 +34,14 @@ vec3 sharp(vec2 uv) {
 	return texture(screen_tex, px / source_size).rgb;
 }
 
+vec2 barrel(vec2 uv) {
+	vec2 c = uv * 2.0 - 1.0;
+	c *= vec2(1.0 + c.y * c.y * warp.x, 1.0 + c.x * c.x * warp.y);
+	return c * 0.5 + 0.5;
+}
+
 void fragment() {
-	vec2 uv = UV;
+	vec2 uv = barrel(UV);
 	vec2 c = UV * 2.0 - 1.0;
 	vec2 texel = 1.0 / source_size;
 
@@ -57,9 +65,10 @@ void fragment() {
 	color *= 1.0 - grain * 0.12 * crt;
 	color += band * 0.04;
 
-	// Sombra del marco: la imagen se hunde un poco bajo el borde de plástico.
-	vec2 edge = min(UV, 1.0 - UV);
+	// Fuera de la imagen curvada (esquinas), negro; y la sombra del marco hunde un poco los bordes.
+	vec2 edge = min(uv, 1.0 - uv);
 	float shadow = smoothstep(0.0, edge_shadow, min(edge.x, edge.y * 0.75));
+	shadow *= step(0.0, min(edge.x, edge.y));
 	float v = 1.0 - vignette * dot(c, c);
 	EMISSION = max(color, vec3(0.0)) * brightness * v * shadow;
 

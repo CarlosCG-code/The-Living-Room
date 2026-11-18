@@ -17,6 +17,7 @@ var sparking := false
 
 var _curve := Curve2D.new()
 var _offset := 0.0
+var _last_step := -1.0
 
 
 func _init(from: Vector2, to: Vector2, sag: float) -> void:
@@ -27,8 +28,12 @@ func _init(from: Vector2, to: Vector2, sag: float) -> void:
 
 
 func _process(delta: float) -> void:
+	# Los pulsos avanzan a saltos de 10 fps, como el resto del mundo.
 	_offset += speed * delta
-	queue_redraw()
+	var step := floorf(Time.get_ticks_msec() / 100.0)
+	if step != _last_step:
+		_last_step = step
+		queue_redraw()
 
 
 func midpoint() -> Vector2:
