@@ -56,8 +56,12 @@ func tick(delta: float) -> void:
 		_save()
 
 
-func click() -> void:
-	economy.click()
+func click() -> bool:
+	return economy.click()
+
+
+func buy_perk(id: StringName) -> bool:
+	return economy.buy_perk(id)
 
 
 func set_holding(value: bool) -> void:

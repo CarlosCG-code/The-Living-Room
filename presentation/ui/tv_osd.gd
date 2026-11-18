@@ -51,12 +51,15 @@ func _ready() -> void:
 	add_child(_restart)
 
 
-func show_values(energy: String, per_second: String, per_click: String, progress: float, can_restart: bool,
+## restart_carga: Carga que daría reiniciar ya, o -1 si aún no se puede.
+func show_values(energy: String, per_second: String, per_click: String, progress: float, restart_carga: int,
 		shop_ready: bool) -> void:
 	_energy.text = energy
 	_rates.text = "%s  ·  %s" % [per_second, tr("OSD_PER_CLICK") % per_click]
 	_progress = clampf(progress, 0.0, 1.0)
-	_restart.visible = can_restart
+	_restart.visible = restart_carga >= 0
+	if restart_carga >= 0:
+		_restart.text = tr("UI_RESTART_CONFIRM") % restart_carga
 	# Parpadeo de OSD: encendido y apagado secos, no un fundido.
 	_prompt.visible = shop_ready and fmod(Time.get_ticks_msec() / 1000.0, 1.2) < 0.8
 	queue_redraw()

@@ -15,10 +15,11 @@ const MENU_SCENE := "res://world/main_menu/main_menu.tscn"
 
 var _hinted := false
 var _pause: MainMenuUI
+var _carga: CargaScreen
 
 
 func _ready() -> void:
-	_osd.restart_pressed.connect(Game.restart)
+	_osd.restart_pressed.connect(_restart)
 	_factory.generator_shown.connect(func(id: StringName) -> void:
 		var g := Game.economy.config.find_generator(id)
 		_osd.notify("+ " + tr(g.name_key)))
@@ -29,6 +30,12 @@ func _ready() -> void:
 	_tree.buy_requested.connect(Game.buy)
 	_tree.close_requested.connect(_close_shop)
 	EventBus.purchase_made.connect(func(_id: StringName) -> void: _purchase_sound.play())
+	_carga = CargaScreen.new()
+	_carga.hide()
+	add_child(_carga)
+	_carga.start_requested.connect(func() -> void:
+		_carga.hide()
+		Game.running = true)
 	_pause = (load("res://presentation/ui/main_menu_ui.tscn") as PackedScene).instantiate()
 	_pause.pause_menu = true
 	_pause.hide()
@@ -44,14 +51,14 @@ func _process(_delta: float) -> void:
 	var state := eco.state
 	_osd.show_values(NumberFormat.energy(state.energy), NumberFormat.rate(eco.production_per_second()),
 		NumberFormat.per_click(eco.click_value()), state.energy_produced_run / eco.config.threshold,
-		eco.can_restart(), not _tree.visible and _has_affordable(eco))
+		eco.carga_if_restarted() if eco.can_restart() else -1, not _tree.visible and _has_affordable(eco))
 	if not _hinted and state.energy_produced_run == 0.0:
 		_hinted = true
 		_factory.float_text(_factory.top_of(_factory.get_receptor()), tr("UI_HINT_CLICK"))
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if _pause.visible:
+	if _pause.visible or _carga.visible:
 		return
 	if event.is_action_pressed("ui_cancel") and not _tree.visible:
 		open_pause()
@@ -72,8 +79,22 @@ func _unhandled_input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 
 
+## Reiniciar: la run nueva espera parada mientras se gasta la Carga.
+func _restart() -> void:
+	_close_shop()
+	if Game.restart():
+		Game.set_holding(false)
+		Game.running = false
+		_carga.open()
+
+
+func is_restarting() -> bool:
+	return _carga.visible
+
+
 func _click(at: Vector2) -> void:
-	Game.click()
+	if not Game.click():
+		return  # por encima del tope de clics por segundo: no cuenta ni se ve
 	_factory.float_text(at, "+" + NumberFormat.per_click(Game.economy.click_value()))
 
 

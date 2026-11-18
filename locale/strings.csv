@@ -66,3 +66,19 @@ OSD_RESTART,Reinicio
 OSD_PER_CLICK,%s/clic
 OSD_SHOP_PROMPT,E  Mejoras
 UI_CLOSE_HINT,Esc  Salir
+PERK_HANDS,Tus manos
+PERK_HANDS_DESC,Cada run empieza con Dial firme y Dial solo: la tele clica sola.
+PERK_MEMORY,Tu memoria
+PERK_MEMORY_DESC,Cada run empieza con 10 Antenas y 5 Válvulas.
+PERK_HABIT,Tu costumbre
+PERK_HABIT_DESC,Los generadores cuestan un 25 % menos.
+PERK_PULSE,Tu pulso
+PERK_PULSE_DESC,"Cada clic vale el doble, en todas las runs."
+PERK_NAME,Tu nombre
+PERK_NAME_DESC,+1 de Carga en cada reinicio. La tele empieza a saber cómo te llamas.
+UI_CARGA_TITLE,Reinicio
+UI_CARGA,Carga: %d
+UI_CARGA_COST,%d de Carga
+UI_START_RUN,Empezar la run %d
+UI_PERK_LOCKED,"Antes, la anterior."
+UI_RESTART_CONFIRM,Reiniciar (+%d de Carga)

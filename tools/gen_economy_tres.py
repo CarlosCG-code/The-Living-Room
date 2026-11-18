@@ -53,6 +53,16 @@ def num(x: float) -> str:
     return repr(float(x))
 
 
+# Mejoras permanentes (specs/incremental.md §6), en orden: id, clave, coste, tipo (PerkDef.Kind), datos.
+# «Tu pulso» sustituye a «Tu paciencia» (producción ×2): las mejoras deben premiar el clic (usuario, 2026-11-18).
+PERKS = [
+    ("hands", "PERK_HANDS", 1, 0, 'upgrade_ids = Array[StringName]([&"dial_hold", &"dial_auto"])'),
+    ("memory", "PERK_MEMORY", 2, 1, 'generators = {&"antenna": 10, &"valves": 5}'),
+    ("habit", "PERK_HABIT", 3, 2, "value = 0.75"),
+    ("pulse", "PERK_PULSE", 4, 3, "value = 2.0"),
+    ("name", "PERK_NAME", 6, 4, "value = 1.0"),
+]
+
 # Eventos de la tele: id, peso, duración (s), recompensa (s de producción, clics mínimos), multiplicador.
 EVENTS = [
     ("interference", 4, 8, 15, 50, 1),
@@ -133,13 +143,28 @@ def main() -> None:
             f"reward_min_clicks = {num(reward_clicks)}\n"
             f"production_mult = {num(mult)}\n"
         )
-    steps = 4 + len(subs) + 1
+    perk_ids = []
+    for pid, key, cost, kind, data in PERKS:
+        sid = f"perk_{pid}"
+        perk_ids.append(sid)
+        subs.append(
+            f'[sub_resource type="Resource" id="{sid}"]\n'
+            f'script = ExtResource("perk_script")\n'
+            f'id = &"{pid}"\n'
+            f'name_key = "{key}"\n'
+            f'desc_key = "{key}_DESC"\n'
+            f"cost = {cost}\n"
+            f"kind = {kind}\n"
+            f"{data}\n"
+        )
+    steps = 5 + len(subs) + 1
     out = [
         f'[gd_resource type="Resource" script_class="EconomyConfig" load_steps={steps} format=3]\n',
         '[ext_resource type="Script" path="res://core/economy_config.gd" id="config_script"]',
         '[ext_resource type="Script" path="res://core/generator_def.gd" id="gen_script"]',
         '[ext_resource type="Script" path="res://core/upgrade_def.gd" id="upg_script"]',
-        '[ext_resource type="Script" path="res://core/tv_event_def.gd" id="evt_script"]\n',
+        '[ext_resource type="Script" path="res://core/tv_event_def.gd" id="evt_script"]',
+        '[ext_resource type="Script" path="res://core/perk_def.gd" id="perk_script"]\n',
         "\n".join(subs),
         "[resource]",
         'script = ExtResource("config_script")',
@@ -149,6 +174,7 @@ def main() -> None:
         f"threshold = {num(THRESHOLD)}",
         "base_click_value = 1.0",
         "events = Array[ExtResource(\"evt_script\")]([" + ", ".join(f'SubResource("{s}")' for s in event_ids) + "])",
+        "perks = Array[ExtResource(\"perk_script\")]([" + ", ".join(f'SubResource("{s}")' for s in perk_ids) + "])",
         "event_min = 120.0",
         "event_max = 240.0",
         "",

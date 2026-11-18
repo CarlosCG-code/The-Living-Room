@@ -1,7 +1,7 @@
 class_name RunState
 extends RefCounted
 
-const VERSION := 2
+const VERSION := 3
 
 var run_index: int = 1
 var energy: float = 0.0
@@ -12,6 +12,9 @@ var event_next_in: float = 0.0
 var event_id: StringName = &""  # evento activo; vacío si no hay
 var event_left: float = 0.0
 var play_time: float = 0.0
+## Carga sin gastar y mejoras permanentes compradas: pasan de una run a la siguiente.
+var carga: int = 0
+var perks: Array[StringName] = []
 
 
 static func new_run(config: EconomyConfig, p_run_index: int, rng: RandomNumberGenerator) -> RunState:
@@ -37,6 +40,8 @@ func to_dict() -> Dictionary:
 		"upgrades": ups,
 		"event": {"next_in": event_next_in, "id": String(event_id), "left": event_left},
 		"play_time": play_time,
+		"carga": carga,
+		"perks": Array(perks).map(func(p: StringName) -> String: return String(p)),
 	}
 
 
@@ -46,6 +51,8 @@ static func from_dict(d: Dictionary, config: EconomyConfig, warnings: PackedStri
 		return null
 	if int(d["version"]) == 1:
 		d = migrate_v1(d)
+	if int(d["version"]) == 2:
+		d = migrate_v2(d)
 	if int(d["version"]) != VERSION:
 		return null
 	for key in ["run_index", "energy", "energy_produced_run", "play_time"]:
@@ -54,6 +61,12 @@ static func from_dict(d: Dictionary, config: EconomyConfig, warnings: PackedStri
 	var gens = d.get("generators")
 	var ups = d.get("upgrades")
 	var ev = d.get("event")
+	var perks_in = d.get("perks")
+	if not _is_num(d.get("carga")) or typeof(perks_in) != TYPE_ARRAY:
+		return null
+	for item in perks_in:
+		if not _is_id(item):
+			return null
 	if typeof(gens) != TYPE_DICTIONARY or typeof(ups) != TYPE_ARRAY or typeof(ev) != TYPE_DICTIONARY:
 		return null
 	if not _is_num(ev.get("next_in")) or not _is_num(ev.get("left")) or not _is_id(ev.get("id")):
@@ -70,6 +83,13 @@ static func from_dict(d: Dictionary, config: EconomyConfig, warnings: PackedStri
 	state.energy = maxf(0.0, float(d["energy"]))
 	state.energy_produced_run = maxf(0.0, float(d["energy_produced_run"]))
 	state.play_time = maxf(0.0, float(d["play_time"]))
+	state.carga = maxi(0, int(d["carga"]))
+	for item in perks_in:
+		var id := StringName(item)
+		if config.find_perk(id) == null:
+			warnings.append("unknown perk id: %s" % item)
+		elif not state.perks.has(id):
+			state.perks.append(id)
 	state.event_next_in = maxf(0.0, float(ev["next_in"]))
 	var saved_id := StringName(ev["id"])
 	if saved_id != &"" and config.find_event(saved_id) == null:
@@ -103,6 +123,17 @@ static func migrate_v1(d: Dictionary) -> Dictionary:
 	var active: bool = float(inter["active_left"]) > 0.0
 	out["event"] = {"next_in": inter["next_in"], "id": "interference" if active else "", "left": inter["active_left"]}
 	out["version"] = 2
+	return out
+
+
+## v2 → v3: Carga y mejoras permanentes. Quien ya reinició antes de que existieran recibe 3 de Carga por
+## cada reinicio hecho (lo mínimo que habría ganado).
+static func migrate_v2(d: Dictionary) -> Dictionary:
+	var out := d.duplicate(true)
+	var runs_done: int = maxi(0, int(out.get("run_index", 1)) - 1) if _is_num(out.get("run_index")) else 0
+	out["carga"] = 3 * runs_done
+	out["perks"] = []
+	out["version"] = 3
 	return out
 
 

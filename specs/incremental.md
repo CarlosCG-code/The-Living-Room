@@ -84,6 +84,8 @@ Guardado v2: el bloque `interference` pasa a `event` (`next_in`, `id`, `left`), 
 
 ## 6. Mejoras permanentes (Carga): una sola rama (aprobado)
 
+Implementadas el 2026-11-18 (`core/perk_def.gd`, pantalla `presentation/ui/carga_screen.gd` tras pulsar *Reiniciar*). Carga = ⌊3 × √(producida / umbral)⌋ (+1 con *Tu nombre*). Guardado v3 (`carga`, `perks`); al migrar desde v2, 3 de Carga por cada reinicio ya hecho. Clics a mano con tope de 10 por segundo (ratón y Espacio juntos).
+
 Se compran en orden. Se conservan al reiniciar y se pierden en una partida nueva (GDD §3). Cada una es una parte del protagonista que la tele se queda («cada reinicio te deja más dentro», GDD §2).
 
 | Orden | Mejora | Coste | Efecto |
@@ -91,7 +93,7 @@ Se compran en orden. Se conservan al reiniciar y se pierden en una partida nueva
 | 1 | **Tus manos** | 1 | Cada run empieza con *Dial firme* y *Dial solo* ya comprados: la tele hace clic sola desde el primer segundo |
 | 2 | **Tu memoria** | 2 | Cada run empieza con 10 Antenas y 5 Válvulas |
 | 3 | **Tu costumbre** | 3 | Los generadores cuestan un 25 % menos |
-| 4 | **Tu paciencia** | 4 | Toda la producción ×2 |
+| 4 | **Tu pulso** | 4 | Cada clic ×2 (antes «Tu paciencia», producción ×2; cambiado el 2026-11-18 porque las mejoras deben premiar el clic) |
 | 5 | **Tu nombre** | 6 | +1 Carga en cada reinicio. La tele muestra el nombre del protagonista en una esquina |
 
 Coste total: 16 Carga. Quien reinicia en cuanto puede llega a la run 4 con unas 4 mejoras; quien espera, con las 5. Los efectos exactos se ajustan en los hitos 4 y 5 para que las runs duren 35 / 25 / 20 / 15 min.

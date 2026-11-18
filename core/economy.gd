@@ -3,6 +3,7 @@ extends RefCounted
 
 signal purchased(item_id: StringName)
 signal restarted(run_index: int)
+signal perk_bought(perk_id: StringName)
 
 var config: EconomyConfig
 var state: RunState
@@ -14,6 +15,9 @@ var _click_mult: float = 1.0
 var _production_share: float = 0.0
 var _hold_rate: float = 0.0
 var _auto_rate: float = 0.0
+var _generator_discount: float = 1.0
+# Clics a mano que quedan este segundo (tope de max_clicks_per_second); no se guarda.
+var _click_budget: float = 0.0
 
 
 func _init(p_config: EconomyConfig, p_state: RunState = null, rng_seed: int = -1) -> void:
@@ -23,16 +27,23 @@ func _init(p_config: EconomyConfig, p_state: RunState = null, rng_seed: int = -1
 	else:
 		_rng.seed = rng_seed
 	state = p_state if p_state != null else RunState.new_run(config, 1, _rng)
+	_click_budget = config.max_clicks_per_second
 	_recalc()
 
 
 # --- Acciones ---
 
-func click() -> void:
+## Clic a mano. Devuelve false si se pasa del tope de clics por segundo (no cuenta).
+func click() -> bool:
+	if _click_budget < 1.0:
+		return false
+	_click_budget -= 1.0
 	_gain(click_value())
+	return true
 
 
 func tick(delta: float, holding: bool) -> void:
+	_click_budget = minf(config.max_clicks_per_second, _click_budget + config.max_clicks_per_second * delta)
 	_gain(production_per_second() * delta)
 	_gain(click_value() * _auto_clicks(holding) * delta)
 	if state.event_id != &"":
@@ -72,10 +83,50 @@ func catch_event() -> bool:
 func restart() -> bool:
 	if not can_restart():
 		return false
+	var carga := state.carga + carga_if_restarted()
+	var perks := state.perks.duplicate()
 	state = RunState.new_run(config, state.run_index + 1, _rng)
+	state.carga = carga
+	state.perks = perks
+	for id in perks:
+		_grant_start(config.find_perk(id))
 	_recalc()
 	restarted.emit(state.run_index)
 	return true
+
+
+## Carga que daría reiniciar ahora (0 si aún no se puede).
+func carga_if_restarted() -> int:
+	if not can_restart():
+		return 0
+	var bonus := 0
+	for id in state.perks:
+		var p := config.find_perk(id)
+		if p and p.kind == PerkDef.Kind.CARGA_BONUS:
+			bonus += int(p.value)
+	return int(floorf(config.carga_base * sqrt(state.energy_produced_run / config.threshold))) + bonus
+
+
+## La siguiente mejora permanente de la rama (null si ya están todas).
+func next_perk() -> PerkDef:
+	return config.perks[state.perks.size()] if state.perks.size() < config.perks.size() else null
+
+
+## Se compran en orden: solo la siguiente, y con Carga suficiente. Lo que da al empezar la run se da ya.
+func buy_perk(id: StringName) -> bool:
+	var p := next_perk()
+	if p == null or p.id != id or state.carga < p.cost:
+		return false
+	state.carga -= p.cost
+	state.perks.append(id)
+	_grant_start(p)
+	_recalc()
+	perk_bought.emit(id)
+	return true
+
+
+func has_perk(id: StringName) -> bool:
+	return state.perks.has(id)
 
 
 # --- Consultas ---
@@ -105,7 +156,7 @@ func generator_click_bonus(id: StringName) -> float:
 func cost_of(id: StringName) -> float:
 	var g := config.find_generator(id)
 	if g != null:
-		return ceilf(g.base_cost * pow(config.cost_growth, owned(id)))
+		return ceilf(g.base_cost * pow(config.cost_growth, owned(id)) * _generator_discount)
 	var u := config.find_upgrade(id)
 	return u.cost if u != null else INF
 
@@ -260,6 +311,16 @@ func _income(manual_cps: float, holding: bool, gen_mult: Dictionary, extra_id: S
 func _recalc() -> void:
 	_gen_mult = {}
 	_click_mult = 1.0
+	_generator_discount = 1.0
+	for id in state.perks:
+		var p := config.find_perk(id)
+		if p == null:
+			continue
+		match p.kind:
+			PerkDef.Kind.CLICK_MULT:
+				_click_mult *= p.value
+			PerkDef.Kind.GENERATOR_DISCOUNT:
+				_generator_discount *= p.value
 	_production_share = 0.0
 	_hold_rate = 0.0
 	_auto_rate = 0.0
@@ -278,3 +339,17 @@ func _recalc() -> void:
 				_hold_rate = maxf(_hold_rate, u.value)
 			UpgradeDef.Kind.AUTO_CLICK_RATE:
 				_auto_rate = maxf(_auto_rate, u.value)
+
+
+# Lo que una mejora permanente da al empezar la run: mejoras ya compradas y generadores.
+func _grant_start(p: PerkDef) -> void:
+	if p == null:
+		return
+	match p.kind:
+		PerkDef.Kind.START_UPGRADES:
+			for id in p.upgrade_ids:
+				if not state.upgrades.has(id):
+					state.upgrades.append(id)
+		PerkDef.Kind.START_GENERATORS:
+			for id: StringName in p.generators:
+				state.generators[id] = maxi(owned(id), int(p.generators[id]))

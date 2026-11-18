@@ -108,7 +108,7 @@ func test_corrupt_main_without_bak_returns_null() -> void:
 
 func test_newer_version_and_missing_version_unreadable() -> void:
 	var d := _state(5).to_dict()
-	d["version"] = 3
+	d["version"] = 4
 	_write(path, JSON.stringify(d))
 	assert_null(saves.load_run(config))
 	d.erase("version")

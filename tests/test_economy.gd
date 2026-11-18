@@ -308,3 +308,80 @@ func test_no_events_only_reschedules() -> void:
 	eco.tick(eco.state.event_next_in + 0.1, false)
 	assert_false(_active())
 	assert_between(eco.state.event_next_in, 120.0, 240.0)
+
+
+func _perk(id: StringName, cost: int, kind: PerkDef.Kind, value: float = 1.0) -> PerkDef:
+	var p := PerkDef.new()
+	p.id = id
+	p.cost = cost
+	p.kind = kind
+	p.value = value
+	return p
+
+
+func _restart_with(produced: float) -> void:
+	eco.state.energy_produced_run = produced
+	assert_true(eco.restart())
+
+
+func test_click_cap_per_second() -> void:
+	var counted := 0
+	for i in 30:
+		if eco.click():
+			counted += 1
+	assert_eq(counted, 10, "sin tiempo, solo 10 clics")
+	eco.tick(0.5, false)
+	counted = 0
+	for i in 30:
+		if eco.click():
+			counted += 1
+	assert_eq(counted, 5, "medio segundo repone 5")
+
+
+func test_carga_grows_with_square_root() -> void:
+	assert_eq(eco.carga_if_restarted(), 0, "sin llegar al umbral no hay Carga")
+	eco.state.energy_produced_run = 1000
+	assert_eq(eco.carga_if_restarted(), 3)
+	eco.state.energy_produced_run = 4000
+	assert_eq(eco.carga_if_restarted(), 6)
+
+
+func test_restart_keeps_carga_and_perks() -> void:
+	config.perks = [_perk(&"p1", 1, PerkDef.Kind.CLICK_MULT, 2.0)]
+	_restart_with(1000)
+	assert_eq(eco.state.carga, 3)
+	assert_true(eco.buy_perk(&"p1"))
+	assert_eq(eco.state.carga, 2)
+	_restart_with(1000)
+	assert_eq(eco.state.carga, 5)
+	assert_true(eco.has_perk(&"p1"))
+
+
+func test_perks_in_order_and_need_carga() -> void:
+	config.perks = [_perk(&"p1", 2, PerkDef.Kind.CLICK_MULT, 2.0), _perk(&"p2", 1, PerkDef.Kind.CARGA_BONUS)]
+	eco.state.carga = 5
+	assert_false(eco.buy_perk(&"p2"), "antes, la anterior")
+	assert_true(eco.buy_perk(&"p1"))
+	assert_false(eco.buy_perk(&"p1"), "no se compra dos veces")
+	eco.state.carga = 0
+	assert_false(eco.buy_perk(&"p2"), "sin Carga no")
+
+
+func test_perk_effects() -> void:
+	var start := _perk(&"hands", 0, PerkDef.Kind.START_UPGRADES)
+	start.upgrade_ids = [&"hold"]
+	var gens := _perk(&"memory", 0, PerkDef.Kind.START_GENERATORS)
+	gens.generators = {&"a": 3}
+	config.perks = [start, gens, _perk(&"habit", 0, PerkDef.Kind.GENERATOR_DISCOUNT, 0.5),
+		_perk(&"pulse_p", 0, PerkDef.Kind.CLICK_MULT, 2.0), _perk(&"name", 0, PerkDef.Kind.CARGA_BONUS, 1.0)]
+	for p in config.perks:
+		assert_true(eco.buy_perk(p.id))
+	assert_true(eco.is_bought(&"hold"), "Tus manos: la mejora viene comprada")
+	assert_eq(eco.owned(&"a"), 3, "Tu memoria: generadores al empezar")
+	assert_almost_eq(eco.click_value(), 2.0, 0.0001, "Tu pulso dobla el clic (base 1)")
+	assert_eq(eco.cost_of(&"a"), ceilf(10 * pow(1.15, 3) * 0.5), "Tu costumbre abarata")
+	eco.state.energy_produced_run = 1000
+	assert_eq(eco.carga_if_restarted(), 4, "Tu nombre: +1")
+	_restart_with(1000)
+	assert_eq(eco.owned(&"a"), 3, "la run nueva empieza con ellos")
+	assert_true(eco.is_bought(&"hold"))

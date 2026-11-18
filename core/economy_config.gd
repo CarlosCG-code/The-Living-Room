@@ -9,12 +9,25 @@ extends Resource
 @export var events: Array[TvEventDef] = []
 @export var event_min: float = 120.0
 @export var event_max: float = 240.0
+## Mejoras permanentes, en el orden en que se compran.
+@export var perks: Array[PerkDef] = []
+## Carga al reiniciar: carga_base × raíz(producida / umbral). 3 al llegar; 6 con 4 veces el umbral.
+@export var carga_base: float = 3.0
+## Tope de clics a mano por segundo (ratón y Espacio juntos): frena los autoclickers y el doble clic.
+@export var max_clicks_per_second: float = 10.0
 
 
 func find_generator(id: StringName) -> GeneratorDef:
 	for g in generators:
 		if g.id == id:
 			return g
+	return null
+
+
+func find_perk(id: StringName) -> PerkDef:
+	for p in perks:
+		if p.id == id:
+			return p
 	return null
 
 
