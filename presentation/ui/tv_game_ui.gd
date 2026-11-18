@@ -23,6 +23,8 @@ var _carga: CargaScreen
 
 func _ready() -> void:
 	_osd.restart_pressed.connect(_restart)
+	_osd.skill_pressed.connect(func(skill: StringName) -> void: Game.use_skill(skill))
+	_factory.package_pressed.connect(_open_package)
 	_factory.generator_shown.connect(func(id: StringName) -> void:
 		var g := Game.economy.config.find_generator(id)
 		_osd.notify("+ " + tr(g.name_key)))
@@ -126,6 +128,12 @@ func _process(_delta: float) -> void:
 	_osd.show_values(NumberFormat.energy(state.energy), NumberFormat.rate(eco.production_per_second()),
 		NumberFormat.per_click(eco.click_value()), state.energy_produced_run / eco.config.threshold,
 		eco.carga_if_restarted() if eco.can_restart() else -1, not _tree.visible and _has_affordable(eco))
+	var skills := {}
+	for skill: StringName in TvOsd.SKILLS:
+		if eco.has_skill(skill):
+			var u: UpgradeDef = eco.mods.skills[skill]
+			skills[skill] = [eco.skill_cooldown(skill) / u.cooldown, eco.timer(skill) > 0.0]
+	_osd.show_extras(eco.bar_fraction() if eco.mods.packages else -1.0, eco.combo_fraction(), skills)
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -143,11 +151,27 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("tv_shop"):
 		_open_shop()
 		get_viewport().set_input_as_handled()
+	elif event is InputEventKey and event.pressed and not event.echo 			and event.keycode >= KEY_1 and event.keycode < KEY_1 + TvOsd.SKILLS.size():
+		Game.use_skill(TvOsd.SKILLS[event.keycode - KEY_1])  # habilidades del mando: teclas 1-4
+		get_viewport().set_input_as_handled()
 	elif event.is_action("tv_click") and not event.is_echo():
 		if event.is_pressed():
 			_click(_factory.press_receptor())
 		Game.set_holding(event.is_pressed())
 		get_viewport().set_input_as_handled()
+
+
+## Abre la cinta del hueco slot y enseña lo que da (Energía, o el ×3 de la cinta negra).
+func _open_package(slot: int) -> void:
+	var packages := Game.economy.packages()
+	for i in packages.size():
+		if packages[i]["slot"] == slot:
+			var rarity: int = packages[i]["rarity"]
+			var amount := Game.open_package(i)
+			var at := _factory.get_tape(slot).position + Vector2(12, 0)
+			var text := ("×%d" % int(Game.economy.config.black_mult)) if rarity == Economy.Rarity.BLACK 				else "+" + NumberFormat.energy(amount)
+			_factory.float_text(at, text)
+			return
 
 
 ## Reiniciar: la run nueva espera parada mientras se gasta la Carga.

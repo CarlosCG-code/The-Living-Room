@@ -73,3 +73,15 @@ func test_clear_signal_cannot_be_caught() -> void:
 	e.production_mult = 2.0
 	view.show_event(e, 0.5)
 	assert_false((view.get_node("Catch") as Button).visible)
+
+
+func test_tapes_show_in_their_slot_and_can_be_clicked() -> void:
+	var packages: Array[Dictionary] = [{"rarity": Economy.Rarity.RARE, "left": 15.0, "slot": 1}]
+	view.show_packages(packages)
+	assert_false(view.get_tape(0).visible)
+	assert_true(view.get_tape(1).visible, "la cinta sale en su hueco")
+	watch_signals(view)
+	view.get_tape(1).pressed.emit()
+	assert_signal_emitted_with_parameters(view, "package_pressed", [1])
+	view.show_packages([] as Array[Dictionary])
+	assert_false(view.get_tape(1).visible, "abierta o perdida, desaparece")

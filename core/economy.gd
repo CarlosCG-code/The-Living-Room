@@ -76,7 +76,7 @@ var _click_rng := RandomNumberGenerator.new()  # críticos: no mueve la secuenci
 var _click_budget: float = 0.0  # clics a mano que quedan este segundo; no se guarda
 var _streak := 0
 var _since_click := INF
-var _packages: Array[Dictionary] = []  # cintas en la nieve: {rarity, left}; no se guardan
+var _packages: Array[Dictionary] = []  # cintas en la nieve: {rarity, left, slot}; no se guardan
 var _income_ema := 0.0
 var _tick_gain := 0.0
 
@@ -472,13 +472,16 @@ func _fill_bar(amount: float) -> void:
 		state.package_bar -= bar_size()
 		if _packages.size() < MAX_PACKAGES:
 			var rarity := _roll_rarity()
-			_packages.append({"rarity": rarity, "left": PACKAGE_LIFE})
+			# Hueco fijo (0 o 1): la tele dibuja cada cinta en su sitio de la nieve.
+			var used := _packages.map(func(p: Dictionary) -> int: return p["slot"])
+			var slot := 0 if not used.has(0) else 1
+			_packages.append({"rarity": rarity, "left": PACKAGE_LIFE, "slot": slot})
 			package_dropped.emit(rarity)
 
 
 func _roll_rarity() -> int:
 	var roll := _rng.randf()
-	var rarity := Rarity.BLACK if roll < mods.black else (Rarity.RARE if roll < mods.black + mods.rare else Rarity.COMMON)
+	var rarity: int = Rarity.BLACK if roll < mods.black else (Rarity.RARE if roll < mods.black + mods.rare else Rarity.COMMON)
 	if state.timers.has("bump"):
 		state.timers.erase("bump")
 		rarity = mini(rarity + 1, Rarity.BLACK)

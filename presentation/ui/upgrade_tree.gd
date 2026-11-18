@@ -244,11 +244,15 @@ func _draw() -> void:
 		else:
 			draw_texture(_icons[id], r.position + Vector2(4, 4), ICON_LIFT)
 		if state == &"affordable":
-			draw_rect(Rect2(r.end - Vector2(4, 4), Vector2(3, 3)), GOLD)  # se puede comprar
+			draw_rect(Rect2(r.position + Vector2(r.size.x - 4, 1), Vector2(3, 3)), GOLD)  # se puede comprar
 		var count := Game.economy.owned(id)
 		if count > 0:
-			# Unidades del generador, en la esquina de abajo del nodo.
-			draw_string(font, r.position + Vector2(1, r.size.y + 7), str(count), HORIZONTAL_ALIGNMENT_LEFT, -1, 8, CHALK)
+			# Unidades del generador, dentro del nodo abajo a la derecha (fuera pisaría la fila de abajo).
+			var text := str(count)
+			var w := font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, 8).x
+			var at := r.end - Vector2(w + 1, 2)
+			draw_rect(Rect2(at - Vector2(1, 7), Vector2(w + 2, 8)), Color(0, 0, 0.1, 0.8))
+			draw_string(font, at, text, HORIZONTAL_ALIGNMENT_LEFT, -1, 8, CHALK)
 		if b.has_focus() or id == _selected:
 			draw_rect(r.grow(2), GOLD, false)
 			draw_rect(r.grow(3), Color(GOLD, 0.35), false)

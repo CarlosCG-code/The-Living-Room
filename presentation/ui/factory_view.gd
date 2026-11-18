@@ -14,6 +14,8 @@ signal event_pressed
 signal generator_shown(id: StringName)
 ## Empieza un evento (para su sonido).
 signal event_started(id: StringName)
+## Se ha clicado la cinta del hueco slot (0 o 1).
+signal package_pressed(slot: int)
 
 const TEX := "res://assets/textures/tv/"
 # Eventos (core/tv_event_def.gd): la estrella cruza el cielo; la silueta sale en uno de estos sitios.
@@ -31,6 +33,9 @@ const LABEL_HOLD := 3.0
 const FACTORY_POS := Vector2(132, 92)
 const RECEPTOR_FEET := Vector2(147, 174)
 const CATCH_SIZE := Vector2(48, 40)
+## Dónde caen las cintas en la nieve (hueco 0 y 1), lejos de las máquinas.
+const PACKAGE_SLOTS: Array[Vector2] = [Vector2(170, 196), Vector2(250, 158)]
+const TAPE_ICONS := ["tape", "tape_rare", "tape_black"]
 ## Zona de clic del receptor, mucho mayor que su dibujo (26 × 24): al clicar deprisa el ratón se mueve.
 const RECEPTOR_HITBOX := Vector2(64, 52)
 # Por generador: pies de cada hueco (abajo a la izquierda), etiqueta y cable (desde, hasta, caída).
@@ -52,6 +57,7 @@ var _catch: Button
 var _hint: Label
 var _event_layer: Node2D
 var _marker: Node2D
+var _tapes: Array[TextureButton] = []
 var _vignette: TextureRect
 var _event_id: StringName = &""
 var _event_t := 0.0
@@ -124,6 +130,20 @@ func _ready() -> void:
 	add_child(_catch)
 	_vignette = _make_vignette()
 	add_child(_vignette)
+	for slot in PACKAGE_SLOTS.size():
+		var t := TextureButton.new()
+		t.name = "Tape%d" % slot
+		t.position = PACKAGE_SLOTS[slot]
+		t.focus_mode = FOCUS_NONE
+		# Al doble exacto (píxeles enteros): una cinta de 12 × 12 se perdía en la nieve.
+		t.ignore_texture_size = true
+		t.stretch_mode = TextureButton.STRETCH_SCALE
+		t.size = Vector2(24, 24)
+		t.pivot_offset = Vector2(12, 24)
+		t.visible = false
+		t.pressed.connect(package_pressed.emit.bind(slot))
+		add_child(t)
+		_tapes.append(t)
 	# Marcas de OSD alrededor de lo que se puede atrapar: por encima de la viñeta, para que se vean siempre.
 	_marker = Node2D.new()
 	_marker.name = "Marker"
@@ -141,6 +161,7 @@ func _process(delta: float) -> void:
 	var eco := Game.economy
 	show_counts(eco.state.generators)
 	show_event(eco.active_event(), eco.event_progress())
+	show_packages(eco.packages())
 	_flicker(delta)
 	# Dial solo (y mantener pulsado): las máquinas dan saltitos solas, uno por clic automático.
 	_auto_acc += eco.auto_clicks_per_second(_any_held()) * delta
@@ -162,7 +183,7 @@ func show_counts(counts: Dictionary) -> void:
 		group["shown"] = owned > 0
 		var cable: FactoryCable = group["cable"]
 		cable.speed = 18.0 + 10.0 * log(1.0 + owned)
-		cable.pulses = clampi(1 + owned / 5, 1, 6)
+		cable.pulses = clampi(1 + floori(owned / 5.0), 1, 6)
 	_counts_seen = true
 
 
@@ -311,6 +332,27 @@ func _flicker(delta: float) -> void:
 	elif randf() < delta / 9.0:
 		_flicker_left = randf_range(0.06, 0.25)
 	_factory.modulate = Color(0.45, 0.45, 0.55) if _flicker_left > 0.0 else Color.WHITE
+
+
+## Dibuja las cintas que hay en la nieve: cada una en su hueco, con el icono de su rareza; parpadea al final.
+func show_packages(packages: Array[Dictionary]) -> void:
+	var shown := [false, false]
+	for p in packages:
+		var t := _tapes[p["slot"]]
+		shown[p["slot"]] = true
+		t.texture_normal = load("res://assets/textures/tv/icon_%s.png" % TAPE_ICONS[p["rarity"]])
+		if not t.visible:
+			t.visible = true
+			_bounce(t)
+		var left: float = p["left"]
+		t.modulate.a = 0.35 if left < 5.0 and fmod(left * 2.0, 1.0) < 0.5 else 1.0
+	for slot in _tapes.size():
+		if not shown[slot]:
+			_tapes[slot].visible = false
+
+
+func get_tape(slot: int) -> TextureButton:
+	return _tapes[slot]
 
 
 ## Número que sube y se desvanece donde se ha clicado.
