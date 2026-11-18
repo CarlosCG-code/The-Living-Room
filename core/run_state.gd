@@ -179,6 +179,17 @@ static func migrate_v3(d: Dictionary) -> Dictionary:
 		for item in old:
 			refund += int(V3_PERK_COSTS.get(String(item), 0))
 	out["carga"] = (int(out["carga"]) if _is_num(out.get("carga")) else 0) + refund
+	# Lo que daban las permanentes devueltas se quita: si no, se tendría la Carga y además su efecto.
+	if typeof(old) == TYPE_ARRAY and typeof(out.get("upgrades")) == TYPE_ARRAY and typeof(out.get("generators")) == TYPE_DICTIONARY:
+		var granted := {"hands": {"upgrades": ["dial_hold", "dial_auto"]},
+			"memory": {"generators": {"antenna": 10, "valves": 5}}}
+		for item in old:
+			var g: Dictionary = granted.get(String(item), {})
+			for u in g.get("upgrades", []):
+				out["upgrades"].erase(u)
+			for gen in g.get("generators", {}):
+				if _is_num(out["generators"].get(gen)):
+					out["generators"][gen] = maxi(0, int(out["generators"][gen]) - int(g["generators"][gen]))
 	out["perks"] = []
 	out["manual_clicks"] = 0
 	out["packages_opened"] = 0

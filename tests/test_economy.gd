@@ -515,3 +515,25 @@ func test_next_carga_at_gives_one_more() -> void:
 	assert_eq(eco.carga_if_restarted(), 3)
 	eco.state.energy_produced_run = next + 1.0
 	assert_eq(eco.carga_if_restarted(), 4, "a esa Energía, un punto más")
+
+
+func test_combo_survives_slow_clicks_within_grace() -> void:
+	_buy_upgrade(_upg(&"combo_t", UpgradeDef.Kind.COMBO, 2, 0))
+	for i in 10:
+		eco.click()
+		eco.tick(0.1, false)
+	var before := eco.combo_fraction()
+	eco.tick(0.8, false)  # más que STREAK_INTERVAL, menos que la gracia
+	eco.click()
+	assert_gte(eco.combo_fraction(), before, "un clic algo lento no la pierde")
+
+
+func test_seek_does_not_waste_cooldown_with_event_on_screen() -> void:
+	var s := _upg(&"seek_t", UpgradeDef.Kind.SKILL, 1, 0)
+	s.skill = &"seek"
+	s.cooldown = 300.0
+	_buy_upgrade(s)
+	eco.state.event_id = &"interference"
+	eco.state.event_left = 5.0
+	assert_false(eco.use_skill(&"seek"))
+	assert_eq(eco.skill_cooldown(&"seek"), 0.0)

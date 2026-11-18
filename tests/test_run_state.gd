@@ -200,3 +200,14 @@ func test_timers_round_trip() -> void:
 	var back := RunState.from_dict(JSON.parse_string(JSON.stringify(s.to_dict())), config, PackedStringArray())
 	assert_almost_eq(float(back.timers["cd_sweep"]), 42.0, 0.0001)
 	assert_almost_eq(back.package_bar, 12.5, 0.0001)
+
+
+func test_migrates_v3_removes_what_refunded_perks_gave() -> void:
+	var d := _valid_dict()
+	for key in ["manual_clicks", "packages_opened", "events_caught", "package_bar", "timers"]:
+		d.erase(key)
+	d["version"] = 3
+	d["perks"] = ["memory"]
+	d["generators"] = {"antenna": 12}
+	var s := RunState.from_dict(d, config, PackedStringArray())
+	assert_eq(s.generators[&"antenna"], 2, "se quitan las 10 que daba Tu memoria")

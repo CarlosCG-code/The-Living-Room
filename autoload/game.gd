@@ -58,15 +58,16 @@ func tick(delta: float) -> void:
 
 ## Clic a mano: Energía ganada (0 si no cuenta).
 func click() -> float:
-	return economy.click()
+	return economy.click() if running else 0.0
 
 
+# Con la partida parada (menú, pausa, carta, Carga) no se clica, ni se usan habilidades ni se abren cintas.
 func use_skill(skill: StringName) -> bool:
-	return economy.use_skill(skill)
+	return running and economy.use_skill(skill)
 
 
 func open_package(i: int) -> float:
-	return economy.open_package(i)
+	return economy.open_package(i) if running else 0.0
 
 
 func buy_perk(id: StringName) -> bool:
@@ -82,7 +83,7 @@ func buy(id: StringName) -> bool:
 
 
 func catch_event() -> bool:
-	return economy.catch_event()
+	return running and economy.catch_event()
 
 
 func restart() -> bool:

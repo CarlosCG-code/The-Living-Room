@@ -101,7 +101,8 @@ func click() -> float:
 	if _click_budget < 1.0 or timer(&"tv_off") > 0.0:
 		return 0.0
 	_click_budget -= 1.0
-	_streak = mini(STREAK_FULL, _streak + 1) if _since_click < STREAK_INTERVAL else 1
+	# Seguido sube; más lento la mantiene (la pierde tick() al pasar la gracia: 1,2 s, o 3 s con Tus manos).
+	_streak = mini(STREAK_FULL, _streak + 1) if _since_click < STREAK_INTERVAL else maxi(_streak, 1)
 	_since_click = 0.0
 	last_click_crit = _click_rng.randf() < mods.crit_chance
 	var amount := manual_click_value(last_click_crit)
@@ -194,6 +195,8 @@ func use_skill(skill: StringName) -> bool:
 	var u: UpgradeDef = mods.skills.get(skill)
 	if u == null or skill_cooldown(skill) > 0.0 or timer(&"tv_off") > 0.0:
 		return false
+	if skill == &"seek" and state.event_id != &"":
+		return false  # ya hay algo en pantalla: no se gasta la espera
 	state.timers["cd_" + String(skill)] = u.cooldown
 	var success := true
 	match skill:
@@ -222,9 +225,12 @@ func restart() -> bool:
 	state.perks = perks
 	_packages.clear()
 	_streak = 0
+	_income_ema = 0.0  # las cintas y eventos de la run nueva no valen según el final de la anterior
 	for id in perks:
 		_grant_start(config.find_perk(id))
 	_recalc()
+	if mods.eyes:
+		state.event_next_in = _rng.randf_range(mods.eyes.value, mods.eyes.value2)
 	restarted.emit(state.run_index)
 	return true
 

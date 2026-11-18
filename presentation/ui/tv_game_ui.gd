@@ -64,6 +64,7 @@ func _ready() -> void:
 	add_child(_carga)
 	_carga.start_requested.connect(func() -> void:
 		_carga.hide()
+		Game.set_holding(false)  # Espacio pudo quedarse pulsado durante la carta
 		Game.running = true)
 	_pause = (load("res://presentation/ui/main_menu_ui.tscn") as PackedScene).instantiate()
 	_pause.pause_menu = true

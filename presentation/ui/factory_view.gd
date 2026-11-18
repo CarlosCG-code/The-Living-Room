@@ -289,8 +289,8 @@ func _start_event(e: TvEventDef) -> void:
 	_hint.visible = id == &"clear_signal"
 	_event_layer.queue_redraw()
 	_marker.queue_redraw()
-	if id != &"":
-		event_started.emit(id)
+	if id != &"" and Game.running:
+		event_started.emit(id)  # en el menú (partida cargada con un evento) no suena
 
 
 func _draw_event() -> void:
