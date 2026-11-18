@@ -37,7 +37,7 @@ El ***Reiniciar*** del incremental es el disparador del bucle: al pulsarlo ocurr
 
 | Run | Duración aprox. | Qué escucha/ve el jugador | Evento tras el reinicio |
 |---|---|---|---|
-| Menú | — | Solo la tele y algo de fondo | — |
+| Menú | — | Solo la tele y algo de fondo: la tele encendida en la oscuridad con *Jugar/Continuar*, *Ajustes* (calidad, pantalla, volumen, filtro de la tele) y *Salir* en su pantalla (`world/main_menu/`, 2026-11-18) | — |
 | 1 | ~35 min | Sonidos del incremental que derivan en toques en la puerta y objetos que caen. Zoom out sutil: se revela que está sentado en un sofá | Llama a la puerta el **repartidor**. Animación de levantarse. Recoge la comida, la deja en la mesa. Puede **explorar el piso** (~15 min, opcional) o volver a la tele |
 | 2 | ~25 min | Luces y sonidos | **Apagón**. Solo linterna. La casa está **en espejo**. Hay que llegar a la caja de plomos y cambiar un fusible (~15 min) |
 | 3 | ~20 min | Más de lo anterior, más intenso; objetos que cambian de sitio | Llama la **señora del 3.º**. El protagonista vive en el 8.º. Ascensor roto: **escalera a oscuras** hasta su piso, repara la avería, café, y en el salón la **misma tele con el mismo progreso**. Evento ~25 min |

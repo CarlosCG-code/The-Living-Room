@@ -41,3 +41,21 @@ GEN_AUDIO_FREQUENCY_DESC,Un zumbido grave que nunca termina de irse.
 GEN_TUNER_DESC,Busca el canal entre la nieve de la pantalla.
 GEN_REMOTE_DESC,Cambia de canal aunque nadie lo toque.
 GEN_CHANNEL_3_DESC,Siempre emite. Nadie sabe qué.
+UI_PLAY,Jugar
+UI_CONTINUE,Continuar
+UI_SETTINGS,Ajustes
+UI_QUIT,Salir
+UI_BACK,Volver
+UI_QUALITY,Calidad: %s
+QUALITY_LOW,baja
+QUALITY_MEDIUM,media
+QUALITY_HIGH,alta
+QUALITY_ULTRA,ultra
+UI_FULLSCREEN,Pantalla: %s
+UI_VOLUME,Volumen: %d %%
+UI_CRT,Filtro: %s
+UI_CRT_OFF,no
+UI_CRT_SOFT,suave
+UI_CRT_FULL,fuerte
+UI_SCREEN_FULL,completa
+UI_SCREEN_WINDOW,ventana

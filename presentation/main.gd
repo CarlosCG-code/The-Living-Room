@@ -31,7 +31,8 @@ func _ready() -> void:
 	settings = GraphicsSettings.new(get_viewport(), environment, room.get_voxel_gi(), room.get_reflection_probe(),
 			camera.get_flashlight(), mixer)
 	var preset := _dev("TLR_PRESET")
-	settings.apply_preset(StringName(preset) if preset in ["low", "medium", "high", "ultra"] else &"medium")
+	settings.apply_preset(StringName(preset) if preset in ["low", "medium", "high", "ultra"] else Game.settings.quality)
+	EventBus.settings_changed.connect(func() -> void: settings.apply_preset(Game.settings.quality))
 	if _dev("TLR_GI") == "0":
 		settings.set_gi(false)
 	tv.screen_state_changed.connect(mixer.set_tv_state)
@@ -50,6 +51,8 @@ func _ready() -> void:
 		for v in VIEWS.slice(1):
 			bench.cameras.append(room.get_capture_camera(v))
 		add_child(bench)
+	Game.running = true
+	tree_exiting.connect(func() -> void: Game.running = false)
 	print("BOOT_OK")
 
 

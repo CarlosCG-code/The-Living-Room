@@ -70,7 +70,7 @@ func _ready() -> void:
 	_event_layer.draw.connect(_draw_event)
 	add_child(_event_layer)
 	add_child(_particles(Vector2(160, -4), Vector2(170, 1), 70, 9.0, Vector2(4, 14), Color(0.75, 0.8, 0.92, 0.55)))
-	add_child(_make_fog())
+	add_child(TvFog.make())
 
 	var cables: Array[FactoryCable] = []
 	for id: StringName in LAYOUT:
@@ -232,27 +232,6 @@ func _draw_event() -> void:
 			c.draw_rect(Rect2(feet + Vector2(-2, -21), Vector2(4, 5)), Color(SHADOW, a))  # cabeza
 			c.draw_rect(Rect2(feet + Vector2(-1, -19), Vector2(1, 1)), Color(0.9, 0.85, 0.8, a * 0.9))  # ojos
 			c.draw_rect(Rect2(feet + Vector2(1, -19), Vector2(1, 1)), Color(0.9, 0.85, 0.8, a * 0.9))
-
-
-func _make_fog() -> ColorRect:
-	var noise := FastNoiseLite.new()
-	noise.frequency = 0.012
-	noise.fractal_octaves = 3
-	var tex := NoiseTexture2D.new()
-	tex.noise = noise
-	tex.width = 256
-	tex.height = 128
-	tex.seamless = true
-	var mat := ShaderMaterial.new()
-	mat.shader = preload("res://presentation/ui/fog.gdshader")
-	mat.set_shader_parameter(&"noise", tex)
-	var fog := ColorRect.new()
-	fog.name = "Fog"
-	fog.material = mat
-	fog.position = Vector2(0, 110)
-	fog.size = Vector2(320, 130)
-	fog.mouse_filter = MOUSE_FILTER_IGNORE
-	return fog
 
 
 ## Viñeta: oscurece los bordes de la pantalla.

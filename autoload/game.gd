@@ -2,8 +2,12 @@ extends Node
 
 const CONFIG_PATH := "res://data/economy_run1.tres"
 const AUTOSAVE_INTERVAL := 300.0
+const SETTINGS_PATH := "user://settings.cfg"
 
 var economy: Economy
+var settings: UserSettings
+## La partida solo avanza dentro del salón; en el menú principal está quieta.
+var running := false
 
 var _saves := SaveSystem.new()
 var _holding := false
@@ -21,9 +25,31 @@ func _ready() -> void:
 	economy.restarted.connect(_on_restarted)
 	if state == null:
 		_save()
+	settings = UserSettings.new() if _no_save else UserSettings.load_from(SETTINGS_PATH)
+	apply_settings()
+
+
+## Aplica lo global (pantalla, volumen) y avisa a las escenas (calidad, filtro de la tele).
+func apply_settings() -> void:
+	if DisplayServer.get_name() != "headless":
+		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN if settings.fullscreen
+				else DisplayServer.WINDOW_MODE_WINDOWED)
+	AudioServer.set_bus_volume_db(0, linear_to_db(settings.volume))
+	EventBus.settings_changed.emit()
+
+
+func save_settings() -> void:
+	if not _no_save:
+		settings.save_to(SETTINGS_PATH)
+
+
+func has_progress() -> bool:
+	return economy.state.energy_produced_run > 0.0 or economy.state.run_index > 1
 
 
 func tick(delta: float) -> void:
+	if not running:
+		return
 	economy.tick(delta, _holding)
 	_since_save += delta
 	if _since_save >= AUTOSAVE_INTERVAL:

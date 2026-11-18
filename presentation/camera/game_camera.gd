@@ -10,13 +10,13 @@ const SCREEN_FILL := 0.62
 var _tv_input: Node
 
 
-func setup(seat: Node3D, screen: Node3D, screen_size: Vector2, tv_input: Node) -> void:
+func setup(seat: Node3D, screen: Node3D, screen_size: Vector2, tv_input: Node, fill: float = SCREEN_FILL) -> void:
 	_tv_input = tv_input
 	global_position = seat.global_position
 	var target := screen.global_position
 	look_at(target, Vector3.UP)
 	var distance := global_position.distance_to(target)
-	var visible_height := screen_size.y / SCREEN_FILL
+	var visible_height := screen_size.y / fill
 	fov = rad_to_deg(2.0 * atan(visible_height * 0.5 / distance))
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 
