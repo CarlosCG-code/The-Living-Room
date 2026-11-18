@@ -34,10 +34,7 @@ UI_EFFECT_GEN,+%s → +%s por clic · %s → %s
 UI_EFFECT_CLICK,Cada clic: +%s → +%s
 UI_EFFECT_HOLD,Mantener pulsado: %s clics por segundo
 UI_EFFECT_AUTO,Clics solos: %s → %s por segundo
-UI_EVENT_INTERFERENCE,¡Atrápalas!
-UI_EVENT_SHOOTING_STAR,¡Una estrella! Atrápala
-UI_EVENT_CLEAR_SIGNAL,Señal clara: producción ×2
-UI_EVENT_SILHOUETTE,¿Quién está ahí?
+UI_EVENT_CLEAR_SIGNAL,Producción ×2
 GEN_ANTENNA_DESC,"Capta lo que flota en el aire. A veces, algo más."
 GEN_VALVES_DESC,Se calientan solas. Huelen a polvo quemado.
 GEN_AUDIO_FREQUENCY_DESC,Un zumbido grave que nunca termina de irse.

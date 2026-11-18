@@ -70,11 +70,7 @@ func _ready() -> void:
 	_event_layer.draw.connect(_draw_event)
 	add_child(_event_layer)
 	add_child(_particles(Vector2(160, -4), Vector2(170, 1), 70, 9.0, Vector2(4, 14), Color(0.75, 0.8, 0.92, 0.55)))
-	# Niebla baja: manchas grandes y casi transparentes que se arrastran por la nieve.
-	var fog := _particles(Vector2(-20, 200), Vector2(4, 40), 14, 26.0, Vector2(14, 0), Color(0.55, 0.6, 0.75, 0.07))
-	fog.scale_amount_min = 18.0
-	fog.scale_amount_max = 30.0
-	add_child(fog)
+	add_child(_make_fog())
 
 	var cables: Array[FactoryCable] = []
 	for id: StringName in LAYOUT:
@@ -125,7 +121,7 @@ func _ready() -> void:
 	add_child(_catch)
 	_vignette = _make_vignette()
 	add_child(_vignette)
-	_hint = _label("", Vector2.ZERO, FactoryCable.FAULT)
+	_hint = _label(tr("UI_EVENT_CLEAR_SIGNAL"), Vector2.ZERO, Color("7fe0b0"))
 	_hint.visible = false
 	# Los textos van por encima de la viñeta para que se lean en los bordes.
 	for child in get_children():
@@ -202,11 +198,8 @@ func _start_event(e: TvEventDef) -> void:
 		_event_at = SILHOUETTE_SPOTS.pick_random()
 	_sparks.emitting = id == &"interference"
 	_catch.visible = e != null and e.catchable()
-	_hint.visible = id != &""
-	if id != &"":
-		_hint.text = tr("UI_EVENT_" + String(id).to_upper())
-		_hint.add_theme_color_override(&"font_color", {&"clear_signal": Color("7fe0b0"), &"shooting_star": Color("f0e2a0"),
-			&"silhouette": Color("9a8f9e")}.get(id, FactoryCable.FAULT))
+	# Solo la Señal clara se anuncia: lo demás hay que verlo (pedido del usuario, 2026-11-18).
+	_hint.visible = id == &"clear_signal"
 	_event_layer.queue_redraw()
 
 
@@ -239,6 +232,27 @@ func _draw_event() -> void:
 			c.draw_rect(Rect2(feet + Vector2(-2, -21), Vector2(4, 5)), Color(SHADOW, a))  # cabeza
 			c.draw_rect(Rect2(feet + Vector2(-1, -19), Vector2(1, 1)), Color(0.9, 0.85, 0.8, a * 0.9))  # ojos
 			c.draw_rect(Rect2(feet + Vector2(1, -19), Vector2(1, 1)), Color(0.9, 0.85, 0.8, a * 0.9))
+
+
+func _make_fog() -> ColorRect:
+	var noise := FastNoiseLite.new()
+	noise.frequency = 0.012
+	noise.fractal_octaves = 3
+	var tex := NoiseTexture2D.new()
+	tex.noise = noise
+	tex.width = 256
+	tex.height = 128
+	tex.seamless = true
+	var mat := ShaderMaterial.new()
+	mat.shader = preload("res://presentation/ui/fog.gdshader")
+	mat.set_shader_parameter(&"noise", tex)
+	var fog := ColorRect.new()
+	fog.name = "Fog"
+	fog.material = mat
+	fog.position = Vector2(0, 110)
+	fog.size = Vector2(320, 130)
+	fog.mouse_filter = MOUSE_FILTER_IGNORE
+	return fog
 
 
 ## Viñeta: oscurece los bordes de la pantalla.
