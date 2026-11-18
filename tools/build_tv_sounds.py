@@ -112,7 +112,37 @@ def test_tone():
     return out
 
 
+def tv_hum():
+    # Zumbido de la tele en bucle (4 s, ciclos enteros): red a 50 Hz con armónicos, un siseo muy bajo y algún
+    # chasquido. Nada de pitido de 15,7 kHz: cansa y mucha gente no lo oye.
+    rng = random.Random(4)
+    n = RATE * 4
+    out = []
+    hiss = 0.0
+    for i in range(n):
+        t = i / RATE
+        hum = 0.6 * math.sin(2 * math.pi * 50 * t) + 0.3 * math.sin(2 * math.pi * 100 * t)             + 0.15 * math.sin(2 * math.pi * 150 * t)
+        hiss = hiss * 0.6 + rng.uniform(-1, 1) * 0.4
+        crackle = rng.uniform(-1, 1) if rng.random() < 0.0004 else 0.0
+        out.append(hum * 0.5 + hiss * 0.06 + crackle * 0.3)
+    return out
+
+
+def drone():
+    # Dron casi subsónico en bucle (8 s): 38 y 41 Hz batiendo y un armónico que respira.
+    n = RATE * 8
+    out = []
+    for i in range(n):
+        t = i / RATE
+        breath = 0.6 + 0.4 * math.sin(2 * math.pi * t / 8)
+        out.append((math.sin(2 * math.pi * 38 * t) + math.sin(2 * math.pi * 41 * t)
+                    + 0.3 * math.sin(2 * math.pi * 76 * t) * breath) * 0.5)
+    return out
+
+
 if __name__ == "__main__":
+    save("tv_hum", tv_hum())
+    save("drone", drone())
     save("test_tone", test_tone())
     save("click_relay", click_relay())
     save("event_interference", interference())
