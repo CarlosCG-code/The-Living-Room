@@ -64,7 +64,7 @@ OSD_ENERGY,Energía
 OSD_RESTART,Reinicio
 OSD_PER_CLICK,%s/clic
 OSD_SHOP_PROMPT,E  Mejoras
-UI_CLOSE_HINT,Esc  Salir
+UI_CLOSE_HINT,Esc  Cerrar
 PERK_HANDS,Tus manos
 PERK_HANDS_DESC,La racha aguanta 3 s y cada crítico llena parte de la barra de cintas.
 PERK_MEMORY,Tu memoria
@@ -93,7 +93,7 @@ UPG_HEARTBEAT_DESC,Clica seguido: la racha multiplica cada clic.
 UPG_TACHYCARDIA,Taquicardia
 UPG_TACHYCARDIA_DESC,La racha llega más alto. El latido se acelera.
 UPG_EVERY_ANTENNA,Cada antena escucha
-UPG_EVERY_ANTENNA_DESC,Cada máquina que tienes refuerza tu clic.
+UPG_EVERY_ANTENNA_DESC,"No solo las antenas: cada máquina que tienes escucha, y refuerza tu clic."
 UPG_ECHO,Eco
 UPG_ECHO_DESC,Los clics que no son tuyos también hacen racha y crítico.
 UPG_SWEEP,Barrido
@@ -133,7 +133,7 @@ UPG_SHARP_EYE_DESC,Lo raro sale más a menudo y paga un 50 % más.
 UPG_ANTENNA_25,Antena de cuernos
 UPG_ANTENNA_25_DESC,Las antenas rinden el doble. Se doblan hacia tu ventana.
 UPG_VALVES_25,Válvulas al rojo
-UPG_VALVES_25_DESC,Las válvulas rinden el doble. Huele a polvo quemado.
+UPG_VALVES_25_DESC,Las válvulas rinden el doble. El cristal se ennegrece por dentro.
 UPG_AUDIO_20,Frecuencia baja
 UPG_AUDIO_20_DESC,La frecuencia de audio rinde el doble. Se oye mejor lo que no debería.
 UPG_REMOTE_10,Pilas nuevas
@@ -160,8 +160,15 @@ UI_EFFECT_CRIT_MULT,Crítico: ×%s -> ×%s
 UI_EFFECT_COMBO,Racha máxima: ×%s -> ×%s
 UI_EFFECT_SKILL,Dura %s s · espera %s s
 UI_EFFECT_SKILL_INSTANT,Al momento · espera %s s
+UI_EFFECT_TAPE,Una cinta cada %s clics
+UI_EFFECT_TAPE_RATE,Una cinta cada %s -> %s clics
+UI_EFFECT_TAPE_RARITY,Raras: %s %% -> %s %% · negras: %s %% -> %s %%
+UI_EFFECT_TAPE_REWARD,Cada cinta da ×%s
+UI_EFFECT_ECHO,"Cada clic solo vale ×%s, con racha y crítico"
+UI_EFFECT_EVENT,Paga ×%s
+UI_EFFECT_EVENT_WAIT,sale cada %s-%s s -> %s-%s s
 UI_EFFECT_PROD,Producción: %s -> %s
 OSD_NEXT_CARGA,+1 de Carga a %s
-UI_CARGA_HELP,Reiniciar da 3 de Carga; más si esperas.
+UI_CARGA_HELP,Cada reinicio da 3 de Carga; esperar da más.
 UI_END_OF_BROADCAST,FIN DE LAS EMISIONES
 UI_END_OF_BROADCAST_SUB,No apague el receptor.

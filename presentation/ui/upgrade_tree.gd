@@ -53,7 +53,7 @@ func _ready() -> void:
 	close.text = tr("UI_CLOSE_HINT")
 	close.flat = true
 	close.add_theme_color_override(&"font_color", MIST)
-	close.position = Vector2(246, -1)
+	close.position = Vector2(234, -1)  # «Esc  Cerrar» es más largo que «Salir»: en 246 se cortaba
 	close.focus_mode = FOCUS_NONE
 	close.pressed.connect(close_requested.emit)
 	add_child(close)
@@ -214,6 +214,27 @@ func _effect(u: UpgradeDef) -> String:
 			# Solo máquinas, como el «/s» del OSD (antes sumaba también clics y eventos: Señal fantasma ×2,5 salía ×3,9).
 			var p := eco.production_per_second()
 			return tr("UI_EFFECT_PROD") % [NumberFormat.rate(p), NumberFormat.rate(p * eco.production_mult_if_bought(u.id))]
+		UpgradeDef.Kind.PACKAGE_UNLOCK:
+			return tr("UI_EFFECT_TAPE") % _num(eco.bar_size())
+		UpgradeDef.Kind.PACKAGE_RATE:
+			return tr("UI_EFFECT_TAPE_RATE") % [_num(eco.bar_size()), _num(eco.bar_size() * u.value)]
+		UpgradeDef.Kind.PACKAGE_RARITY:
+			var m := eco.mods
+			return tr("UI_EFFECT_TAPE_RARITY") % [_num(m.rare * 100.0), _num(maxf(m.rare, u.value) * 100.0),
+				_num(m.black * 100.0), _num(maxf(m.black, u.value2) * 100.0)]
+		UpgradeDef.Kind.PACKAGE_REWARD:
+			return tr("UI_EFFECT_TAPE_REWARD") % _num(u.value)
+		UpgradeDef.Kind.AUTO_ECHO:
+			return tr("UI_EFFECT_ECHO") % _num(Economy.ECHO_MULT)
+		UpgradeDef.Kind.EVENT_REWARD:
+			var pays := tr("UI_EFFECT_EVENT") % _num(u.value)
+			if u.value2 == 1.0:
+				return pays
+			# Lo mismo que Economy._end_event: Tus ojos cambia la espera base.
+			var eyes := eco.mods.eyes
+			var lo: float = (eyes.value if eyes else eco.config.event_min) * eco.mods.event_freq
+			var hi: float = (eyes.value2 if eyes else eco.config.event_max) * eco.mods.event_freq
+			return pays + " · " + tr("UI_EFFECT_EVENT_WAIT") % [_num(lo), _num(hi), _num(lo * u.value2), _num(hi * u.value2)]
 		UpgradeDef.Kind.MANUAL_CLICK_MULT, UpgradeDef.Kind.CLICK_PER_OWNED, UpgradeDef.Kind.GENERATOR_CLICK_MULT:
 			var now := eco.manual_click_value()
 			var gain := eco.gain_if_bought(u.id, 1.0, false) / (1.0 + eco.auto_clicks_per_second(false))
@@ -283,10 +304,11 @@ func _draw() -> void:
 			draw_rect(Rect2(r.position + Vector2(r.size.x - 4, 1), Vector2(3, 3)), GOLD)  # se puede comprar
 		var count := Game.economy.owned(id)
 		if count > 0:
-			# Unidades del generador, dentro del nodo abajo a la derecha (fuera pisaría la fila de abajo).
+			# Unidades del generador colgando de la esquina de abajo a la derecha: dentro del nodo tapaban el icono,
+			# y a la derecha del centro no pisan la línea que baja a la fila de abajo.
 			var text := str(count)
 			var w := font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, 8).x
-			var at := r.end - Vector2(w + 1, 2)
+			var at := r.end + Vector2(3 - w, 6)
 			draw_rect(Rect2(at - Vector2(1, 7), Vector2(w + 2, 8)), Color(0, 0, 0.1, 0.8))
 			draw_string(font, at, text, HORIZONTAL_ALIGNMENT_LEFT, -1, 8, CHALK)
 		if b.has_focus() or id == _selected:
