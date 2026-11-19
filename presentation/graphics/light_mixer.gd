@@ -47,6 +47,16 @@ func set_factor(f: float) -> void:
 	apply()
 
 
+## Sombras suaves (light_size) o duras; el tamaño original queda en el metadato base_size.
+func set_soft_shadows(on: bool) -> void:
+	for light: Light3D in _room_lights + ([_screen_light, _flashlight] as Array[Light3D]):
+		if light == null:
+			continue
+		if not light.has_meta("base_size"):
+			light.set_meta("base_size", light.light_size)
+		light.light_size = float(light.get_meta("base_size")) if on else 0.0
+
+
 func set_ambient_gi_scale(f: float) -> void:
 	_ambient_gi_scale = f
 	apply()

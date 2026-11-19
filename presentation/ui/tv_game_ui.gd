@@ -54,7 +54,7 @@ func _ready() -> void:
 		shake(2))
 	_click_sound = AudioStreamPlayer3D.new()
 	_click_sound.stream = CLICK_SOUND
-	_click_sound.volume_db = -10.0
+	_click_sound.volume_db = -3.0
 	_click_sound.max_polyphony = 4
 	add_child(_click_sound)
 	# Sobrecarga fallida: la tele se apaga de verdad (antes solo paraba la producción y la imagen seguía igual).
@@ -214,7 +214,7 @@ func _end_of_broadcast() -> void:
 	add_child(card)
 	var tone := AudioStreamPlayer3D.new()
 	tone.stream = preload("res://assets/audio/tv/test_tone.wav")
-	tone.volume_db = -14.0
+	tone.volume_db = -8.0
 	card.add_child(tone)
 	tone.play()
 	await get_tree().create_timer(EndOfBroadcast.DURATION).timeout

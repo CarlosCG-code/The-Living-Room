@@ -76,11 +76,12 @@ Tres fases, cada una con una parada para el usuario. Lo técnicamente más incie
 | Niebla volumétrica | no | no | sí | sí |
 | Atlas de sombras de las luces (tamaño) | 1024 | 2048 | 4096 | 8192 |
 | Filtro de sombras | duro | suave bajo | suave medio | suave alto |
+| Sombras suaves por tamaño de la luz (`light_size`) | no: sin TAA salían con grano (usuario, 2026-11-20) | sí | sí | sí |
 | Sombra de la linterna | no | sí | sí | sí |
 | Oclusión ambiental (SSAO) | no | sí, calidad baja | sí, calidad media | sí, calidad alta |
 | Luz indirecta en pantalla (SSIL) | no | no | sí, calidad media | sí, calidad alta |
 | Reflejos (sonda del salón) | no | sí | sí | sí |
-| Antialiasing | FXAA | FXAA | TAA | TAA |
+| Antialiasing | FXAA | TAA (antes FXAA: grano en sombras y SSAO, usuario 2026-11-20) | TAA | TAA |
 | Escala de resolución 3D (FSR 1 †) | 0,67 | 0,85 | 1,0 | 1,0 |
 
 SSAO = sombras suaves en rincones y uniones; SSIL = luz rebotada calculada sobre la imagen; FSR = escalado de AMD, que renderiza a menos resolución y reescala.

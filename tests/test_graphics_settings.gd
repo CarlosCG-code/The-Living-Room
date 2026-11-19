@@ -48,6 +48,7 @@ func test_medium() -> void:
 	assert_true(flashlight.shadow_enabled)
 	assert_eq(viewport.positional_shadow_atlas_size, 2048)
 	assert_almost_eq(viewport.scaling_3d_scale, 0.85, 0.001)
+	assert_true(viewport.use_taa, "sin TAA las sombras suaves y el SSAO se ven con grano")
 	assert_eq(settings.current["ssao_quality"], RenderingServer.ENV_SSAO_QUALITY_LOW)
 
 

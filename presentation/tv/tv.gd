@@ -25,6 +25,7 @@ var _drone: AudioStreamPlayer3D
 var _silence_left := 0.0
 var _screen_sounds: Array[AudioStreamPlayer3D] = []
 const SPEAKER_UNIT_SIZE := 4.0  # ~0 dB desde el sofá (a unos 4 m)
+const HUM_DB := -17.0
 
 @onready var _subviewport: SubViewport = $SubViewport
 @onready var _screen: MeshInstance3D = $Model/Screen
@@ -38,6 +39,7 @@ func _ready() -> void:
 	get_tree().node_added.connect(func(node: Node) -> void:
 		if node is AudioStreamPlayer3D and _subviewport.is_ancestor_of(node):
 			(node as AudioStreamPlayer3D).unit_size = SPEAKER_UNIT_SIZE
+			(node as AudioStreamPlayer3D).bus = &"TV"  # filtrado de altavoz pequeño (default_bus_layout.tres)
 			_screen_sounds.append(node))
 	# La textura se asigna por código: una ViewportTexture puesta en la escena escribe un ERROR al cargar.
 	_subviewport.add_child(ui_scene.instantiate())
@@ -50,7 +52,7 @@ func _ready() -> void:
 	_screen.layers = SCREEN_LAYER
 	_screen_light.light_cull_mask &= ~SCREEN_LAYER
 	_input.setup(_subviewport, _screen, SCREEN_SIZE)
-	_hum = _loop_player("res://assets/audio/tv/tv_hum.wav", -24.0)
+	_hum = _loop_player("res://assets/audio/tv/tv_hum.wav", HUM_DB)
 	_drone = _loop_player("res://assets/audio/tv/drone.wav", -80.0)
 	EventBus.settings_changed.connect(_apply_settings)
 	_apply_settings()
@@ -112,6 +114,7 @@ func _loop_player(path: String, volume_db: float) -> AudioStreamPlayer3D:
 	p.stream = stream
 	p.volume_db = volume_db
 	p.unit_size = 2.0
+	p.bus = &"TV"
 	add_child(p)
 	if DisplayServer.get_name() != "headless":
 		p.play()
@@ -125,10 +128,10 @@ func _ambience(delta: float) -> void:
 	if Game.running:
 		f = clampf(Game.economy.state.energy_produced_run / Game.economy.threshold(), 0.0, 1.0)
 	var drone := clampf(inverse_lerp(0.5, 1.0, f), 0.0, 1.0)
-	_drone.volume_db = lerpf(-80.0, -18.0, sqrt(drone))
+	_drone.volume_db = lerpf(-80.0, -12.0, sqrt(drone))
 	if _silence_left > 0.0:
 		_silence_left -= delta
 	elif f > 0.6 and randf() < delta * f / 45.0:
 		_silence_left = randf_range(2.0, 2.0 + 2.0 * f)
-	var target := -80.0 if (_silence_left > 0.0 or not power) else -24.0
+	var target := -80.0 if (_silence_left > 0.0 or not power) else HUM_DB
 	_hum.volume_db = move_toward(_hum.volume_db, target, delta * 120.0)

@@ -381,15 +381,12 @@ def build_final():
         ("DoorJambR", (T + 0.03, j, door_top), (dx, door_y + door_w / 2 + j / 2, door_top / 2)),
     ]:
         give(box(name, size, loc), door_wood, bevel=0.005)
-    give(box("DoorLeaf", (0.04, door_w - 0.006, door_top - 0.006), (dx, door_y, door_top / 2)), door_wood, bevel=0.004)
+    # Rendija de 2 cm bajo la hoja, para la luz del pasillo cuando exista (hito 4).
+    give(box("DoorLeaf", (0.04, door_w - 0.006, door_top - 0.026), (dx, door_y, 0.02 + (door_top - 0.026) / 2)), door_wood, bevel=0.004)
     give(cylinder("DoorHandle", 0.009, 0.12, (-W / 2 + 0.01, door_y + door_w / 2 - 0.08, 1.0),
                   rot=(math.radians(90), 0, 0), verts=12), brass)
 
-    # Lámpara de pie (modelada aquí: Poly Haven no tiene ninguna). La luz de Godot va dentro de la pantalla.
-    lx, ly = -1.6, 0.95
-    give(cylinder("LampBase", 0.15, 0.03, (lx, ly, 0.015)), brass, bevel=0.005)
-    give(cylinder("LampPole", 0.012, 1.42, (lx, ly, 0.74), verts=12), brass)
-    give(cone("LampShade", 0.22, 0.14, 0.28, (lx, ly, 1.55)), shade)
+    # Sin lámpara de pie (usuario, 2026-11-20): esa esquina queda en penumbra hasta que haya luz en el pasillo.
 
     # Muebles CC0 de Poly Haven. Sofá contra la pared del fondo mirando a la tele (-Y).
     import_model("sofa_03", "2k", (0, D / 2 - 0.5, 0))

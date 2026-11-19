@@ -59,3 +59,11 @@ func test_screen_light_follows_tv() -> void:
 func test_ambient_scales_with_gi() -> void:
 	mixer.set_ambient_gi_scale(0.4)
 	assert_almost_eq(env.ambient_light_energy, 0.2, 0.0001)
+
+
+func test_soft_shadows_off_and_back() -> void:
+	lamp.light_size = 0.3
+	mixer.set_soft_shadows(false)
+	assert_eq(lamp.light_size, 0.0, "en bajo, sombras duras: sin ruido")
+	mixer.set_soft_shadows(true)
+	assert_almost_eq(lamp.light_size, 0.3, 0.0001)

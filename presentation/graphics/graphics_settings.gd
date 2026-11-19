@@ -7,28 +7,28 @@ extends RefCounted
 const PRESETS := {
 	&"low": {
 		"gi": false, "gi_quality": RenderingServer.VOXEL_GI_QUALITY_LOW, "fog": false,
-		"shadow_atlas": 1024, "shadow_filter": RenderingServer.SHADOW_QUALITY_HARD, "flashlight_shadow": false,
+		"shadow_atlas": 1024, "shadow_filter": RenderingServer.SHADOW_QUALITY_HARD, "flashlight_shadow": false, "soft_shadows": false,
 		"ssao": false, "ssao_quality": RenderingServer.ENV_SSAO_QUALITY_LOW,
 		"ssil": false, "ssil_quality": RenderingServer.ENV_SSIL_QUALITY_LOW,
 		"probe": true, "taa": false, "fxaa": true, "scale": 0.67, "max_height": 720, "glow": false,
 	},
 	&"medium": {
 		"gi": false, "gi_quality": RenderingServer.VOXEL_GI_QUALITY_LOW, "fog": false,
-		"shadow_atlas": 2048, "shadow_filter": RenderingServer.SHADOW_QUALITY_SOFT_LOW, "flashlight_shadow": true,
+		"shadow_atlas": 2048, "shadow_filter": RenderingServer.SHADOW_QUALITY_SOFT_LOW, "flashlight_shadow": true, "soft_shadows": true,
 		"ssao": true, "ssao_quality": RenderingServer.ENV_SSAO_QUALITY_LOW,
 		"ssil": false, "ssil_quality": RenderingServer.ENV_SSIL_QUALITY_LOW,
-		"probe": true, "taa": false, "fxaa": true, "scale": 0.85, "max_height": 900, "glow": true,
+		"probe": true, "taa": true, "fxaa": false, "scale": 0.85, "max_height": 900, "glow": true,
 	},
 	&"high": {
 		"gi": true, "gi_quality": RenderingServer.VOXEL_GI_QUALITY_LOW, "fog": true,
-		"shadow_atlas": 4096, "shadow_filter": RenderingServer.SHADOW_QUALITY_SOFT_MEDIUM, "flashlight_shadow": true,
+		"shadow_atlas": 4096, "shadow_filter": RenderingServer.SHADOW_QUALITY_SOFT_MEDIUM, "flashlight_shadow": true, "soft_shadows": true,
 		"ssao": true, "ssao_quality": RenderingServer.ENV_SSAO_QUALITY_MEDIUM,
 		"ssil": true, "ssil_quality": RenderingServer.ENV_SSIL_QUALITY_MEDIUM,
 		"probe": true, "taa": true, "fxaa": false, "scale": 1.0, "max_height": 1080, "glow": true,
 	},
 	&"ultra": {
 		"gi": true, "gi_quality": RenderingServer.VOXEL_GI_QUALITY_HIGH, "fog": true,
-		"shadow_atlas": 8192, "shadow_filter": RenderingServer.SHADOW_QUALITY_SOFT_HIGH, "flashlight_shadow": true,
+		"shadow_atlas": 8192, "shadow_filter": RenderingServer.SHADOW_QUALITY_SOFT_HIGH, "flashlight_shadow": true, "soft_shadows": true,
 		"ssao": true, "ssao_quality": RenderingServer.ENV_SSAO_QUALITY_HIGH,
 		"ssil": true, "ssil_quality": RenderingServer.ENV_SSIL_QUALITY_HIGH,
 		"probe": true, "taa": true, "fxaa": false, "scale": 1.0, "max_height": 1440, "glow": true,
@@ -90,6 +90,8 @@ func _apply() -> void:
 	RenderingServer.voxel_gi_set_quality(current["gi_quality"])
 	if _mixer:
 		_mixer.set_ambient_gi_scale(AMBIENT_GI_SCALE if gi else 1.0)
+		# Sin TAA (bajo), las sombras suaves (light_size) salen con ruido: se dibujan duras.
+		_mixer.set_soft_shadows(current["soft_shadows"])
 	if _environment:
 		_environment.volumetric_fog_enabled = current["fog"]
 		_environment.ssao_enabled = current["ssao"]

@@ -16,7 +16,8 @@ var _box: VBoxContainer
 var _fly: Camera3D
 var _fly_prev: Camera3D
 const FLY_SPEED := 1.4
-const LOOK_SENS := 0.0025
+## Radianes por píxel de ratón; F1 la cambia (usuario, 2026-11-20: era demasiado alta).
+var look_sens := 0.0012
 
 
 func _ready() -> void:
@@ -62,7 +63,7 @@ func _input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 	elif _fly and not _panel.visible and event is InputEventMouse:
 		if event is InputEventMouseMotion:
-			var r: Vector2 = (event as InputEventMouseMotion).relative * LOOK_SENS
+			var r: Vector2 = (event as InputEventMouseMotion).relative * look_sens
 			_fly.rotate_y(-r.x)
 			_fly.rotation.x = clampf(_fly.rotation.x - r.y, -1.5, 1.5)
 		get_viewport().set_input_as_handled()  # la tele no debe recibir clics mientras se vuela
@@ -76,17 +77,19 @@ func _process(delta: float) -> void:
 		return
 	var eco := Game.economy
 	var s := eco.state
-	_status.text = "TRUCOS (F1)\nRun %d · Energía %s · producida %s / %s (%.0f %%)\nCarga %d · permanentes %s\nMejoras %d · evento: %s · cintas %d · tiempo ×%s · partida %s" % [
+	_status.text = "TRUCOS (F1)\nRun %d · Energía %s · producida %s / %s (%.0f %%)\nCarga %d · permanentes %s\nMejoras %d · evento: %s · cintas %d · tiempo ×%s · partida %s\nSensibilidad del ratón: %.1f" % [
 		s.run_index, NumberFormat.energy(s.energy), NumberFormat.energy(s.energy_produced_run),
 		NumberFormat.energy(eco.threshold()), 100.0 * s.energy_produced_run / eco.threshold(), s.carga,
 		", ".join(PackedStringArray(s.perks)), s.upgrades.size(),
 		String(s.event_id) if s.event_id != &"" else "-", eco.packages().size(), Engine.time_scale,
-		"en marcha" if Game.running else "parada"]
+		"en marcha" if Game.running else "parada", look_sens * 1000.0]
 
 
 func _build() -> void:
 	_section("Atajos")
 	_row([["Levantarse y moverse (WASD, ratón, Espacio/C, Mayús; Esc vuelve)", _toggle_fly]])
+	_row([["Sensibilidad −", func() -> void: look_sens = maxf(look_sens / 1.5, 0.0002)],
+		["Sensibilidad +", func() -> void: look_sens = minf(look_sens * 1.5, 0.01)]])
 	_row([["Jugar ya (sin menú)", _play], ["Abrir árbol", _open_tree]])
 	_row([["Desbloquear todo el árbol", _reveal_all], ["Comprarlo todo", _buy_everything]])
 	_section("Empezar una run (con las permanentes que tengas)")
