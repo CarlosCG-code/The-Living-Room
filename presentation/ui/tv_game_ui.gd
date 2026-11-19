@@ -13,10 +13,10 @@ const CHANNEL_CHANGE := 0.4  # segundos de nieve al cambiar de canal
 @onready var _osd: TvOsd = $Osd
 @onready var _factory: FactoryView = $FactoryView
 @onready var _tree: UpgradeTree = $UpgradeTree
-@onready var _purchase_sound: AudioStreamPlayer = $PurchaseSound
+@onready var _purchase_sound: AudioStreamPlayer3D = $PurchaseSound
 
 const CLICK_SOUND := preload("res://assets/audio/tv/click_relay.wav")
-var _click_sound: AudioStreamPlayer
+var _click_sound: AudioStreamPlayer3D
 var _shake: Tween
 
 var _menu: MainMenuUI
@@ -39,7 +39,7 @@ func _ready() -> void:
 	_factory.shop_requested.connect(_open_shop)
 	_factory.event_pressed.connect(Game.catch_event)
 	# Cada evento suena siempre igual: el jugador aprende a girarse hacia la tele al oírlo.
-	var event_sound := AudioStreamPlayer.new()
+	var event_sound := AudioStreamPlayer3D.new()
 	event_sound.volume_db = -6.0
 	add_child(event_sound)
 	_factory.event_started.connect(func(id: StringName) -> void:
@@ -52,7 +52,7 @@ func _ready() -> void:
 	EventBus.purchase_made.connect(func(_id: StringName) -> void:
 		_purchase_sound.play()
 		shake(2))
-	_click_sound = AudioStreamPlayer.new()
+	_click_sound = AudioStreamPlayer3D.new()
 	_click_sound.stream = CLICK_SOUND
 	_click_sound.volume_db = -10.0
 	_click_sound.max_polyphony = 4
@@ -214,7 +214,7 @@ func _end_of_broadcast() -> void:
 	var card := EndOfBroadcast.new()
 	_card_open = true
 	add_child(card)
-	var tone := AudioStreamPlayer.new()
+	var tone := AudioStreamPlayer3D.new()
 	tone.stream = preload("res://assets/audio/tv/test_tone.wav")
 	tone.volume_db = -14.0
 	card.add_child(tone)

@@ -4,7 +4,8 @@ extends Node3D
 
 const GEOMETRY := "res://assets/models/living_room/living_room.gltf"
 const GEOMETRY_MIRROR := "res://assets/models/living_room/living_room_mirror.gltf"
-const GI_DATA := "res://world/player_flat/voxel_gi_data.res"
+const RAIN_SHADER := preload("res://world/player_flat/window_rain.gdshader")
+const GI_DATA :="res://world/player_flat/voxel_gi_data.res"
 const GI_DATA_MIRROR := "res://world/player_flat/voxel_gi_data_mirror.res"
 
 ## Se fija antes de añadir la escena al árbol.
@@ -15,6 +16,12 @@ func _ready() -> void:
 	var geometry := (load(GEOMETRY_MIRROR if mirrored else GEOMETRY) as PackedScene).instantiate()
 	geometry.name = "Geometry"
 	add_child(geometry)
+	# Lluvia en el cristal (ronda 2 del look-dev): el material del glTF se sustituye por el shader de gotas.
+	var glass := geometry.find_child("WindowGlass", true, false) as MeshInstance3D
+	if glass:
+		var rain := ShaderMaterial.new()
+		rain.shader = RAIN_SHADER
+		glass.material_override = rain
 	var gi_path := GI_DATA_MIRROR if mirrored else GI_DATA
 	if ResourceLoader.exists(gi_path):
 		$VoxelGI.data = load(gi_path)

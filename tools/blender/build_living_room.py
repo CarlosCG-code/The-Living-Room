@@ -93,7 +93,7 @@ def export(path):
     bpy.ops.export_scene.gltf(filepath=path, export_format="GLB", export_apply=True)
 
 
-def mat(name, color, rough, metallic=0.0, emission=None):
+def mat(name, color, rough, metallic=0.0, emission=None, emission_strength=4.0):
     m = bpy.data.materials.get(name) or bpy.data.materials.new(name)
     m.use_nodes = True
     b = next(n for n in m.node_tree.nodes if n.type == "BSDF_PRINCIPLED")
@@ -102,7 +102,7 @@ def mat(name, color, rough, metallic=0.0, emission=None):
     b.inputs["Metallic"].default_value = metallic
     if emission:
         b.inputs["Emission Color"].default_value = (*emission, 1.0)
-        b.inputs["Emission Strength"].default_value = 4.0
+        b.inputs["Emission Strength"].default_value = emission_strength
     return m
 
 
@@ -206,7 +206,21 @@ def uv_world(o, tile):
     bm.free()
 
 
-def tex_mat(name, tex_id, res):
+def tint_base(m, tint):
+    """Multiplica la textura de color por tint; glTF lo exporta como baseColorFactor."""
+    nt = m.node_tree
+    b = next(n for n in nt.nodes if n.type == "BSDF_PRINCIPLED")
+    src = b.inputs["Base Color"].links[0].from_socket
+    mix = nt.nodes.new("ShaderNodeMix")
+    mix.data_type = "RGBA"
+    mix.blend_type = "MULTIPLY"
+    mix.inputs["Factor"].default_value = 1.0
+    mix.inputs["B"].default_value = (*tint, 1.0)
+    nt.links.new(src, mix.inputs["A"])
+    nt.links.new(mix.outputs["Result"], b.inputs["Base Color"])
+
+
+def tex_mat(name, tex_id, res, tint=None):
     """Material PBR con las texturas de Poly Haven: color, normal (OpenGL) y rugosidad (+ oclusión si hay arm)."""
     m = bpy.data.materials.get(name) or bpy.data.materials.new(name)
     m.use_nodes = True
@@ -221,6 +235,8 @@ def tex_mat(name, tex_id, res):
         return node
 
     nt.links.new(img("diff", True).outputs["Color"], b.inputs["Base Color"])
+    if tint:
+        tint_base(m, tint)
     nt.links.new(img("rough", False).outputs["Color"], b.inputs["Roughness"])
     nmap = nt.nodes.new("ShaderNodeNormalMap")
     nt.links.new(img("nor_gl", False).outputs["Color"], nmap.inputs["Color"])
@@ -229,8 +245,9 @@ def tex_mat(name, tex_id, res):
     return m
 
 
-def import_model(asset_id, res, loc, rot_z_deg=0.0, scale=1.0):
-    """Importa el glTF de Poly Haven, lo deja sin padres, apoyado en loc (el suelo del modelo en loc.z) y girado."""
+def import_model(asset_id, res, loc, rot_z_deg=0.0, scale=1.0, drop=(), tint=None):
+    """Importa el glTF de Poly Haven, lo deja sin padres, apoyado en loc (el suelo del modelo en loc.z) y girado.
+    drop quita las mallas o los materiales (con sus caras) cuyo nombre contenga alguna de esas palabras."""
     before = set(bpy.context.scene.objects)
     bpy.ops.import_scene.gltf(filepath=os.path.join(PH, asset_id, "%s_%s.gltf" % (asset_id, res)))
     new = [o for o in bpy.context.scene.objects if o not in before]
@@ -241,6 +258,22 @@ def import_model(asset_id, res, loc, rot_z_deg=0.0, scale=1.0):
     for o in [o for o in new if o.type != "MESH"]:
         bpy.data.objects.remove(o, do_unlink=True)
     meshes = [o for o in new if o.name in bpy.context.scene.objects and o.type == "MESH"]
+    for o in [o for o in meshes if any(d in o.name.lower() for d in drop)]:
+        meshes.remove(o)
+        bpy.data.objects.remove(o, do_unlink=True)
+    import bmesh
+    for o in meshes:
+        bad = {i for i, m in enumerate(o.data.materials) if m and any(d in m.name.lower() for d in drop)}
+        if bad:  # p. ej. el cristal de un cuadro como material de la misma malla: en Godot salía negro
+            bm = bmesh.new()
+            bm.from_mesh(o.data)
+            bmesh.ops.delete(bm, geom=[f for f in bm.faces if f.material_index in bad], context="FACES")
+            bm.to_mesh(o.data)
+            bm.free()
+        if tint:
+            for m in o.data.materials:
+                if m:
+                    tint_base(m, tint)
     bpy.ops.object.select_all(action="DESELECT")
     for o in meshes:
         o.select_set(True)
@@ -293,7 +326,8 @@ def build_final():
     marble = mat("Marble", (0.62, 0.6, 0.57), 0.2)
     blind = mat("Blind", (0.42, 0.38, 0.3), 0.6)
     brass = mat("Brass", (0.6, 0.45, 0.22), 0.3, metallic=1.0)
-    shade = mat("LampShade", (0.72, 0.62, 0.45), 0.8)
+    # La tela deja pasar la luz de la bombilla: brilla un poco (antes se veía gris, como apagada).
+    shade = mat("LampShade", (0.72, 0.62, 0.45), 0.8, emission=(1.0, 0.72, 0.42), emission_strength=1.2)
     shade.use_backface_culling = False  # se ve por dentro y por fuera: glTF doubleSided
     glass = mat("Glass", (0.6, 0.65, 0.7), 0.05)
     gb = next(n for n in glass.node_tree.nodes if n.type == "BSDF_PRINCIPLED")
@@ -365,11 +399,159 @@ def build_final():
     # Los modelos de Poly Haven miran a -Y: +90° los pone mirando a +X y -90° a -X.
     import_model("vintage_cabinet_01", "2k", (-W / 2 + 0.36, -1.2, 0), rot_z_deg=90)  # aparador
     import_model("wooden_bookshelf_worn", "1k", (W / 2 - 0.3, -1.6, 0), rot_z_deg=-90)
-    for k, z in enumerate((0.98, 1.45)):
-        import_model("book_encyclopedia_set_01", "1k", (W / 2 - 0.3, -1.6 + (k - 0.5) * 0.3, z), rot_z_deg=-90)
-    import_model("ArmChair_01", "1k", (1.45, -0.3, 0), rot_z_deg=-39)  # girado hacia la tele
+    # Girado hacia la tele; la tapicería original es casi blanca y destacaba demasiado en la penumbra.
+    import_model("ArmChair_01", "1k", (1.45, -0.3, 0), rot_z_deg=-39, tint=(0.6, 0.55, 0.48))
     import_model("potted_plant_02", "1k", (1.62, 0.55, 0))
     import_model("wall_clock", "1k", (0, -D / 2 + 0.03, 1.75), rot_z_deg=180)
+    decorate()
+
+
+def to_wall(objs, axis, coord):
+    """Pega los objetos a la pared: su caja toca el plano axis = coord por el lado de la habitación."""
+    pts = [o.matrix_world @ Vector(c) for o in objs for c in o.bound_box]
+    i = "xyz".index(axis)
+    gap = coord - (max(p[i] for p in pts) if coord > 0 else min(p[i] for p in pts))
+    for o in objs:
+        o.location[i] += gap
+
+
+def books_row(y0, y1, z, max_h, rng, x_front=1.5):
+    """Libros hechos aquí, todos distintos: grosor, alto, fondo, color y franjas doradas al azar; alguno
+    tumbado o inclinado al final de la fila. Lomos hacia -X (la librería está en la pared +X)."""
+    palette = [(0.32, 0.05, 0.04), (0.06, 0.09, 0.22), (0.05, 0.16, 0.08), (0.26, 0.15, 0.06), (0.55, 0.38, 0.12),
+               (0.03, 0.03, 0.03), (0.62, 0.57, 0.46), (0.42, 0.1, 0.14), (0.12, 0.2, 0.25), (0.45, 0.42, 0.36)]
+    covers = [mat("BookCover%d" % i, c, rng.uniform(0.45, 0.8)) for i, c in enumerate(palette)]
+    gold = mat("BookGold", (0.7, 0.52, 0.2), 0.35, metallic=1.0)
+    made, y = [], y0
+    while y < y1 - 0.02:
+        t, h, d = rng.uniform(0.018, 0.05), rng.uniform(0.16, min(0.29, max_h - 0.03)), rng.uniform(0.13, 0.21)
+        if y + t > y1:
+            break
+        if rng.random() < 0.08:  # un hueco de vez en cuando
+            y += rng.uniform(0.03, 0.08)
+            continue
+        b = give(box("Book", (d, t, h), (x_front + d / 2, y + t / 2, z + h / 2)), rng.choice(covers), bevel=0.002)
+        made.append(b)
+        if rng.random() < 0.4:
+            for zz in (z + h * 0.12, z + h * 0.85):
+                made.append(give(box("BookBand", (0.002, t * 0.96, 0.006), (x_front - 0.001, y + t / 2, zz)), gold))
+        y += t + rng.uniform(0.0, 0.004)
+    # Al final de la fila, un libro apoyado en el último.
+    if y < y1 - 0.06:
+        h = rng.uniform(0.18, min(0.27, max_h - 0.04))
+        b = give(box("BookLean", (0.17, 0.03, h), (x_front + 0.085, y + 0.06, z + h / 2 - 0.01)), rng.choice(covers))
+        b.rotation_euler = (math.radians(-22), 0, 0)
+        made.append(b)
+    return made
+
+
+def books_stack(x, y, z, n, rng):
+    palette = [bpy.data.materials["BookCover%d" % i] for i in range(10)]  # los crea books_row
+    made = []
+    for k in range(n):
+        w, l, t = rng.uniform(0.15, 0.22), rng.uniform(0.21, 0.3), rng.uniform(0.02, 0.045)
+        b = give(box("BookFlat", (l, w, t), (x, y, z + t / 2)), rng.choice(palette), bevel=0.002)
+        b.rotation_euler = (0, 0, math.radians(rng.uniform(-8, 8)))
+        z += t
+        made.append(b)
+    return made
+
+
+def join(objs, name):
+    bpy.ops.object.select_all(action="DESELECT")
+    for o in objs:
+        o.select_set(True)
+    bpy.context.view_layer.objects.active = objs[0]
+    bpy.ops.object.convert(target="MESH")  # aplica los biselados antes de unir
+    bpy.ops.object.join()
+    bpy.context.active_object.name = name
+    return bpy.context.active_object
+
+
+def curtain(name, y0, y1, z_top, z_bottom, x, material, folds=4, depth=0.05):
+    """Cortina con pliegues blandos e irregulares (dos senos), más abiertos abajo que en la barra."""
+    import bmesh
+    bm = bmesh.new()
+    nu, nv = folds * 12, 8
+    verts = []
+    for j in range(nv + 1):
+        k = j / nv
+        z = z_top + (z_bottom - z_top) * k
+        row = []
+        for i in range(nu + 1):
+            a = i / nu * folds * 2 * math.pi
+            off = depth * (0.7 + 0.3 * k) * (math.sin(a) + 0.35 * math.sin(2.3 * a + 1.0 + k))
+            row.append(bm.verts.new((x + off, y0 + (y1 - y0) * i / nu, z)))
+        verts.append(row)
+    uv = bm.loops.layers.uv.verify()
+    for j in range(nv):
+        for i in range(nu):
+            f = bm.faces.new((verts[j][i], verts[j][i + 1], verts[j + 1][i + 1], verts[j + 1][i]))
+            f.smooth = True
+            for loop in f.loops:
+                loop[uv].uv = (loop.vert.co.y / 0.6, loop.vert.co.z / 0.6)
+    me = bpy.data.meshes.new(name)
+    bm.to_mesh(me)
+    bm.free()
+    o = bpy.data.objects.new(name, me)
+    bpy.context.scene.collection.objects.link(o)
+    me.materials.append(material)
+    return o
+
+
+def decorate():
+    """Ronda 2 del look-dev (usuario, 2026-11-19): más decoración, paredes con cuadros, libros variados,
+    alfombra, cortinas y lámpara de techo. Todo CC0 de Poly Haven o hecho aquí."""
+    import random
+    rng = random.Random(7)  # semilla fija: el salón sale igual en cada exportación
+    # Librería (pared +X): baldas medidas con rayos (0,39 / 0,67 / 0,96 / 1,28 / 1,66 m), interior y -2,20..-1,00.
+    books = []
+    books += books_row(-2.19, -1.62, 0.392, 0.28, rng)
+    books += books_stack(1.62, -1.25, 0.392, 4, rng)
+    books += books_row(-2.19, -1.0, 0.672, 0.29, rng)
+    books += books_row(-1.55, -1.0, 0.96, 0.31, rng)
+    books += books_row(-2.19, -1.75, 1.277, 0.38, rng)
+    books += books_row(-1.45, -1.0, 1.663, 0.39, rng)
+    books += books_stack(1.65, -2.0, 1.663, 3, rng)
+    books += books_row(-2.19, -1.65, 0.108, 0.28, rng)
+    join(books, "Books")
+    import_model("book_encyclopedia_set_01", "1k", (W / 2 - 0.25, -1.88, 0.96), rot_z_deg=-90)
+    import_model("carved_wooden_elephant", "1k", (W / 2 - 0.27, -1.45, 1.277), rot_z_deg=-120, scale=2.5)
+    import_model("boombox", "1k", (W / 2 - 0.3, -1.6, 2.063), rot_z_deg=-90)
+
+    # Aparador (pared -X): repisa a 0,91 m (franja x -1,55..-1,36) y baldas tras el cristal a 1,37 m.
+    import_model("mantel_clock_01", "1k", (-1.46, -1.15, 0.912), rot_z_deg=90)
+    import_model("horse_statue_01", "1k", (-1.46, -1.75, 0.912), rot_z_deg=60)
+    import_model("standing_picture_frame_01", "1k", (-1.46, -1.5, 0.912), rot_z_deg=110)
+    import_model("brass_candleholders", "1k", (-1.46, -0.5, 0.912), rot_z_deg=90, scale=0.6)
+    import_model("tea_set_01", "1k", (-1.8, -1.2, 1.367), rot_z_deg=90, scale=0.75)
+    import_model("antique_ceramic_vase_01", "1k", (-1.6, 0.0, 0), rot_z_deg=30)
+
+    # Cuadros y espejo en las paredes.
+    to_wall(import_model("fancy_picture_frame_01", "1k", (-0.85, -2.3, 1.2), rot_z_deg=180, drop=("glass",)), "y", -D / 2)
+    to_wall(import_model("hanging_picture_frame_02", "1k", (0.85, -2.3, 1.25), rot_z_deg=180, drop=("glass",)), "y", -D / 2)
+    to_wall(import_model("fancy_picture_frame_02", "1k", (0, 2.3, 1.3), drop=("glass",)), "y", D / 2)
+    to_wall(import_model("ornate_mirror_01", "1k", (-1.9, -0.2, 1.15), rot_z_deg=90), "x", -W / 2)
+    to_wall(import_model("hanging_picture_frame_03", "1k", (1.9, -0.45, 1.4), rot_z_deg=-90, drop=("glass",)), "x", W / 2)
+
+    # Lámpara de techo (apagada por ahora), alfombra, gafas en la mesa y cesto junto al sofá.
+    lamp = import_model("Chandelier_02", "1k", (0, 0.3, 0))
+    top = max((o.matrix_world @ Vector(c)).z for o in lamp for c in o.bound_box)
+    for o in lamp:
+        o.location.z += H - top
+    rug = give(box("Rug", (1.7, 2.3, 0.008), (0, 0.55, 0.004)), tex_mat("Rug", "quatrefoil_jacquard_fabric", "1k", tint=(0.4, 0.34, 0.31)))
+    uv_world(rug, 0.7)
+    import_model("round_spectacles", "1k", (0.08, 0.6, 0.551), rot_z_deg=25)
+    import_model("wicker_basket_01", "1k", (1.68, 1.55, 0), rot_z_deg=15)
+
+    # Cortinas de raso dorado a los lados de la ventana, hasta el alféizar, y su barra de latón.
+    satin = tex_mat("CurtainSatin", "crepe_satin", "1k")
+    satin.use_backface_culling = False
+    win_y, win_w = 0.5, 1.2
+    curtain("CurtainA", win_y - win_w / 2 - 0.2, win_y - win_w / 2 + 0.25, 2.33, 0.82, W / 2 - 0.09, satin)
+    curtain("CurtainB", win_y + win_w / 2 - 0.25, win_y + win_w / 2 + 0.2, 2.33, 0.82, W / 2 - 0.09, satin)
+    rod = cylinder("CurtainRod", 0.012, win_w + 0.55, (W / 2 - 0.09, win_y, 2.36), rot=(math.radians(90), 0, 0), verts=12)
+    give(rod, bpy.data.materials["Brass"])
 
 
 def export_final(path):

@@ -23,6 +23,8 @@ var _material: ShaderMaterial
 var _hum: AudioStreamPlayer3D
 var _drone: AudioStreamPlayer3D
 var _silence_left := 0.0
+var _screen_sounds: Array[AudioStreamPlayer3D] = []
+const SPEAKER_UNIT_SIZE := 4.0  # ~0 dB desde el sofá (a unos 4 m)
 
 @onready var _subviewport: SubViewport = $SubViewport
 @onready var _screen: MeshInstance3D = $Model/Screen
@@ -31,6 +33,12 @@ var _silence_left := 0.0
 
 
 func _ready() -> void:
+	# Los sonidos de la pantalla (AudioStreamPlayer3D dentro del SubViewport) salen del altavoz de la tele, no
+	# «dentro de la cabeza» (usuario, 2026-11-19). Se recogen al entrar en el árbol, también los que se crean luego.
+	get_tree().node_added.connect(func(node: Node) -> void:
+		if node is AudioStreamPlayer3D and _subviewport.is_ancestor_of(node):
+			(node as AudioStreamPlayer3D).unit_size = SPEAKER_UNIT_SIZE
+			_screen_sounds.append(node))
 	# La textura se asigna por código: una ViewportTexture puesta en la escena escribe un ERROR al cargar.
 	_subviewport.add_child(ui_scene.instantiate())
 	_material = ShaderMaterial.new()
@@ -51,6 +59,13 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	_ambience(delta)
+	# Un Node3D bajo un Control no hereda transformada: se coloca a mano en la pantalla (la tele se mueve tras _ready).
+	for i in range(_screen_sounds.size() - 1, -1, -1):
+		var p: Variant = _screen_sounds[i]
+		if is_instance_valid(p):
+			(p as AudioStreamPlayer3D).global_position = _screen.global_position
+		else:
+			_screen_sounds.remove_at(i)
 	# La luz de la pantalla no cambia con los eventos: en la interferencia aclaraba todo el salón (usuario, 2026-11-19).
 	var state: StringName = &"on" if power else &"off"
 	if state != _state:
