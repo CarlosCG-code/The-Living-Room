@@ -327,7 +327,7 @@ def build_final():
     blind = mat("Blind", (0.42, 0.38, 0.3), 0.6)
     brass = mat("Brass", (0.6, 0.45, 0.22), 0.3, metallic=1.0)
     # La tela deja pasar la luz de la bombilla: brilla un poco (antes se veía gris, como apagada).
-    shade = mat("LampShade", (0.72, 0.62, 0.45), 0.8, emission=(1.0, 0.72, 0.42), emission_strength=1.2)
+    shade = mat("LampShade", (0.42, 0.36, 0.27), 0.8, emission=(1.0, 0.8, 0.6), emission_strength=0.2)
     shade.use_backface_culling = False  # se ve por dentro y por fuera: glTF doubleSided
     glass = mat("Glass", (0.6, 0.65, 0.7), 0.05)
     gb = next(n for n in glass.node_tree.nodes if n.type == "BSDF_PRINCIPLED")
@@ -524,7 +524,8 @@ def decorate():
     import_model("mantel_clock_01", "1k", (-1.46, -1.15, 0.912), rot_z_deg=90)
     import_model("horse_statue_01", "1k", (-1.46, -1.75, 0.912), rot_z_deg=60)
     import_model("standing_picture_frame_01", "1k", (-1.46, -1.5, 0.912), rot_z_deg=110)
-    import_model("brass_candleholders", "1k", (-1.46, -0.5, 0.912), rot_z_deg=90, scale=0.6)
+    # Velas apagadas: la llama emisiva era el punto más brillante del salón (usuario, 2026-11-19: luces más sutiles).
+    import_model("brass_candleholders", "1k", (-1.46, -0.5, 0.912), rot_z_deg=90, scale=0.6, drop=("flame",))
     import_model("tea_set_01", "1k", (-1.8, -1.2, 1.367), rot_z_deg=90, scale=0.75)
     import_model("antique_ceramic_vase_01", "1k", (-1.6, 0.0, 0), rot_z_deg=30)
 

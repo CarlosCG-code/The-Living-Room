@@ -33,6 +33,13 @@ func _ready() -> void:
 	_box = VBoxContainer.new()
 	_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	scroll.add_child(_box)
+	# Aviso fijo: si no se ve, no es la versión de pruebas (la build de build/ no trae trucos).
+	var hint := Label.new()
+	hint.name = "Hint"
+	hint.text = "MODO PRUEBAS · F1: trucos"
+	hint.modulate.a = 0.6
+	hint.position = Vector2(12, DESIGN_HEIGHT - 40.0)
+	add_child(hint)
 	_status = Label.new()
 	_status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_box.add_child(_status)
