@@ -9,7 +9,7 @@ background_mode = 1
 background_color = Color(0.01, 0.012, 0.016, 1)
 ambient_light_source = 2
 ambient_light_color = Color(0.24, 0.21, 0.19, 1)
-ambient_light_energy = 0.3
+ambient_light_energy = 0.4
 tonemap_mode = 4
 tonemap_exposure = 1.0
 glow_levels/1 = 0.0
@@ -57,7 +57,7 @@ metadata/ambient = {
 },
 &"normal": {
 "color": Color(0.24, 0.21, 0.19, 1),
-"energy": 0.3
+"energy": 0.4
 }
 }
 
@@ -84,6 +84,28 @@ shadow_enabled = true
 shadow_blur = 1.5
 omni_range = 6.5
 metadata/base_normal = 1.6
+metadata/base_dark = 0.0
+
+[node name="SconceL" type="OmniLight3D" parent="." groups=["mirror_transform", "room_lights"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.4, 1.66, 2.34)
+light_color = Color(1, 0.7, 0.45, 1)
+light_energy = 0.45
+light_size = 0.05
+light_specular = 0.3
+omni_range = 2.6
+omni_attenuation = 1.4
+metadata/base_normal = 0.45
+metadata/base_dark = 0.0
+
+[node name="SconceR" type="OmniLight3D" parent="." groups=["mirror_transform", "room_lights"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.4, 1.66, 2.34)
+light_color = Color(1, 0.7, 0.45, 1)
+light_energy = 0.45
+light_size = 0.05
+light_specular = 0.3
+omni_range = 2.6
+omni_attenuation = 1.4
+metadata/base_normal = 0.45
 metadata/base_dark = 0.0
 
 [node name="StreetLight" type="SpotLight3D" parent="." groups=["mirror_transform", "room_lights"]]

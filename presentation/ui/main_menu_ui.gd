@@ -62,6 +62,8 @@ func _ready() -> void:
 		b.gui_input.connect(_on_option_input.bind(key))
 		_rows[key] = b
 	_button(_options, tr("UI_BACK"), show_main)
+	# El menú principal y el de pausa son dos instancias vivas a la vez: las dos repintan con cualquier cambio.
+	EventBus.settings_changed.connect(_refresh)
 	_refresh()
 	_play.grab_focus.call_deferred()
 

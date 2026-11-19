@@ -45,6 +45,16 @@ func test_pressing_an_option_changes_the_setting() -> void:
 	assert_almost_eq(Game.settings.crt, 0.5, 0.0001, "no → suave")
 
 
+func test_pause_menu_change_shows_in_main_menu() -> void:
+	var pause: MainMenuUI = (load("res://presentation/ui/main_menu_ui.tscn") as PackedScene).instantiate()
+	pause.pause_menu = true
+	menu.get_parent().add_child(pause)
+	await wait_process_frames(1)
+	pause.get_option_button("volume").pressed.emit()
+	assert_eq(menu.get_option_button("volume").text, pause.get_option_button("volume").text)
+	pause.free()
+
+
 func test_volume_wraps_to_zero() -> void:
 	Game.settings.volume = 1.0
 	menu.show_options()

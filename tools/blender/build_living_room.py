@@ -402,8 +402,8 @@ def build_final():
     # Girado hacia la tele; la tapicería original es casi blanca y destacaba demasiado en la penumbra.
     import_model("ArmChair_01", "1k", (1.45, -0.3, 0), rot_z_deg=-39, tint=(0.6, 0.55, 0.48))
     import_model("potted_plant_02", "1k", (1.62, 0.55, 0))
-    import_model("wall_clock", "1k", (0, -D / 2 + 0.03, 1.75), rot_z_deg=180)
     decorate()
+    decorate_1940s(wood, brass, shade)
 
 
 def to_wall(objs, axis, coord):
@@ -517,7 +517,8 @@ def decorate():
     join(books, "Books")
     import_model("book_encyclopedia_set_01", "1k", (W / 2 - 0.25, -1.88, 0.96), rot_z_deg=-90)
     import_model("carved_wooden_elephant", "1k", (W / 2 - 0.27, -1.45, 1.277), rot_z_deg=-120, scale=2.5)
-    import_model("boombox", "1k", (W / 2 - 0.3, -1.6, 2.063), rot_z_deg=-90)
+    import_model("standing_picture_frame_02", "1k", (W / 2 - 0.3, -1.3, 2.063), rot_z_deg=-70)
+    books_stack(W / 2 - 0.3, -1.85, 2.063, 3, rng)  # sueltos: no entran en el join de arriba
 
     # Aparador (pared -X): repisa a 0,91 m (franja x -1,55..-1,36) y baldas tras el cristal a 1,37 m.
     import_model("mantel_clock_01", "1k", (-1.46, -1.15, 0.912), rot_z_deg=90)
@@ -528,7 +529,6 @@ def decorate():
     import_model("antique_ceramic_vase_01", "1k", (-1.6, 0.0, 0), rot_z_deg=30)
 
     # Cuadros y espejo en las paredes.
-    to_wall(import_model("fancy_picture_frame_01", "1k", (-0.85, -2.3, 1.2), rot_z_deg=180, drop=("glass",)), "y", -D / 2)
     to_wall(import_model("hanging_picture_frame_02", "1k", (0.85, -2.3, 1.25), rot_z_deg=180, drop=("glass",)), "y", -D / 2)
     to_wall(import_model("fancy_picture_frame_02", "1k", (0, 2.3, 1.3), drop=("glass",)), "y", D / 2)
     to_wall(import_model("ornate_mirror_01", "1k", (-1.9, -0.2, 1.15), rot_z_deg=90), "x", -W / 2)
@@ -552,6 +552,69 @@ def decorate():
     curtain("CurtainB", win_y + win_w / 2 - 0.25, win_y + win_w / 2 + 0.2, 2.33, 0.82, W / 2 - 0.09, satin)
     rod = cylinder("CurtainRod", 0.012, win_w + 0.55, (W / 2 - 0.09, win_y, 2.36), rot=(math.radians(90), 0, 0), verts=12)
     give(rod, bpy.data.materials["Brass"])
+
+
+def wall_plate(loc, rot_z_deg, axis, coord):
+    """Plato colgado: el modelo viene tumbado; se pone de pie (cara a -Y) y se gira como los demás."""
+    objs = import_model("carved_wooden_plate", "1k", (0, 0, 0))
+    for o in objs:
+        o.data.transform(Matrix.Rotation(math.radians(90), 4, "X"))
+        o.data.transform(Matrix.Rotation(math.radians(rot_z_deg), 4, "Z"))
+        o.location = loc
+    bpy.context.view_layer.update()  # sin esto, to_wall lee matrix_world viejas y lo saca de la habitación
+    to_wall(objs, axis, coord)
+
+
+def decorate_1940s(wood, brass, shade):
+    """Ronda 3 (usuario, 2026-11-19): un salón de Visage llevado a los años 40. Zócalo de madera, reloj de pie,
+    crucifijo y apliques de tela sobre la tele, y paredes llenas de cuadros y platos."""
+    # Zócalo de madera hasta 0,9 m con moldura arriba y montantes cada ~0,5 m, salvo en el hueco de la puerta.
+    panel = tex_mat("Wainscot", "dark_wood", "1k", tint=(0.75, 0.62, 0.5))
+    zh, zt = 0.9, 0.012
+    y0, y1 = -D / 2, D / 2
+    a1, a2 = 1.6 - 0.45 - 0.07, 1.6 + 0.45 + 0.07  # puerta con su marco
+    runs = [("x", -W / 2, W / 2, y0 + zt / 2, 1), ("x", -W / 2, W / 2, y1 - zt / 2, -1),
+            ("y", y0, y1, W / 2 - zt / 2, -1), ("y", y0, a1, -W / 2 + zt / 2, 1), ("y", a2, y1, -W / 2 + zt / 2, 1)]
+    parts = []
+    for along, s0, s1, c, inward in runs:
+        n = max(1, round((s1 - s0) / 0.5))
+        for k in range(n + 1):
+            s = s0 + (s1 - s0) * k / n
+            stile = (0.05, 0.008, zh - 0.12) if along == "x" else (0.008, 0.05, zh - 0.12)
+            off = c + inward * (zt / 2 + 0.004)
+            loc = (s, off, 0.08 + (zh - 0.12) / 2) if along == "x" else (off, s, 0.08 + (zh - 0.12) / 2)
+            parts.append(box("WainscotStile", stile, loc))
+        mid, length = (s0 + s1) / 2, s1 - s0
+        size = (length, zt, zh) if along == "x" else (zt, length, zh)
+        parts.append(box("WainscotPanel", size, (mid, c, zh / 2) if along == "x" else (c, mid, zh / 2)))
+        rail = (length, 0.035, 0.04) if along == "x" else (0.035, length, 0.04)
+        rc = c + inward * 0.012
+        parts.append(box("WainscotRail", rail, (mid, rc, zh) if along == "x" else (rc, mid, zh)))
+    w = join(parts, "Wainscot")
+    give(w, panel)
+    uv_world(w, 1.2)
+
+    # Pared de la tele: reloj de pie a la izquierda, crucifijo encima de la tele y dos apliques a los lados.
+    import_model("vintage_grandfather_clock_01", "1k", (-0.95, y0 + 0.25, 0), rot_z_deg=180, drop=("glass",))
+    cz, cy = 1.8, y0 + 0.012
+    give(box("CrossV", (0.03, 0.02, 0.36), (0, cy + 0.01, cz)), wood, bevel=0.003)
+    give(box("CrossH", (0.2, 0.02, 0.03), (0, cy + 0.01, cz + 0.07)), wood, bevel=0.003)
+    give(box("CorpusBody", (0.022, 0.01, 0.12), (0, cy + 0.025, cz - 0.01)), brass)
+    give(box("CorpusArms", (0.15, 0.008, 0.012), (0, cy + 0.025, cz + 0.065)), brass)
+    # La luz de Godot (SconceL/SconceR) va dentro de cada pantalla, a 1,66 m.
+    for x in (-0.4, 0.4):
+        give(cylinder("SconcePlate", 0.045, 0.015, (x, y0 + 0.0075, 1.55), rot=(math.radians(90), 0, 0)), brass)
+        give(cylinder("SconceArm", 0.008, 0.16, (x, y0 + 0.08, 1.55), rot=(math.radians(90), 0, 0), verts=10), brass)
+        give(cylinder("SconcePost", 0.007, 0.07, (x, y0 + 0.16, 1.585), verts=10), brass)
+        give(cone("SconceShade", 0.085, 0.05, 0.12, (x, y0 + 0.16, 1.66)), shade)
+
+    # Pared del sofá: galería de cuadros a los lados del grande.
+    to_wall(import_model("fancy_picture_frame_01", "1k", (-1.0, y1 - 0.2, 1.42), drop=("glass",)), "y", y1)
+    # Platos de madera: dos en la pared del sofá, encima de la puerta y sobre el cuadro entre la librería y la ventana.
+    wall_plate((1.0, y1 - 0.05, 1.5), 180, "y", y1)
+    wall_plate((1.0, y1 - 0.05, 1.82), 180, "y", y1)
+    wall_plate((-W / 2 + 0.05, 1.6, 2.36), 90, "x", -W / 2)
+    wall_plate((W / 2 - 0.05, -0.45, 2.12), -90, "x", W / 2)
 
 
 def export_final(path):
