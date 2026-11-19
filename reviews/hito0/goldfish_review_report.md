@@ -9,7 +9,7 @@ Categorías: **PROPOSE FIX** = arreglo propuesto · **CONTEST** = el revisor se 
 
 ## Comprobaciones hechas para esta resolución
 
-Revisé el paquete instalado `C:\Users\Charlie\.bun\install\global\node_modules\gopeak` (versión 2.4.1, `LICENSE` MIT en la raíz del paquete):
+Revisé el paquete instalado `gopeak` (instalación global de bun) (versión 2.4.1, `LICENSE` MIT en la raíz del paquete):
 - **GoPeak habla con el juego por TCP:** `build/index.js`, `handleRuntimeCommand` usa `RUNTIME_HOST = "127.0.0.1"` y `RUNTIME_PORT = 7777`. No lee `project.godot` ni busca ningún nodo por su ruta.
 - **GoPeak no añade el autoload por su cuenta.** Solo hay dos formas de registrarlo: la herramienta `add_autoload`, si se llama a propósito, o activar el plugin del addon en el editor (`godot_mcp_runtime.gd`, línea 27, `add_autoload_singleton`). Este proyecto no hace ninguna de las dos.
 - **El addon se apaga en release:** `mcp_runtime_autoload.gd`, `_start_server()`, línea 75: `if not OS.is_debug_build(): _enabled = false; return`.

@@ -8,7 +8,7 @@ El hito 2 pasa el incremental del hito 1 a una tele de tubo 3D dentro del salón
 - **Juego:** el jugador está sentado en el sofá, en primera persona, con el ratón capturado y una retícula en el centro. Un rayo desde la cámara toca la pantalla; `TvScreenMath` convierte el punto a coordenadas del `SubViewport`, y se le envían eventos de ratón reales, así que la UI del hito 1 funciona sin cambios.
 - **Aspecto («fotorrealismo oscuro», referencia *Visage*):** VoxelGI con SSAO y SSIL, niebla volumétrica ligera, AgX, gradación fría, sondas de reflejos y assets CC0 más modelos de Blender. Se aprueba con rondas de capturas desde cuatro puntos de vista fijos.
 - **Variantes:** el salón reflejado, exportado desde Blender como segunda escena y con los objetos de texto sin reflejar, y el salón a oscuras, un ajuste de luces con linterna.
-- **Rendimiento:** `GraphicsSettings` con cuatro presets y objetivos de tiempo de fotograma en una RTX 5060 Ti a 1080p.
+- **Rendimiento:** `GraphicsSettings` con cuatro presets y objetivos de tiempo de fotograma en el PC de desarrollo a 1080p.
 - **Fases:** 2a (tele jugable en graybox), 2b (look-dev) y 2c (variantes y rendimiento), cada una con una parada para la aprobación del usuario.
 
 ## How the existing system works, per this document

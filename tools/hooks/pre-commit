@@ -1,0 +1,15 @@
+#!/bin/sh
+# Bloquea commits con datos del usuario o de su PC (CLAUDE.md, Privacidad). Los datos se leen del propio
+# equipo para no escribirlos aquí.
+email=$(git config --global user.email)
+pat='[A-Za-z]:[/\]+Users[/\]|[Aa]pp[Dd]ata[/\]+(Local|Roaming)[/\]|\b(RTX|GTX|Radeon|Ryzen|Core i[3579])\b|@(gmail|hotmail|outlook|yahoo)\.'
+for v in "$USERNAME" "$USER" "$COMPUTERNAME" "$email"; do
+	[ -n "$v" ] && pat="$pat|$(printf '%s' "$v" | sed 's/[.[\*^$()+?{|]/\&/g')"
+done
+bad=$(git diff --cached -U0 --diff-filter=AM -- . ':!tools/hooks/pre-commit' | grep '^+[^+]' | grep -iE "$pat")
+files=$(git diff --cached --name-only --diff-filter=A | grep -iE '(^|/)(run|meta)\.json|\.log$|\.blend1$|^reviews/lookdev/|^build/')
+if [ -n "$bad$files" ]; then
+	echo "pre-commit: posible dato personal, commit bloqueado:" >&2
+	printf '%s\n%s\n' "$bad" "$files" | grep . | cut -c1-160 >&2
+	exit 1
+fi

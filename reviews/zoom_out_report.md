@@ -36,7 +36,7 @@ Sin la exploración opcional salen unas 2h35, por debajo del objetivo de 2h45-3h
 No aparecen la caja general (final secreto), la caja de plomos (apagón) ni el ascensor. Si no están en el piso, ningún hito los construye.
 
 **9. El rendimiento se deja para el final**, en las líneas 111-112 y 128. [catalyst]
-Fijar SDFGI/VoxelGI y la niebla volumétrica, validarlo solo en una RTX 5060 Ti y dejar los requisitos mínimos para el hito 7 puede invalidar el look-dev ya aprobado. Propuesta: fijar en el hito 2 un presupuesto de frame, una máquina de referencia mínima y presets de calidad. Según zoom-out, "SDFGI/VoxelGI" se decide antes de tiempo: debería salir del look-dev.
+Fijar SDFGI/VoxelGI y la niebla volumétrica, validarlo solo en el PC de desarrollo y dejar los requisitos mínimos para el hito 7 puede invalidar el look-dev ya aprobado. Propuesta: fijar en el hito 2 un presupuesto de frame, una máquina de referencia mínima y presets de calidad. Según zoom-out, "SDFGI/VoxelGI" se decide antes de tiempo: debería salir del look-dev.
 
 **10. La escalada de miedo no coincide entre §3 y §5**: líneas 39 frente a 60-63. [catalyst]
 La §5 dice que la run 2 es "espacio" y la run 3 "entorno" (objetos que se mueven). La tabla de la §3 pone en la run 2 objetos que cambian de sitio. El director no sabe qué presupuesto aplicar en cada run.

@@ -30,9 +30,9 @@ Revisores: **zoom out** (alcance y simplicidad) y **catalizador** (contradiccion
 - **Cambio:** soltar el botón del ratón siempre se envía a la pantalla, en el último punto válido, aunque se mire fuera. Se añade a la prueba con GoPeak: pulsar, mirar fuera, soltar, y el dial se para.
 
 ### 6. Medir el preset bajo de verdad (catalizador)
-- **Problema:** medirlo en tu RTX 5060 Ti dice poco de un equipo modesto. A unos 4 ms limita el procesador, no la gráfica, y una gráfica integrada no escala igual.
-- **Hallazgo:** tu Ryzen 5 9600X trae una gráfica integrada (Radeon, pequeña), pero **ahora mismo no aparece en Windows**: está desactivada en la BIOS o le falta el controlador.
-- **Cambio:** las mediciones se hacen sin sincronización vertical y separando el tiempo de la gráfica del total. Si activas la gráfica integrada (te daría los pasos), el objetivo real del preset bajo sería «≥ 60 fps en la gráfica integrada del 9600X». Si no, se mide en la RTX como aproximación, se deja anotado como no verificado y se confirma con el playtest del hito 4 (anotando el equipo de cada probador).
+- **Problema:** medirlo en una gráfica potente dice poco de un equipo modesto. A unos 4 ms limita el procesador, no la gráfica, y una gráfica integrada no escala igual.
+- **Hallazgo:** no hay una gráfica integrada disponible para medir.
+- **Cambio:** las mediciones se hacen sin sincronización vertical y separando el tiempo de la gráfica del total. Si hay una gráfica integrada, el objetivo real del preset bajo sería «≥ 60 fps en una gráfica integrada». Si no, se mide en el PC de desarrollo como aproximación, se deja anotado como no verificado y se confirma con el playtest del hito 4 (anotando el equipo de cada probador).
 
 ### 7. Presets: alcance y el «medio» sin objetivo (zoom out)
 - **Problema:** el zoom out propone dejar solo bajo y alto en este hito y el resto para el hito 7. Además, el preset medio no tiene objetivo de rendimiento, así que su test no puede pasar ni fallar.
