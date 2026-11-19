@@ -41,8 +41,14 @@ const LABEL_HOLD := 3.0
 const FACTORY_POS := Vector2(132, 92)
 const RECEPTOR_FEET := Vector2(147, 174)
 const CATCH_SIZE := Vector2(48, 40)
-## Dónde caen las cintas en la nieve (hueco 0 y 1), lejos de las máquinas.
+## Dónde caen las cintas si no queda sitio libre en la nieve (hueco 0 y 1), lejos de las máquinas.
 const PACKAGE_SLOTS: Array[Vector2] = [Vector2(170, 196), Vector2(250, 158)]
+## Esquina de arriba a la izquierda de una cinta: nieve abierta, entre los árboles de los lados.
+const TAPE_AREA := Rect2(36, 120, 236, 84)
+const TAPE_MARGIN := 3.0
+## Lo que una cinta no tapa además de máquinas, fábrica y receptor: árboles de abajo y textos del OSD.
+const TAPE_BLOCKED: Array[Rect2] = [Rect2(28, 186, 58, 54), Rect2(232, 182, 70, 58), Rect2(0, 196, 150, 44),
+		Rect2(140, 205, 180, 35)]
 const TAPE_ICONS := ["tape", "tape_rare", "tape_black"]
 ## Zona de clic del receptor, mucho mayor que su dibujo (26 × 24): al clicar deprisa el ratón se mueve.
 const RECEPTOR_HITBOX := Vector2(64, 52)
@@ -423,6 +429,7 @@ func show_packages(packages: Array[Dictionary]) -> void:
 		shown[p["slot"]] = true
 		t.texture_normal = load("res://assets/textures/tv/icon_%s.png" % TAPE_ICONS[p["rarity"]])
 		if not t.visible:
+			t.position = _tape_spot(t)
 			t.visible = true
 			_bounce(t)
 		var left: float = p["left"]
@@ -430,6 +437,29 @@ func show_packages(packages: Array[Dictionary]) -> void:
 	for slot in _tapes.size():
 		if not shown[slot]:
 			_tapes[slot].visible = false
+
+
+## Sitio al azar en la nieve para una cinta que aparece, sin tocar las máquinas que se ven, la fábrica, el
+## receptor, la otra cinta ni el OSD (petición del usuario, 2026-11-19). Se recorren todos los sitios: con todas
+## las máquinas compradas quedan pocos huecos y probar al azar casi nunca daba con uno.
+func _tape_spot(tape: TextureButton) -> Vector2:
+	var blocked: Array[Rect2] = []
+	for b in TAPE_BLOCKED + [_factory.get_rect(), _receptor.get_rect()]:
+		blocked.append(b.grow(TAPE_MARGIN))
+	for g: Dictionary in _groups.values():
+		for m: TextureButton in g["machines"]:
+			if m.visible:
+				blocked.append(m.get_rect().grow(TAPE_MARGIN))
+	for other in _tapes:
+		if other != tape and other.visible:
+			blocked.append(other.get_rect().grow(TAPE_MARGIN))
+	var free: Array[Vector2] = []
+	for y in range(TAPE_AREA.position.y, TAPE_AREA.end.y, 4):
+		for x in range(TAPE_AREA.position.x, TAPE_AREA.end.x, 4):
+			var r := Rect2(Vector2(x, y), tape.size)
+			if not blocked.any(func(b: Rect2) -> bool: return b.intersects(r)):
+				free.append(r.position)
+	return free.pick_random() if not free.is_empty() else PACKAGE_SLOTS[_tapes.find(tape)]
 
 
 func get_tape(slot: int) -> TextureButton:

@@ -4,7 +4,7 @@ extends RefCounted
 # Único sitio que escribe la intensidad de las luces y la luz ambiente (specs/hito2.md D10).
 # energía = base(estado) × factor. Cada luz del salón lleva en metadatos base_normal y base_dark.
 
-const TV_SCREEN_SCALE := {&"on": 1.0, &"interference": 1.6, &"off": 0.0}
+const TV_SCREEN_SCALE := {&"on": 1.0, &"off": 0.0}
 ## En el menú la tele apenas ilumina la pared: el salón se intuye, no se ve (medido en capturas).
 const MENU_SCREEN_SCALE := 0.1
 

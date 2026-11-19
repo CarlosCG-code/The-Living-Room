@@ -166,8 +166,6 @@ func catch_event() -> bool:
 		return false
 	_gain(event_reward(e), false)
 	state.events_caught += 1
-	if mods.eyes:
-		state.timers["bump"] = 3600.0  # la siguiente cinta sube un grado
 	_end_event()
 	return true
 
@@ -499,11 +497,7 @@ func _fill_bar(amount: float) -> void:
 
 func _roll_rarity() -> int:
 	var roll := _rng.randf()
-	var rarity: int = Rarity.BLACK if roll < mods.black else (Rarity.RARE if roll < mods.black + mods.rare else Rarity.COMMON)
-	if state.timers.has("bump"):
-		state.timers.erase("bump")
-		rarity = mini(rarity + 1, Rarity.BLACK)
-	return rarity
+	return Rarity.BLACK if roll < mods.black else (Rarity.RARE if roll < mods.black + mods.rare else Rarity.COMMON)
 
 
 func _start_event() -> void:

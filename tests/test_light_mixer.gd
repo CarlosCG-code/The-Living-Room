@@ -50,8 +50,8 @@ func test_factor_multiplies_base() -> void:
 
 
 func test_screen_light_follows_tv() -> void:
-	mixer.set_tv_state(&"interference")
-	assert_almost_eq(screen_light.light_energy, 1.6, 0.0001)
+	mixer.set_tv_state(&"on")
+	assert_almost_eq(screen_light.light_energy, 1.0, 0.0001)
 	mixer.set_tv_state(&"off")
 	assert_false(screen_light.visible)
 

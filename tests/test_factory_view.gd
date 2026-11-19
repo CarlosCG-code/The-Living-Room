@@ -87,6 +87,27 @@ func test_tapes_show_in_their_slot_and_can_be_clicked() -> void:
 	assert_false(view.get_tape(1).visible, "abierta o perdida, desaparece")
 
 
+func test_tapes_fall_somewhere_free_in_the_snow() -> void:
+	var all := {}
+	for id: StringName in FactoryView.LAYOUT:
+		all[id] = 100  # todas las máquinas a la vista: el caso con menos sitio
+	view.show_counts(all)
+	var spots := {}
+	for i in 30:
+		view.show_packages([{"rarity": 0, "left": 15.0, "slot": 0}, {"rarity": 0, "left": 15.0, "slot": 1}] as Array[Dictionary])
+		var a := view.get_tape(0).get_rect()
+		var b := view.get_tape(1).get_rect()
+		assert_false(a.intersects(b), "las dos cintas no se tapan")
+		for r in [a, b]:
+			spots[r.position] = true
+			for id: StringName in FactoryView.LAYOUT:
+				for m in _machines(id):
+					assert_false(m.get_rect().intersects(r), "ninguna cinta encima de %s" % id)
+			assert_false(view.get_receptor().get_rect().intersects(r), "ni del receptor")
+		view.show_packages([] as Array[Dictionary])
+	assert_gt(spots.size(), 10, "cada cinta cae en un sitio distinto")
+
+
 func test_windows_go_dark_with_the_run() -> void:
 	view.set_dread(0.1, 1)
 	assert_eq(view.windows_off(), 0, "al principio, las tres encendidas")

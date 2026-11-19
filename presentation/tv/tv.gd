@@ -51,11 +51,8 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	_ambience(delta)
-	var state: StringName = &"off"
-	# En pausa la tele sigue encendida: si su luz cambiara, el salón cambiaría de color detrás del menú.
-	if power:
-		var e := Game.economy.active_event()
-		state = &"interference" if e and e.id == &"interference" else &"on"
+	# La luz de la pantalla no cambia con los eventos: en la interferencia aclaraba todo el salón (usuario, 2026-11-19).
+	var state: StringName = &"on" if power else &"off"
 	if state != _state:
 		_state = state
 		screen_state_changed.emit(state)

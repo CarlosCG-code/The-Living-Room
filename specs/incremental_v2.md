@@ -99,7 +99,7 @@ Se compran **en cualquier orden** (antes era en orden fijo, una queja de *Click 
 |---|---|---|
 | 2 | Tu memoria | empiezas con 10 Antenas, 5 Válvulas, Pulso y Dial firme |
 | 2 | Tus manos | la racha aguanta 3 s sin clicar y cada crítico llena un 20 % de la barra de cinta |
-| 3 | Tus ojos | eventos cada 1–2 min, avisados 3 s antes; atrapar uno sube un grado la siguiente cinta |
+| 3 | Tus ojos | eventos cada 1–2 min (la subida de grado de la cinta se quitó el 2026-11-19: sobraba) |
 | 3 | Tu costumbre | generadores −25 %; las mejoras de máquina piden la mitad de unidades |
 | 3 | Tu pulso | clic a mano ×2 |
 | 4 | Tu nombre | tu nombre aparece en el OSD y en las cintas; la tabla de récords te reconoce (lore) |

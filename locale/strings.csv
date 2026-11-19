@@ -130,7 +130,7 @@ UPG_DONT_LOOK_AWAY,No apartes la vista
 UPG_DONT_LOOK_AWAY_DESC,La silueta paga ×4. Cada vez sale más cerca.
 UPG_WARNING,Notarás algo en casa.
 PERK_EYES,Tus ojos
-PERK_EYES_DESC,Lo raro sale cada 1-2 min. Atraparlo mejora la siguiente cinta.
+PERK_EYES_DESC,Lo raro sale cada 1-2 min.
 UI_EFFECT_CRIT,Crítico: %s %% -> %s %%
 UI_EFFECT_CRIT_MULT,Crítico: ×%s -> ×%s
 UI_EFFECT_COMBO,Racha máxima: ×%s -> ×%s
