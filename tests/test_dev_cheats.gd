@@ -56,3 +56,13 @@ func test_events_tapes_and_new_game() -> void:
 	assert_eq(Game.economy.state.run_index, 1)
 	assert_eq(Game.economy.packages().size(), 0)
 	assert_eq(Engine.time_scale, 1.0)
+
+
+func test_start_run_keeps_perks_and_accepts_text() -> void:
+	cheats._all_perks()
+	cheats._start_run("3")  # GoPeak pasa los argumentos como texto
+	var s := Game.economy.state
+	assert_eq(s.run_index, 3)
+	assert_eq(s.perks.size(), Game.economy.config.perks.size(), "conserva las permanentes")
+	assert_true(s.upgrades.has(&"pulse"), "Tu memoria da las primeras mejoras")
+	assert_eq(s.energy_produced_run, 0.0, "run nueva")

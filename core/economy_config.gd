@@ -34,7 +34,7 @@ extends Resource
 func threshold_for(run_index: int) -> float:
 	if threshold_mult.is_empty():
 		return threshold
-	return threshold * threshold_mult[clampi(run_index - 1, 0, threshold_mult.size() - 1)]
+	return roundf(threshold * threshold_mult[clampi(run_index - 1, 0, threshold_mult.size() - 1)])
 
 
 func find_generator(id: StringName) -> GeneratorDef:

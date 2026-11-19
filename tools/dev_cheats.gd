@@ -4,6 +4,9 @@ extends CanvasLayer
 # tools/ no se exporta (sin class_name: la build no debe conocerlo). F1 lo abre y lo cierra. Herramienta de desarrollo: sus textos no pasan por tr().
 
 const TOGGLE_KEY := KEY_F1
+## El panel se diseña para 1080 de alto y se escala a la ventana (en 4K salía diminuto).
+const DESIGN_HEIGHT := 1080.0
+const WIDTH := 560.0
 const RARITY_NAMES := ["común", "rara", "negra"]
 
 var _panel: PanelContainer
@@ -12,15 +15,19 @@ var _box: VBoxContainer
 
 
 func _ready() -> void:
+	name = "DevCheats"
 	layer = 100
 	process_mode = Node.PROCESS_MODE_ALWAYS  # también con el menú de pausa abierto
 	_panel = PanelContainer.new()
 	_panel.position = Vector2(12, 12)
-	_panel.custom_minimum_size = Vector2(430, 0)
+	_panel.custom_minimum_size = Vector2(WIDTH, 0)
 	_panel.visible = false
+	var theme := Theme.new()
+	theme.default_font_size = 18
+	_panel.theme = theme
 	add_child(_panel)
 	var scroll := ScrollContainer.new()
-	scroll.custom_minimum_size = Vector2(430, 1000)
+	scroll.custom_minimum_size = Vector2(WIDTH, DESIGN_HEIGHT - 40.0)
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	_panel.add_child(scroll)
 	_box = VBoxContainer.new()
@@ -39,6 +46,7 @@ func _input(event: InputEvent) -> void:
 
 
 func _process(_delta: float) -> void:
+	scale = Vector2.ONE * get_viewport().get_visible_rect().size.y / DESIGN_HEIGHT
 	if not _panel.visible:
 		return
 	var eco := Game.economy
@@ -47,11 +55,16 @@ func _process(_delta: float) -> void:
 		s.run_index, NumberFormat.energy(s.energy), NumberFormat.energy(s.energy_produced_run),
 		NumberFormat.energy(eco.threshold()), 100.0 * s.energy_produced_run / eco.threshold(), s.carga,
 		", ".join(PackedStringArray(s.perks)), s.upgrades.size(),
-		s.event_id if s.event_id != &"" else "-", eco.packages().size(), Engine.time_scale,
+		String(s.event_id) if s.event_id != &"" else "-", eco.packages().size(), Engine.time_scale,
 		"en marcha" if Game.running else "parada"]
 
 
 func _build() -> void:
+	_section("Atajos")
+	_row([["Jugar ya (sin menú)", _play], ["Abrir árbol", _open_tree]])
+	_row([["Desbloquear todo el árbol", _reveal_all], ["Comprarlo todo", _buy_everything]])
+	_section("Empezar una run (con las permanentes que tengas)")
+	_row([["Run 1", _start_run.bind(1)], ["Run 2", _start_run.bind(2)], ["Run 3", _start_run.bind(3)], ["Run 4", _start_run.bind(4)]])
 	_section("Energía")
 	_row([["+1 min de ingresos", func() -> void: _give(maxf(eco_income(), 10.0) * 60.0)],
 		["+10 min", func() -> void: _give(maxf(eco_income(), 10.0) * 600.0)]])
@@ -63,7 +76,6 @@ func _build() -> void:
 	_row([["Comprar todo lo visible", _buy_all], ["+10 de cada máquina", _add_machines]])
 	_section("Runs y Carga")
 	_row([["Reiniciar ya", _restart_now], ["+5 Carga", func() -> void: Game.economy.state.carga += 5]])
-	_row([["Run 1", _set_run.bind(1)], ["Run 2", _set_run.bind(2)], ["Run 3", _set_run.bind(3)], ["Run 4", _set_run.bind(4)]])
 	_row([["Todas las permanentes", _all_perks], ["Quitar permanentes", _no_perks]])
 	_section("Eventos y cintas")
 	var events: Array = []
@@ -102,12 +114,15 @@ func eco_income() -> float:
 	return Game.economy.income_now()
 
 
-func _give(amount: float) -> void:
+# Los argumentos sin tipo: GoPeak (call_runtime_method) los pasa como texto y así Claude también puede usarlos.
+func _give(value) -> void:
+	var amount := float(value)
 	Game.economy.state.energy += amount
 	Game.economy.state.energy_produced_run += amount
 
 
-func _to_ratio(ratio: float) -> void:
+func _to_ratio(value) -> void:
+	var ratio := float(value)
 	var missing := ratio * Game.economy.threshold() - Game.economy.state.energy_produced_run
 	if missing > 0.0:
 		_give(missing)
@@ -128,14 +143,84 @@ func _add_machines() -> void:
 	EventBus.purchase_made.emit(eco.config.generators[0].id)  # la fábrica de la tele redibuja sus máquinas
 
 
+## Como pulsar Reiniciar: carta de fin de la emisión y pantalla de Carga (si no hay partida en pantalla, directo).
 func _restart_now() -> void:
 	_to_ratio(1.0)
-	Game.restart()
+	var ui := _ui()
+	if ui and Game.running:
+		ui._restart()
+	else:
+		Game.restart()
 
 
-func _set_run(run: int) -> void:
+func _set_run(value) -> void:
+	var run := int(value)
 	Game.economy.state.run_index = run
 	Game.economy._recalc()
+
+
+## Como tras reiniciar: run nueva con la Carga y las permanentes de ahora.
+func _start_run(value) -> void:
+	var run := int(value)
+	var eco := Game.economy
+	var old := eco.state
+	eco.state = RunState.new_run(eco.config, run, RandomNumberGenerator.new())
+	eco.state.carga = old.carga
+	eco.state.perks = old.perks.duplicate()
+	eco.packages().clear()
+	for id in old.perks:
+		eco._grant_start(eco.config.find_perk(id))
+	eco._recalc()
+	EventBus.run_restarted.emit(run)
+	_play()
+
+
+## Cumple los requisitos de todo el árbol (clics, cintas, eventos, máquinas, permanentes) sin comprar nada.
+func _reveal_all() -> void:
+	var eco := Game.economy
+	_set_run(4)
+	_all_perks()
+	eco.state.manual_clicks = maxi(eco.state.manual_clicks, 100000)
+	eco.state.packages_opened = maxi(eco.state.packages_opened, 1000)
+	eco.state.events_caught = maxi(eco.state.events_caught, 1000)
+	for g in eco.config.generators:
+		eco.state.generators[g.id] = maxi(eco.owned(g.id), 30)
+	_to_ratio(1.0)
+	eco._recalc()
+
+
+## Todo el árbol comprado, rama a rama (cada compra abre la siguiente).
+func _buy_everything() -> void:
+	_reveal_all()
+	var before := -1
+	while Game.economy.state.upgrades.size() != before:
+		before = Game.economy.state.upgrades.size()
+		_buy_all()
+
+
+func _ui() -> Node:
+	for n in get_tree().root.find_children("*", "Control", true, false):
+		if n.has_method("start_playing") and n.has_method("open_pause"):
+			return n
+	return null
+
+
+## A jugar desde donde esté la tele: cierra menú, pausa, árbol y pantalla de Carga.
+func _play() -> void:
+	var ui := _ui()
+	if ui == null:
+		return
+	ui._carga.hide()
+	ui._pause.hide()
+	ui._close_shop()
+	ui.start_playing()
+
+
+func _open_tree() -> void:
+	_play()
+	var ui := _ui()
+	if ui:
+		ui._open_shop()
 
 
 func _all_perks() -> void:
@@ -150,14 +235,16 @@ func _no_perks() -> void:
 	Game.economy._recalc()
 
 
-func _start_event(id: StringName) -> void:
+func _start_event(value) -> void:
+	var id := StringName(value)
 	var eco := Game.economy
 	var e := eco.config.find_event(id)
 	eco.state.event_id = id
 	eco.state.event_left = e.duration
 
 
-func _drop(rarity: int) -> void:
+func _drop(value) -> void:
+	var rarity := int(value)
 	var eco := Game.economy
 	if eco.packages().size() >= Economy.MAX_PACKAGES:
 		return
@@ -178,8 +265,9 @@ func _fill_bar() -> void:
 	eco.state.package_bar = eco.bar_size() - 0.01
 
 
-func _speed(scale: float) -> void:
-	Engine.time_scale = scale
+func _speed(value) -> void:
+	var factor := float(value)
+	Engine.time_scale = factor
 
 
 # Las variantes del salón se eligen al crear la escena (TLR_MIRROR, TLR_DARK): se fijan y se recarga.

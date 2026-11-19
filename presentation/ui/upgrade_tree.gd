@@ -122,14 +122,35 @@ func state_of(id: StringName) -> StringName:
 
 func describe(id: StringName) -> String:
 	if id != &"" and state_of(id) == &"locked":
-		return tr(_locked_key(id))
+		return _locked_text(id)
 	var c := card(id)
 	return " — ".join(PackedStringArray([c.get("title", ""), c.get("body", ""), c.get("effect", ""), c.get("cost", "")]))
 
 
-func _locked_key(id: StringName) -> String:
-	var u := Game.economy.config.find_upgrade(id)
-	return "UI_LOCKED_RUN" if u and u.req_run > Game.economy.state.run_index else "UI_LOCKED"
+## Por qué no se puede comprar aún, con lo que falta (antes decía siempre «compra la de la que sale»).
+func _locked_text(id: StringName) -> String:
+	var eco := Game.economy
+	var u := eco.config.find_upgrade(id)
+	if u == null:
+		return tr("UI_LOCKED")
+	var s := eco.state
+	if u.req_run > s.run_index:
+		return tr("UI_LOCKED_RUN")
+	if u.requires_id != &"" and eco.owned(u.requires_id) == 0 and not eco.is_bought(u.requires_id):
+		return tr("UI_LOCKED")
+	var units := ceili(u.req_generator_count * eco.mods.machine_req)
+	if u.req_generator_count > 0 and eco.owned(u.target_id) < units:
+		var g := eco.config.find_generator(u.target_id)
+		return tr("UI_LOCKED_UNITS") % [units, tr(g.name_key) if g else "", eco.owned(u.target_id)]
+	if s.manual_clicks < u.req_manual_clicks:
+		return tr("UI_LOCKED_CLICKS") % [u.req_manual_clicks, s.manual_clicks]
+	if s.packages_opened < u.req_packages:
+		return tr("UI_LOCKED_TAPES") % [u.req_packages, s.packages_opened]
+	if s.events_caught < u.req_events_caught:
+		return tr("UI_LOCKED_EVENTS") % [u.req_events_caught, s.events_caught]
+	if s.energy_produced_run < u.req_energy_produced:
+		return tr("UI_LOCKED_ENERGY") % NumberFormat.short(u.req_energy_produced)
+	return tr("UI_LOCKED")
 
 
 ## Textos de la ficha: title, cost (y cost_color), body y effect.
@@ -139,7 +160,7 @@ func card(id: StringName) -> Dictionary:
 	var eco := Game.economy
 	var state := state_of(id)
 	if state == &"locked":
-		return {"title": "???", "body": tr(_locked_key(id)), "cost_color": DIM}
+		return {"title": "???", "body": _locked_text(id), "cost_color": DIM}
 	var cost_text := tr("UI_BOUGHT") if state == &"bought" else NumberFormat.energy(eco.cost_of(id))
 	var cost_color: Color = {&"bought": GREEN, &"affordable": GOLD}.get(state, RED)
 	var g := eco.config.find_generator(id)

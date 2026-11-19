@@ -23,3 +23,10 @@ func test_per_click() -> void:
 	assert_eq(NumberFormat.per_click(9.994), "9,99")
 	assert_eq(NumberFormat.per_click(9.996), "10")
 	assert_eq(NumberFormat.per_click(1234.6), "1.235")
+
+
+func test_short_fits_the_osd() -> void:
+	assert_eq(NumberFormat.short(950), "950")
+	assert_eq(NumberFormat.short(12345), "12,3 K")
+	assert_eq(NumberFormat.short(112_000_000), "112 M")
+	assert_eq(NumberFormat.short(1_599_999_999), "1,5 G")

@@ -24,6 +24,16 @@ static func per_click(x: float) -> String:
 	return _group(int(roundf(v)))
 
 
+## Cifra corta para textos estrechos del OSD: 950 · 12,3 K · 112 M · 1,5 G.
+static func short(x: float) -> String:
+	var v := maxf(x, 0.0)
+	for unit: Array in [[1e12, "T"], [1e9, "G"], [1e6, "M"], [1e3, "K"]]:
+		if v >= unit[0]:
+			var n: float = floorf(v / unit[0] * 10.0) / 10.0
+			return (("%.1f" % n).replace(".", ",") if n < 100.0 else str(int(n))) + " " + unit[1]
+	return _group(int(floorf(v)))
+
+
 static func _group(n: int) -> String:
 	var digits := str(n)
 	var out := ""

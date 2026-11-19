@@ -141,7 +141,7 @@ func _process(_delta: float) -> void:
 	_osd.show_values(NumberFormat.energy(state.energy), NumberFormat.rate(eco.production_per_second()),
 		NumberFormat.per_click(eco.click_value()), state.energy_produced_run / eco.threshold(),
 		eco.carga_if_restarted() if eco.can_restart() else -1, not _tree.visible and _has_affordable(eco),
-		NumberFormat.energy(eco.next_carga_at()) if eco.can_restart() else "")
+		NumberFormat.short(eco.next_carga_at()) if eco.can_restart() else "")
 	var skills := {}
 	for skill: StringName in TvOsd.SKILLS:
 		if eco.has_skill(skill):
