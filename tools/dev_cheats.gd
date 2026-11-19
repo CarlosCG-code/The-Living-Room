@@ -12,6 +12,11 @@ const RARITY_NAMES := ["común", "rara", "negra"]
 var _panel: PanelContainer
 var _status: Label
 var _box: VBoxContainer
+## Cámara libre para revisar el salón (usuario, 2026-11-19): sin colisiones, a propósito, para mirar de cerca.
+var _fly: Camera3D
+var _fly_prev: Camera3D
+const FLY_SPEED := 1.4
+const LOOK_SENS := 0.0025
 
 
 func _ready() -> void:
@@ -49,11 +54,24 @@ func _ready() -> void:
 func _input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo and event.keycode == TOGGLE_KEY:
 		_panel.visible = not _panel.visible
+		if _fly:
+			Input.mouse_mode = Input.MOUSE_MODE_VISIBLE if _panel.visible else Input.MOUSE_MODE_CAPTURED
 		get_viewport().set_input_as_handled()
+	elif _fly and event.is_action_pressed("ui_cancel"):
+		_toggle_fly()
+		get_viewport().set_input_as_handled()
+	elif _fly and not _panel.visible and event is InputEventMouse:
+		if event is InputEventMouseMotion:
+			var r: Vector2 = (event as InputEventMouseMotion).relative * LOOK_SENS
+			_fly.rotate_y(-r.x)
+			_fly.rotation.x = clampf(_fly.rotation.x - r.y, -1.5, 1.5)
+		get_viewport().set_input_as_handled()  # la tele no debe recibir clics mientras se vuela
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
 	scale = Vector2.ONE * get_viewport().get_visible_rect().size.y / DESIGN_HEIGHT
+	if _fly and not _panel.visible:
+		_fly_step(delta / maxf(Engine.time_scale, 0.001))
 	if not _panel.visible:
 		return
 	var eco := Game.economy
@@ -68,6 +86,7 @@ func _process(_delta: float) -> void:
 
 func _build() -> void:
 	_section("Atajos")
+	_row([["Levantarse y moverse (WASD, ratón, Espacio/C, Mayús; Esc vuelve)", _toggle_fly]])
 	_row([["Jugar ya (sin menú)", _play], ["Abrir árbol", _open_tree]])
 	_row([["Desbloquear todo el árbol", _reveal_all], ["Comprarlo todo", _buy_everything]])
 	_section("Empezar una run (con las permanentes que tengas)")
@@ -292,3 +311,35 @@ func _new_game() -> void:
 	eco._recalc()
 	Engine.time_scale = 1.0
 	Game._save()
+
+
+func _toggle_fly() -> void:
+	if _fly:
+		if is_instance_valid(_fly_prev):
+			_fly_prev.make_current()
+		_fly.queue_free()
+		_fly = null
+		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+		return
+	_fly_prev = get_viewport().get_camera_3d()
+	if _fly_prev == null:
+		return
+	_fly = Camera3D.new()
+	_fly.name = "FlyCamera"
+	_fly.fov = 70.0
+	_fly_prev.get_parent().add_child(_fly)
+	_fly.global_position = _fly_prev.global_position
+	_fly.rotation = Vector3(_fly_prev.global_rotation.x, _fly_prev.global_rotation.y, 0.0)
+	_fly.make_current()
+	_panel.visible = false
+	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+
+
+func _fly_step(delta: float) -> void:
+	var b := _fly.global_basis
+	var v := Vector3.ZERO
+	for pair: Array in [[KEY_W, -b.z], [KEY_S, b.z], [KEY_A, -b.x], [KEY_D, b.x], [KEY_SPACE, Vector3.UP], [KEY_C, Vector3.DOWN]]:
+		if Input.is_physical_key_pressed(pair[0]):
+			v += pair[1]
+	var speed := FLY_SPEED * (3.0 if Input.is_physical_key_pressed(KEY_SHIFT) else 1.0)
+	_fly.global_position += v.normalized() * speed * delta

@@ -159,7 +159,7 @@ autoplay = true
 transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 0, 0.53, 2.2)
 
 [node name="SeatAnchor" type="Marker3D" parent="Anchors" groups=["mirror_transform"]]
-transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 0, 1.1, -1.85)
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 0, 0.75, -1.8)
 
 [node name="CaptureCameras" type="Node3D" parent="."]
 

@@ -76,7 +76,7 @@ Los costes son una primera pasada sobre la curva actual; el test de ritmo los aj
 | 21:30 | Zapping | M | todas +2 % por mando | el crítico salta de canal un instante |
 | 23:00 | Derivar | X | producción ×2 | la luz del rellano parpadea (la usará el director) |
 | 24:30 | Eco | D | los clics automáticos hacen racha y crítico | el dial ya no te necesita |
-| 26:00 | No apartes la vista | C | la silueta paga ×4 | cada vez que la atrapas, sale más cerca |
+| ~~26:00~~ | ~~No apartes la vista~~ | C | quitada con la silueta (usuario, 2026-11-19) | |
 | 27:30 | Alguien más sintoniza | D | 4 clics/s automáticos | otro «+N» de otro color |
 | 29:00 | Cinta sin etiqueta | C | la negra pasa a 12 % y siempre trae lore | suenan tus clics, con retraso |
 | 30:30 | Sobrecarga | X | apuesta: mantener Espacio 3 s → 70 % de producción ×5 durante 20 s, o 30 % de tele apagada 8 s | la imagen se encoge a un punto |
@@ -125,7 +125,7 @@ Se compran **en cualquier orden** (antes era en orden fijo, una queja de *Click 
 3. **f > 0,6:** los pulsos de los cables laten irregulares, como un corazón.
 4. **f > 0,7:** el bosque se aclara; los árboles desaparecen entre eventos, nunca mientras se miran.
 5. **f > 0,85:** el OSD pierde precisión: dígitos que cambian un fotograma.
-6. **La silueta, run a run:** R1 lejos y en el borde; R2 en el lado espejado; R3 junto a la fábrica; R4 justo detrás del cristal, quieta y sin ojos.
+6. ~~**La silueta, run a run:**~~ (quitada, usuario 2026-11-19) R1 lejos y en el borde; R2 en el lado espejado; R3 junto a la fábrica; R4 justo detrás del cristal, quieta y sin ojos.
 7. **R2:** a mitad de run, el mundo de la tele se espeja; el OSD no.
 8. **R4:** el OSD muestra tus cifras de runs anteriores como si fueran "de otro espectador".
 9. **Al pulsar Reiniciar:** carta de "FIN DE LA EMISIÓN" con un tono de prueba que desafina, y después la pantalla de Carga.
@@ -177,7 +177,7 @@ Problema: todo el árbol se compraba en la run 1 y las runs 2-4 repetían lo mis
   - run 1: pulso, dial, máquinas y cintas básicas, más ×2 de cada máquina al tener muchas (Antena 25,
     Válvulas 25, Frecuencia 20, Mando 10 y 20, Canal 3 9 y 20), *Eco* y *Zapping*;
   - run 2: habilidades del mando (*Barrido*, *Sobretensión*, *Buscar señal*), *Sin toma de tierra* y *Doble pletina*;
-  - run 3: consumo (*Puentear*, *Derivar*), *No apartes la vista* y *Cinta sin etiqueta*;
+  - run 3: consumo (*Puentear*, *Derivar*), *Cinta sin etiqueta*;
   - run 4: *Sobrecarga* y *Alguien más sintoniza*.
 - **Techo:** *Zapping*, *Sin toma de tierra*, *Derivar* y *Alguien más sintoniza* cuestan 0,8 × el umbral.
   Quien reinicia en cuanto puede no las compra; quien aguanta en la tele, sí.

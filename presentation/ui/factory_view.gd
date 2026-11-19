@@ -18,17 +18,9 @@ signal event_started(id: StringName)
 signal package_pressed(slot: int)
 
 const TEX := "res://assets/textures/tv/"
-# Eventos (core/tv_event_def.gd): la estrella cruza el cielo; la silueta sale en uno de estos sitios.
+# Eventos (core/tv_event_def.gd): la estrella cruza el cielo.
 const STAR_FROM := Vector2(300, 14)
 const STAR_TO := Vector2(40, 58)
-# Pies de la silueta en cada run: lejos y en el borde (1), al otro lado (2), junto a la fábrica (3) y justo
-# detrás del cristal (4: grande, quieta y sin ojos). Siempre en la nieve abierta, donde se recorta.
-const SILHOUETTE_SPOTS_BY_RUN := {
-	1: [Vector2(40, 190), Vector2(292, 170)],
-	2: [Vector2(262, 194), Vector2(122, 198)],
-	3: [Vector2(214, 162), Vector2(120, 150)],
-	4: [Vector2(160, 236)],
-}
 ## Ventanas de la fábrica (en su dibujo): se apagan de una en una a lo largo de la run.
 const FACTORY_WINDOWS: Array[Rect2] = [Rect2(6, 22, 11, 8), Rect2(22, 22, 11, 8), Rect2(38, 22, 11, 8)]
 const SHADOW := Color("05060b")
@@ -80,7 +72,6 @@ var _windows_off := 0
 var _run := 1
 var _dread := 0.0
 var _freeze_left := 0.0
-var _silhouette_scale := 1.0
 var _vignette: TextureRect
 var _event_id: StringName = &""
 var _event_t := 0.0
@@ -267,9 +258,9 @@ func show_event(e: TvEventDef, t: float) -> void:
 	_marker.queue_redraw()
 
 
-## Centro de lo que hay que clicar (la silueta se mide desde los pies).
+## Centro de lo que hay que clicar.
 func event_center() -> Vector2:
-	return _event_at + (Vector2(0, -10) if _event_id == &"silhouette" else Vector2.ZERO)
+	return _event_at
 
 
 func _start_event(e: TvEventDef) -> void:
@@ -287,9 +278,6 @@ func _start_event(e: TvEventDef) -> void:
 		if not powered.is_empty():
 			_faulty = powered.pick_random()
 			_faulty.sparking = true
-	elif id == &"silhouette":
-		_event_at = (SILHOUETTE_SPOTS_BY_RUN[_run] as Array).pick_random()
-		_silhouette_scale = 3.0 if _run >= 4 else 1.0
 	_sparks.emitting = id == &"interference"
 	_catch.visible = e != null and e.catchable()
 	# Solo la Señal clara se anuncia: lo demás hay que verlo (pedido del usuario, 2026-11-18).
@@ -327,24 +315,6 @@ func _draw_event() -> void:
 				for x in range(0, 320, 2):
 					var y := 22.0 + band * 7.0 + sin(x * 0.03 + time * 0.8 + band) * 6.0
 					c.draw_rect(Rect2(x, y, 2, 10 - band * 2), Color(0.62, 0.85, 0.68, alpha * (1.0 - band * 0.25)))
-		&"silhouette":
-			# Figura quieta en la nieve: aparece despacio (no es un susto) y al final se va apagando a golpes.
-			var a := clampf(_event_t * 3.0, 0.0, 1.0)
-			if _event_t > 0.8 and fmod(_event_t * 20.0, 2.0) < 1.0:
-				a *= 0.3
-			var feet := _event_at
-			var k := _silhouette_scale  # en la run 4 está justo detrás del cristal: enorme
-			c.draw_rect(Rect2(feet + Vector2(-3, -16) * k, Vector2(6, 16) * k), Color(SHADOW, a))  # cuerpo
-			c.draw_rect(Rect2(feet + Vector2(-4, -15) * k, Vector2(1, 9) * k), Color(SHADOW, a))  # brazos largos
-			c.draw_rect(Rect2(feet + Vector2(3, -15) * k, Vector2(1, 9) * k), Color(SHADOW, a))
-			c.draw_rect(Rect2(feet + Vector2(-2, -21) * k, Vector2(4, 5) * k), Color(SHADOW, a))  # cabeza
-			if _run >= 4:
-				return  # sin ojos
-			c.draw_rect(Rect2(feet + Vector2(-6, 0), Vector2(12, 2)), Color(SHADOW, a * 0.5))  # sombra en la nieve
-			# Ojos que brillan: lo primero que se ve.
-			for eye: Vector2 in [Vector2(-1, -19), Vector2(1, -19)]:
-				c.draw_rect(Rect2(feet + eye, Vector2(1, 1)), Color(1.0, 0.95, 0.85, a))
-				c.draw_rect(Rect2(feet + eye + Vector2(0, -1), Vector2(1, 1)), Color(1.0, 0.9, 0.7, a * 0.35))
 
 
 ## Esquinas de OSD que laten (2 por segundo como mucho) alrededor de lo que se puede atrapar.

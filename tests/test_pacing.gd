@@ -33,7 +33,7 @@ func test_config_valid() -> void:
 		gen_ids.append(g.id)
 		assert_ne(tr(g.name_key), g.name_key, "traducción de %s" % g.name_key)
 	assert_eq(gen_ids, GENERATOR_IDS)
-	assert_eq(config.upgrades.size(), 40)
+	assert_eq(config.upgrades.size(), 39)
 	var cells := {}
 	for i in GENERATOR_IDS.size():
 		cells[Vector2i(i, 2)] = GENERATOR_IDS[i]

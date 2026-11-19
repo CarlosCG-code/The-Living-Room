@@ -2,7 +2,7 @@
 
 Uso: python tools/build_tv_sounds.py  -> assets/audio/tv/event_*.wav (22 050 Hz, 16 bits, mono).
 Cada evento tiene un sonido propio y siempre el mismo, para que el jugador lo aprenda. Volumen moderado:
-avisan, no asustan (la silueta entra con un zumbido grave que crece despacio, no con un golpe).
+avisan, no asustan.
 """
 import math
 import os
@@ -58,20 +58,6 @@ def shooting_star():
         phase += 2 * math.pi * f / RATE
         trem = 0.75 + 0.25 * math.sin(2 * math.pi * 14 * t)
         out.append((math.sin(phase) + 0.3 * math.sin(phase * 2.01)) * trem * env(t, 0.9, 0.02, 0.6))
-    return out
-
-
-def silhouette():
-    # Zumbido grave y desafinado que crece y se va (55 y 58 Hz batiendo), con un poco de soplido.
-    rng = random.Random(2)
-    n = int(RATE * 2.2)
-    out = []
-    noise = 0.0
-    for i in range(n):
-        t = i / RATE
-        noise = noise * 0.98 + rng.uniform(-1, 1) * 0.02
-        tone = math.sin(2 * math.pi * 55 * t) + math.sin(2 * math.pi * 58.3 * t) + 0.4 * math.sin(2 * math.pi * 110 * t)
-        out.append((tone * 0.5 + noise * 3.0) * env(t, 2.2, 1.0, 0.9))
     return out
 
 
@@ -147,6 +133,5 @@ if __name__ == "__main__":
     save("click_relay", click_relay())
     save("event_interference", interference())
     save("event_shooting_star", shooting_star())
-    save("event_silhouette", silhouette())
     save("event_clear_signal", clear_signal())
     print("SOUNDS_OK")

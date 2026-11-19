@@ -107,8 +107,6 @@ UPGRADES = [
     ("ghost_image", EVENT_REWARD, 30_000, "sharp_eye", (6, 3), "eye", {"perk": "eyes", "value": 3.0}),
     ("ghost_hands", MANUAL_MULT, 400_000, "ghost_image", (7, 3), "pulse_strong", {"perk": "eyes", "value": 3.0}),
     ("ghost_signal", PROD_MULT, 8_000_000, "ghost_hands", (8, 3), "meter", {"perk": "eyes", "value": 2.5}),
-    ("dont_look_away", EVENT_REWARD, 570_000, "sharp_eye", (7, 4), "eye",
-     {"run": 3, "target": "silhouette", "value": 2.0, "req_events_caught": 4}),
 ]
 
 # Mejoras permanentes (specs/incremental_v2.md §4), en cualquier orden: id, clave, coste, PerkDef.Kind, datos.
@@ -128,7 +126,6 @@ EVENTS = [
     ("interference", 4, 8, 10, 50, 1),
     ("shooting_star", 3, 5, 6, 25, 1),
     ("clear_signal", 2, 20, 0, 0, 2),
-    ("silhouette", 2, 7, 30, 150, 1),
 ]
 
 

@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="EconomyConfig" load_steps=62 format=3]
+[gd_resource type="Resource" script_class="EconomyConfig" load_steps=60 format=3]
 
 [ext_resource type="Script" path="res://core/economy_config.gd" id="config_script"]
 [ext_resource type="Script" path="res://core/generator_def.gd" id="gen_script"]
@@ -1080,32 +1080,6 @@ tree_cell = Vector2i(8, 3)
 icon = &"meter"
 warning_key = ""
 
-[sub_resource type="Resource" id="upg_dont_look_away"]
-script = ExtResource("upg_script")
-id = &"dont_look_away"
-name_key = "UPG_DONT_LOOK_AWAY"
-desc_key = "UPG_DONT_LOOK_AWAY_DESC"
-kind = 16
-target_id = &"silhouette"
-value = 2.0
-value2 = 1.0
-cost = 570000.0
-req_energy_produced = 0.0
-req_generator_count = 0
-req_manual_clicks = 0
-req_packages = 0
-req_events_caught = 4
-req_run = 3
-req_perk = &""
-requires_id = &"sharp_eye"
-skill = &""
-duration = 0.0
-cooldown = 0.0
-source_id = &""
-tree_cell = Vector2i(7, 4)
-icon = &"eye"
-warning_key = ""
-
 [sub_resource type="Resource" id="perk_memory"]
 script = ExtResource("perk_script")
 id = &"memory"
@@ -1191,24 +1165,15 @@ reward_production_seconds = 0.0
 reward_min_clicks = 0.0
 production_mult = 2.0
 
-[sub_resource type="Resource" id="evt_silhouette"]
-script = ExtResource("evt_script")
-id = &"silhouette"
-weight = 2.0
-duration = 7.0
-reward_production_seconds = 30.0
-reward_min_clicks = 150.0
-production_mult = 1.0
-
 [resource]
 script = ExtResource("config_script")
 generators = Array[ExtResource("gen_script")]([SubResource("gen_antenna"), SubResource("gen_valves"), SubResource("gen_audio_frequency"), SubResource("gen_tuner"), SubResource("gen_remote"), SubResource("gen_channel_3")])
-upgrades = Array[ExtResource("upg_script")]([SubResource("upg_pulse"), SubResource("upg_bare_cable"), SubResource("upg_discharge"), SubResource("upg_no_ground"), SubResource("upg_heartbeat"), SubResource("upg_tachycardia"), SubResource("upg_every_antenna"), SubResource("upg_resonance"), SubResource("upg_dial_hold"), SubResource("upg_dial_auto"), SubResource("upg_echo"), SubResource("upg_dial_auto_2"), SubResource("upg_sweep"), SubResource("upg_surge"), SubResource("upg_seek"), SubResource("upg_overload"), SubResource("upg_tuning"), SubResource("upg_tuning_fine"), SubResource("upg_blank_tape"), SubResource("upg_double_deck"), SubResource("upg_unlabeled_tape"), SubResource("upg_antenna_tune"), SubResource("upg_valves_hot"), SubResource("upg_feedback"), SubResource("upg_tuner_double"), SubResource("upg_zapping"), SubResource("upg_antenna_25"), SubResource("upg_valves_25"), SubResource("upg_audio_20"), SubResource("upg_remote_10"), SubResource("upg_remote_20"), SubResource("upg_channel_3_10"), SubResource("upg_channel_3_20"), SubResource("upg_bypass"), SubResource("upg_divert"), SubResource("upg_sharp_eye"), SubResource("upg_ghost_image"), SubResource("upg_ghost_hands"), SubResource("upg_ghost_signal"), SubResource("upg_dont_look_away")])
+upgrades = Array[ExtResource("upg_script")]([SubResource("upg_pulse"), SubResource("upg_bare_cable"), SubResource("upg_discharge"), SubResource("upg_no_ground"), SubResource("upg_heartbeat"), SubResource("upg_tachycardia"), SubResource("upg_every_antenna"), SubResource("upg_resonance"), SubResource("upg_dial_hold"), SubResource("upg_dial_auto"), SubResource("upg_echo"), SubResource("upg_dial_auto_2"), SubResource("upg_sweep"), SubResource("upg_surge"), SubResource("upg_seek"), SubResource("upg_overload"), SubResource("upg_tuning"), SubResource("upg_tuning_fine"), SubResource("upg_blank_tape"), SubResource("upg_double_deck"), SubResource("upg_unlabeled_tape"), SubResource("upg_antenna_tune"), SubResource("upg_valves_hot"), SubResource("upg_feedback"), SubResource("upg_tuner_double"), SubResource("upg_zapping"), SubResource("upg_antenna_25"), SubResource("upg_valves_25"), SubResource("upg_audio_20"), SubResource("upg_remote_10"), SubResource("upg_remote_20"), SubResource("upg_channel_3_10"), SubResource("upg_channel_3_20"), SubResource("upg_bypass"), SubResource("upg_divert"), SubResource("upg_sharp_eye"), SubResource("upg_ghost_image"), SubResource("upg_ghost_hands"), SubResource("upg_ghost_signal")])
 cost_growth = 1.15
 threshold = 45000000.0
 threshold_mult = Array[float]([1.0, 1.0, 1.0, 1.4])
 base_click_value = 1.0
-events = Array[ExtResource("evt_script")]([SubResource("evt_interference"), SubResource("evt_shooting_star"), SubResource("evt_clear_signal"), SubResource("evt_silhouette")])
+events = Array[ExtResource("evt_script")]([SubResource("evt_interference"), SubResource("evt_shooting_star"), SubResource("evt_clear_signal")])
 perks = Array[ExtResource("perk_script")]([SubResource("perk_memory"), SubResource("perk_hands"), SubResource("perk_eyes"), SubResource("perk_habit"), SubResource("perk_pulse"), SubResource("perk_name")])
 crit_chance = 0.0
 crit_mult = 3.0

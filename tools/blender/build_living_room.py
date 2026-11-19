@@ -620,6 +620,10 @@ def decorate_1940s(wood, brass, shade):
     # Ronda 5: más objetos de casa vivida. Fotos pequeñas sobre el cuadro de la tele (modelos repetidos a otra escala).
     to_wall(import_model("hanging_picture_frame_03", "1k", (0.75, y0 + 0.2, 1.86), rot_z_deg=180, scale=0.55, drop=("glass",)), "y", y0)
     to_wall(import_model("fancy_picture_frame_02", "1k", (1.12, y0 + 0.2, 1.88), rot_z_deg=180, scale=0.3, drop=("glass",)), "y", y0)
+    # Lo que se ve desde el suelo alrededor de la tele (la cámara de juego solo encuadra esa franja de pared):
+    # dos cuadros pequeños a los lados, justo encima del zócalo.
+    to_wall(import_model("hanging_picture_frame_03", "1k", (0.6, y0 + 0.2, 0.95), rot_z_deg=180, scale=0.45, drop=("glass",)), "y", y0)
+    to_wall(import_model("fancy_picture_frame_01", "1k", (-0.62, y0 + 0.2, 0.98), rot_z_deg=180, scale=0.42, drop=("glass",)), "y", y0)
     # Mecedora vacía junto a la tele, girada hacia el salón.
     import_model("Rockingchair_01", "1k", (0.95, y0 + 0.55, 0), rot_z_deg=200)
     # Mesilla junto al sofá con una lamparita (su luz en Godot es TableLamp, muy tenue) y una foto.

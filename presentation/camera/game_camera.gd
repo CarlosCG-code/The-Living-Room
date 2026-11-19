@@ -5,7 +5,7 @@ extends Camera3D
 # (interpolar reveal hacia el salón entero) llega en el hito 3.
 
 ## Fracción de la altura de la imagen que ocupa la pantalla de la tele con reveal = 0.
-const SCREEN_FILL := 0.62
+const SCREEN_FILL := 0.5  # 0,62 solo dejaba ver la tele; 0,5 enseña la pared de alrededor (usuario, 2026-11-19)
 
 var _tv_input: Node
 

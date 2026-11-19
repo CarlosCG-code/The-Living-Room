@@ -150,8 +150,6 @@ UPG_GHOST_HANDS,Manos de estática
 UPG_GHOST_HANDS_DESC,Tu clic vale el triple. No sabes si el clic ha sido tuyo.
 UPG_GHOST_SIGNAL,Señal fantasma
 UPG_GHOST_SIGNAL_DESC,La fábrica produce mucho más. Emite algo que no es de este canal.
-UPG_DONT_LOOK_AWAY,No apartes la vista
-UPG_DONT_LOOK_AWAY_DESC,La silueta paga el doble. Cada vez sale más cerca.
 UPG_WARNING,Notarás algo en casa.
 PERK_EYES,Tus ojos
 PERK_EYES_DESC,Lo raro sale cada 1-2 min y ves una rama del árbol que estaba escondida.

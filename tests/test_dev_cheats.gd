@@ -45,8 +45,8 @@ func test_runs_open_their_branches() -> void:
 
 
 func test_events_tapes_and_new_game() -> void:
-	cheats._start_event(&"silhouette")
-	assert_eq(Game.economy.active_event().id, &"silhouette")
+	cheats._start_event(&"shooting_star")
+	assert_eq(Game.economy.active_event().id, &"shooting_star")
 	cheats._drop(2)
 	cheats._drop(0)
 	cheats._drop(1)
@@ -66,3 +66,17 @@ func test_start_run_keeps_perks_and_accepts_text() -> void:
 	assert_eq(s.perks.size(), Game.economy.config.perks.size(), "conserva las permanentes")
 	assert_true(s.upgrades.has(&"pulse"), "Tu memoria da las primeras mejoras")
 	assert_eq(s.energy_produced_run, 0.0, "run nueva")
+
+
+func test_fly_camera_takes_over_and_gives_back() -> void:
+	var seat := Camera3D.new()
+	add_child_autofree(seat)
+	seat.make_current()
+	cheats._toggle_fly()
+	var fly: Camera3D = get_viewport().get_camera_3d()
+	assert_ne(fly, seat, "la cámara libre pasa a ser la actual")
+	cheats._fly_step(1.0)
+	assert_eq(fly.global_position, seat.global_position, "sin teclas pulsadas no se mueve")
+	cheats._toggle_fly()
+	assert_eq(get_viewport().get_camera_3d(), seat, "Esc devuelve la cámara del asiento")
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
