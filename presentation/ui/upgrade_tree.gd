@@ -141,13 +141,13 @@ func _locked_text(id: StringName) -> String:
 	var units := ceili(u.req_generator_count * eco.mods.machine_req)
 	if u.req_generator_count > 0 and eco.owned(u.target_id) < units:
 		var g := eco.config.find_generator(u.target_id)
-		return tr("UI_LOCKED_UNITS") % [units, tr(g.name_key) if g else "", eco.owned(u.target_id)]
+		return tr("UI_LOCKED_UNITS") % [tr(g.name_key) if g else "", eco.owned(u.target_id), units]
 	if s.manual_clicks < u.req_manual_clicks:
 		return tr("UI_LOCKED_CLICKS") % [u.req_manual_clicks, s.manual_clicks]
 	if s.packages_opened < u.req_packages:
 		return tr("UI_LOCKED_TAPES") % [u.req_packages, s.packages_opened]
 	if s.events_caught < u.req_events_caught:
-		return tr("UI_LOCKED_EVENTS") % [u.req_events_caught, s.events_caught]
+		return tr("UI_LOCKED_EVENTS") % [s.events_caught, u.req_events_caught]
 	if s.energy_produced_run < u.req_energy_produced:
 		return tr("UI_LOCKED_ENERGY") % NumberFormat.short(u.req_energy_produced)
 	return tr("UI_LOCKED")
@@ -186,7 +186,11 @@ func _effect(u: UpgradeDef) -> String:
 			var p := eco.generator_production(u.target_id)
 			return tr("UI_EFFECT_GEN") % [NumberFormat.per_click(c), NumberFormat.per_click(c * u.value),
 				NumberFormat.rate(p), NumberFormat.rate(p * u.value)]
-		UpgradeDef.Kind.CLICK_MULT, UpgradeDef.Kind.CLICK_PRODUCTION_SHARE:
+		UpgradeDef.Kind.CLICK_MULT:
+			# Exacto: el valor esperado de abajo sumaba eventos y cintas (Pulso ×2 salía «1 -> 2,06»).
+			var now := eco.click_value()
+			return tr("UI_EFFECT_CLICK") % [NumberFormat.per_click(now), NumberFormat.per_click(now * u.value)]
+		UpgradeDef.Kind.CLICK_PRODUCTION_SHARE:
 			# Con 1 clic/s a mano, lo que sube la Energía/s es lo que sube cada clic por todos los clics.
 			var now := eco.click_value()
 			var gain := eco.gain_if_bought(u.id, 1.0, false) / (1.0 + eco.auto_clicks_per_second(false))
@@ -203,11 +207,13 @@ func _effect(u: UpgradeDef) -> String:
 		UpgradeDef.Kind.COMBO:
 			return tr("UI_EFFECT_COMBO") % [_num(eco.mods.combo_max), _num(u.value)]
 		UpgradeDef.Kind.SKILL:
+			if u.duration <= 0.0:  # Buscar señal: instantánea
+				return tr("UI_EFFECT_SKILL_INSTANT") % _num(u.cooldown)
 			return tr("UI_EFFECT_SKILL") % [_num(u.duration), _num(u.cooldown)]
 		UpgradeDef.Kind.PRODUCTION_MULT, UpgradeDef.Kind.GENERATOR_SYNERGY:
+			# Solo máquinas, como el «/s» del OSD (antes sumaba también clics y eventos: Señal fantasma ×2,5 salía ×3,9).
 			var p := eco.production_per_second()
-			var gain := eco.gain_if_bought(u.id, 0.0, false)
-			return tr("UI_EFFECT_PROD") % [NumberFormat.rate(p), NumberFormat.rate(p + gain)]
+			return tr("UI_EFFECT_PROD") % [NumberFormat.rate(p), NumberFormat.rate(p * eco.production_mult_if_bought(u.id))]
 		UpgradeDef.Kind.MANUAL_CLICK_MULT, UpgradeDef.Kind.CLICK_PER_OWNED, UpgradeDef.Kind.GENERATOR_CLICK_MULT:
 			var now := eco.manual_click_value()
 			var gain := eco.gain_if_bought(u.id, 1.0, false) / (1.0 + eco.auto_clicks_per_second(false))
@@ -215,9 +221,9 @@ func _effect(u: UpgradeDef) -> String:
 	return ""
 
 
-## 6 → "6", 2.5 → "2,5".
+## 6 → "6", 2.5 → "2,5", 1.35 → "1,35" (con un decimal salía «1,4»).
 func _num(x: float) -> String:
-	return ("%.1f" % x).trim_suffix(".0").replace(".", ",")
+	return ("%.2f" % x).rstrip("0").trim_suffix(".").replace(".", ",")
 
 
 func _add_node(id: StringName, pos: Vector2, icon: StringName) -> void:

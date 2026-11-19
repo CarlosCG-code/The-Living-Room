@@ -359,7 +359,8 @@ func cost_of(id: StringName) -> float:
 func is_visible(id: StringName) -> bool:
 	var g := config.find_generator(id)
 	if g != null:
-		return state.energy_produced_run >= g.req_energy_produced and _parent_met(g.requires_id)
+		# Las que ya tienes (Tu memoria) se ven aunque la run no haya producido aún lo que pide su aparición.
+		return owned(id) > 0 or (state.energy_produced_run >= g.req_energy_produced and _parent_met(g.requires_id))
 	var u := config.find_upgrade(id)
 	if u == null or not _parent_met(u.requires_id) or state.run_index < u.req_run:
 		return false
@@ -457,6 +458,17 @@ func auto_clicks_per_second(holding: bool) -> float:
 ## Ingresos por segundo en valor esperado (crítico, racha, cintas, eventos y habilidades medias).
 func income_per_second(manual_cps: float, holding: bool) -> float:
 	return _income(mods, manual_cps, holding, &"", 0)
+
+
+## Por cuánto se multiplicaría la producción de las máquinas con esa mejora (1 si no la cambia).
+func production_mult_if_bought(id: StringName) -> float:
+	var u := config.find_upgrade(id)
+	var before := _production(mods, &"", 0)
+	if u == null or is_bought(id) or before <= 0.0:
+		return 1.0
+	var m := mods.copy()
+	_apply_upgrade(m, u)
+	return _production(m, &"", 0) / before
 
 
 ## Cuánto subiría income_per_second con esa compra, sin comprar ni exigir Energía.

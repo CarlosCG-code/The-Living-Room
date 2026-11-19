@@ -91,12 +91,16 @@ func _unhandled_input(event: InputEvent) -> void:
 func show_options() -> void:
 	_main.hide()
 	_options.show()
+	if pause_menu:
+		_title.text = tr("UI_SETTINGS")
 	(_rows["quality"] as Button).grab_focus()
 
 
 func show_main() -> void:
 	if not pause_menu:
 		_play.text = tr("UI_CONTINUE") if Game.has_progress() else tr("UI_PLAY")
+	else:
+		_title.text = tr("UI_PAUSED")
 	_options.hide()
 	_main.show()
 	_play.grab_focus()

@@ -46,6 +46,12 @@ func test_nodes_sit_in_their_cells() -> void:
 		assert_eq(tree.get_node_button(u.id).position, UpgradeTree.cell_position(u.tree_cell), "celda de %s" % u.id)
 
 
+func test_effect_numbers_keep_two_decimals() -> void:
+	assert_eq(tree._num(1.35), "1,35", "Taquicardia salía «×1,4»")
+	assert_eq(tree._num(2.5), "2,5")
+	assert_eq(tree._num(300.0), "300")
+
+
 func test_pressing_a_node_asks_to_buy_it() -> void:
 	watch_signals(tree)
 	tree.get_node_button(&"pulse").pressed.emit()
@@ -59,7 +65,8 @@ func test_locked_cards_say_what_is_missing() -> void:
 	eco.state.generators[&"antenna"] = 10
 	eco._recalc()
 	assert_eq(tree.describe(&"sweep"), tr("UI_LOCKED_RUN"), "las habilidades son de la run 2")
-	assert_eq(tree.describe(&"antenna_25"), tr("UI_LOCKED_UNITS") % [25, tr("GEN_ANTENNA"), 10])
+	assert_eq(tree.describe(&"antenna_25"), "Antena: tienes 10 de 25.")
+	assert_eq(tree.describe(&"sharp_eye"), "Cosas raras atrapadas: 0 de 1.")
 	assert_false(tree.is_revealed(&"ghost_image"), "la rama escondida ni se insinúa sin Tus ojos")
 	eco.state.perks.append(&"eyes")
 	eco.state.upgrades.append(&"sharp_eye")

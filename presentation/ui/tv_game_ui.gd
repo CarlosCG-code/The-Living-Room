@@ -22,6 +22,7 @@ var _shake: Tween
 var _menu: MainMenuUI
 var _pause: MainMenuUI
 var _static: ColorRect
+var _off: ColorRect
 var _card_open := false  # carta de fin de la emisión en pantalla
 var _carga: CargaScreen
 
@@ -56,6 +57,14 @@ func _ready() -> void:
 	_click_sound.volume_db = -10.0
 	_click_sound.max_polyphony = 4
 	add_child(_click_sound)
+	# Sobrecarga fallida: la tele se apaga de verdad (antes solo paraba la producción y la imagen seguía igual).
+	_off = ColorRect.new()
+	_off.name = "Off"
+	_off.color = Color.BLACK
+	_off.size = Vector2(320, 240)
+	_off.mouse_filter = MOUSE_FILTER_STOP
+	_off.hide()
+	add_child(_off)
 	_carga = CargaScreen.new()
 	_carga.hide()
 	add_child(_carga)
@@ -138,6 +147,7 @@ func _quit() -> void:
 func _process(_delta: float) -> void:
 	var eco := Game.economy
 	var state := eco.state
+	_off.visible = eco.timer(&"tv_off") > 0.0
 	_osd.show_values(NumberFormat.energy(state.energy), NumberFormat.rate(eco.production_per_second()),
 		NumberFormat.per_click(eco.click_value()), state.energy_produced_run / eco.threshold(),
 		eco.carga_if_restarted() if eco.can_restart() else -1, not _tree.visible and _has_affordable(eco),

@@ -3,14 +3,13 @@ TITLE,The Living Room
 UI_RESTART,Reiniciar
 UI_LOCKED,Se desbloquea al comprar la mejora de la que sale.
 UI_LOCKED_RUN,Aún no. Algo cambia cada vez que reinicias.
-UI_LOCKED_UNITS,Pide %d de %s (tienes %d).
+UI_LOCKED_UNITS,%s: tienes %d de %d.
 UI_LOCKED_CLICKS,Pide %d clics a mano (llevas %d).
 UI_LOCKED_TAPES,Pide abrir %d cintas (llevas %d).
-UI_LOCKED_EVENTS,Pide atrapar %d cosas raras (llevas %d).
+UI_LOCKED_EVENTS,Cosas raras atrapadas: %d de %d.
 UI_LOCKED_ENERGY,Aparece al producir %s en esta run.
 UI_BOUGHT,Comprada
 UI_SHOP_TITLE,Mejoras
-UI_CLOSE,X
 GEN_ANTENNA,Antena
 GEN_VALVES,Válvulas
 GEN_AUDIO_FREQUENCY,Frecuencia de audio
@@ -80,7 +79,6 @@ UI_CARGA_TITLE,Reinicio
 UI_CARGA,Carga: %d
 UI_CARGA_COST,%d de Carga
 UI_START_RUN,Empezar la run %d
-UI_PERK_LOCKED,"Antes, la anterior."
 UI_RESTART_CONFIRM,Reiniciar (+%d de Carga)
 UI_INTRO,"Ratón o Espacio: sintoniza.
 Si ves algo raro en la pantalla, tócalo."
@@ -161,6 +159,7 @@ UI_EFFECT_CRIT,Crítico: %s %% -> %s %%
 UI_EFFECT_CRIT_MULT,Crítico: ×%s -> ×%s
 UI_EFFECT_COMBO,Racha máxima: ×%s -> ×%s
 UI_EFFECT_SKILL,Dura %s s · espera %s s
+UI_EFFECT_SKILL_INSTANT,Al momento · espera %s s
 UI_EFFECT_PROD,Producción: %s -> %s
 OSD_NEXT_CARGA,+1 de Carga a %s
 UI_CARGA_HELP,Reiniciar da 3 de Carga; más si esperas.

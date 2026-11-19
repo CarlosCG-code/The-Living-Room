@@ -63,7 +63,7 @@ func _ready() -> void:
 	for i in SKILLS.size():
 		var b := TextureButton.new()
 		b.texture_normal = load("res://assets/textures/tv/icon_%s.png" % SKILLS[i])
-		b.position = SKILL_ROW + Vector2(i * 17, 0)
+		b.position = SKILL_ROW + Vector2(i * 21, 0)  # hueco para la tecla: con 17 parecía del icono anterior
 		b.focus_mode = FOCUS_NONE
 		b.visible = false
 		b.pressed.connect(skill_pressed.emit.bind(SKILLS[i]))

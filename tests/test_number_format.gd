@@ -29,4 +29,6 @@ func test_short_fits_the_osd() -> void:
 	assert_eq(NumberFormat.short(950), "950")
 	assert_eq(NumberFormat.short(12345), "12,3 K")
 	assert_eq(NumberFormat.short(112_000_000), "112 M")
+	assert_eq(NumberFormat.short(80_000_000), "80 M", "sin «,0»")
+	assert_eq(NumberFormat.short(3_000), "3 K")
 	assert_eq(NumberFormat.short(1_599_999_999), "1,5 G")

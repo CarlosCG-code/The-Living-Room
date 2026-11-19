@@ -261,7 +261,8 @@ func show_event(e: TvEventDef, t: float) -> void:
 	_sparks.position = _event_at
 	_catch.position = (event_center() - CATCH_SIZE / 2).clamp(Vector2.ZERO, size - CATCH_SIZE)
 	var hint_size := _hint.get_combined_minimum_size()
-	_hint.position = (_event_at + Vector2(-hint_size.x / 2, 10)).round().clamp(Vector2(0, 14), size - hint_size)
+	# Por debajo de y = 46: más arriba pisaba el «/s · /clic» del OSD.
+	_hint.position = (_event_at + Vector2(-hint_size.x / 2, 10)).round().clamp(Vector2(0, 46), size - hint_size)
 	_event_layer.queue_redraw()
 	_marker.queue_redraw()
 

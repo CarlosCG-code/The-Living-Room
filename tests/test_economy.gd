@@ -98,6 +98,19 @@ func test_cannot_buy_invisible_generator() -> void:
 	assert_false(eco.buy(&"b"))
 
 
+func test_owned_generator_is_visible_before_its_energy() -> void:
+	eco.state.generators[&"b"] = 3  # como con Tu memoria: las tienes antes de producir lo que pide «b»
+	assert_true(eco.is_visible(&"b"))
+
+
+func test_production_mult_if_bought() -> void:
+	_give(100)
+	eco.buy(&"a")
+	eco.buy(&"a")
+	assert_almost_eq(eco.production_mult_if_bought(&"a_x2"), 2.0, 0.0001)
+	assert_almost_eq(eco.production_mult_if_bought(&"pulse"), 1.0, 0.0001, "el clic no cambia la producción")
+
+
 func test_cannot_buy_upgrade_twice_or_without_requirement() -> void:
 	_give(100)
 	assert_true(eco.buy(&"pulse"))
