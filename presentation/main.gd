@@ -1,7 +1,7 @@
 extends Node
 
 # Punto de montaje (specs/hito2.md D1, §5): salón, tele, cámara, luces y ajustes gráficos. Es también
-# la escena de arranque: el menú principal se muestra en la tele, con el salón a oscuras.
+# la escena de arranque: el menú principal se muestra en la tele.
 # Variables TLR_* solo en la build de depuración; la exportada las ignora.
 
 const ROOM := preload("res://world/player_flat/living_room.tscn")
@@ -39,8 +39,10 @@ func _ready() -> void:
 	if _dev("TLR_GI") == "0":
 		settings.set_gi(false)
 	tv.screen_state_changed.connect(mixer.set_tv_state)
-	var play_light: StringName = &"dark" if _dev("TLR_DARK") == "1" else &"normal"
-	EventBus.tv_menu_changed.connect(func(open: bool) -> void: set_lighting_state(&"menu" if open else play_light))
+	_add_film_grain()
+	# El menú tiene la misma luz que la partida (usuario, 2026-11-19).
+	if _dev("TLR_DARK") == "1":
+		set_lighting_state(&"dark")
 	# El juego arranca en el menú de la tele; las capturas y el benchmark entran directamente a jugar.
 	var ui: Node = tv.get_subviewport().get_child(0)
 	var skip_menu := _dev("TLR_SKIP_MENU") == "1" or _dev("TLR_BENCHMARK") == "1" or _dev("TLR_VIEW") not in ["", "game"]
@@ -64,6 +66,18 @@ func _ready() -> void:
 		add_child(bench)
 	tree_exiting.connect(func() -> void: Game.running = false)
 	print("BOOT_OK")
+
+
+func _add_film_grain() -> void:
+	var layer := CanvasLayer.new()
+	layer.name = "FilmGrain"
+	var rect := ColorRect.new()
+	rect.set_anchors_preset(Control.PRESET_FULL_RECT)
+	rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	rect.material = ShaderMaterial.new()
+	(rect.material as ShaderMaterial).shader = preload("res://presentation/graphics/film_grain.gdshader")
+	layer.add_child(rect)
+	add_child(layer)
 
 
 func set_lighting_state(state: StringName) -> void:

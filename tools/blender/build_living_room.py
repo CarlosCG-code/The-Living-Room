@@ -308,7 +308,7 @@ def build_final():
         bpy.data.objects.remove(bpy.data.objects[name], do_unlink=True)  # los bloques del graybox
     wall = tex_mat("Wallpaper", "decrepit_wallpaper", "2k")
     floor = tex_mat("Parquet", "herringbone_parquet", "2k")
-    ceiling = tex_mat("Gotele", "white_stucco", "1k")
+    ceiling = tex_mat("Gotele", "white_stucco", "1k", tint=(0.6, 0.57, 0.52))  # techo amarillento, no blanco
     for o in list(bpy.context.scene.objects):
         if o.name.startswith("Wall"):
             give(o, wall)
@@ -322,7 +322,7 @@ def build_final():
 
     wood = mat("DarkWood", (0.05, 0.028, 0.016), 0.45)
     door_wood = mat("DoorWood", (0.16, 0.085, 0.04), 0.4)
-    white_frame = mat("WindowFrame", (0.75, 0.74, 0.7), 0.35, metallic=0.2)
+    white_frame = mat("WindowFrame", (0.5, 0.49, 0.46), 0.35, metallic=0.2)
     marble = mat("Marble", (0.62, 0.6, 0.57), 0.2)
     blind = mat("Blind", (0.42, 0.38, 0.3), 0.6)
     brass = mat("Brass", (0.6, 0.45, 0.22), 0.3, metallic=1.0)
@@ -400,7 +400,7 @@ def build_final():
     import_model("vintage_cabinet_01", "2k", (-W / 2 + 0.36, -1.2, 0), rot_z_deg=90)  # aparador
     import_model("wooden_bookshelf_worn", "1k", (W / 2 - 0.3, -1.6, 0), rot_z_deg=-90)
     # Girado hacia la tele; la tapicería original es casi blanca y destacaba demasiado en la penumbra.
-    import_model("ArmChair_01", "1k", (1.45, -0.3, 0), rot_z_deg=-39, tint=(0.6, 0.55, 0.48))
+    import_model("ArmChair_01", "1k", (1.45, -0.3, 0), rot_z_deg=-39, tint=(0.38, 0.36, 0.33))
     import_model("potted_plant_02", "1k", (1.62, 0.55, 0))
     decorate()
     decorate_1940s(wood, brass, shade)
@@ -530,9 +530,9 @@ def decorate():
     import_model("antique_ceramic_vase_01", "1k", (-1.6, 0.0, 0), rot_z_deg=30)
 
     # Cuadros y espejo en las paredes.
-    to_wall(import_model("hanging_picture_frame_02", "1k", (0.85, -2.3, 1.25), rot_z_deg=180, drop=("glass",)), "y", -D / 2)
+    to_wall(import_model("hanging_picture_frame_02", "1k", (0.95, -2.3, 1.25), rot_z_deg=180, drop=("glass",)), "y", -D / 2)
     to_wall(import_model("fancy_picture_frame_02", "1k", (0, 2.3, 1.3), drop=("glass",)), "y", D / 2)
-    to_wall(import_model("ornate_mirror_01", "1k", (-1.9, -0.2, 1.15), rot_z_deg=90), "x", -W / 2)
+    to_wall(import_model("ornate_mirror_01", "1k", (-1.9, 0.5, 1.15), rot_z_deg=90), "x", -W / 2)
     to_wall(import_model("hanging_picture_frame_03", "1k", (1.9, -0.45, 1.4), rot_z_deg=-90, drop=("glass",)), "x", W / 2)
 
     # Lámpara de techo (apagada por ahora), alfombra, gafas en la mesa y cesto junto al sofá.
@@ -540,13 +540,13 @@ def decorate():
     top = max((o.matrix_world @ Vector(c)).z for o in lamp for c in o.bound_box)
     for o in lamp:
         o.location.z += H - top
-    rug = give(box("Rug", (1.7, 2.3, 0.008), (0, 0.55, 0.004)), tex_mat("Rug", "quatrefoil_jacquard_fabric", "1k", tint=(0.4, 0.34, 0.31)))
+    rug = give(box("Rug", (1.7, 2.3, 0.008), (0, 0.55, 0.004)), tex_mat("Rug", "quatrefoil_jacquard_fabric", "1k", tint=(0.3, 0.27, 0.27)))
     uv_world(rug, 0.7)
     import_model("round_spectacles", "1k", (0.08, 0.6, 0.551), rot_z_deg=25)
     import_model("wicker_basket_01", "1k", (1.68, 1.55, 0), rot_z_deg=15)
 
     # Cortinas de raso dorado a los lados de la ventana, hasta el alféizar, y su barra de latón.
-    satin = tex_mat("CurtainSatin", "crepe_satin", "1k")
+    satin = tex_mat("CurtainSatin", "crepe_satin", "1k", tint=(0.55, 0.5, 0.45))
     satin.use_backface_culling = False
     win_y, win_w = 0.5, 1.2
     curtain("CurtainA", win_y - win_w / 2 - 0.2, win_y - win_w / 2 + 0.25, 2.33, 0.82, W / 2 - 0.09, satin)
@@ -616,6 +616,21 @@ def decorate_1940s(wood, brass, shade):
     wall_plate((1.0, y1 - 0.05, 1.82), 180, "y", y1)
     wall_plate((-W / 2 + 0.05, 1.6, 2.36), 90, "x", -W / 2)
     wall_plate((W / 2 - 0.05, -0.45, 2.12), -90, "x", W / 2)
+
+    # Ronda 5: más objetos de casa vivida. Fotos pequeñas sobre el cuadro de la tele (modelos repetidos a otra escala).
+    to_wall(import_model("hanging_picture_frame_03", "1k", (0.75, y0 + 0.2, 1.86), rot_z_deg=180, scale=0.55, drop=("glass",)), "y", y0)
+    to_wall(import_model("fancy_picture_frame_02", "1k", (1.12, y0 + 0.2, 1.88), rot_z_deg=180, scale=0.3, drop=("glass",)), "y", y0)
+    # Mecedora vacía junto a la tele, girada hacia el salón.
+    import_model("Rockingchair_01", "1k", (0.95, y0 + 0.55, 0), rot_z_deg=200)
+    # Mesilla junto al sofá con una lamparita (su luz en Godot es TableLamp, muy tenue) y una foto.
+    import_model("ClassicNightstand_01", "1k", (1.7, y1 - 0.25, 0))
+    give(cylinder("TableLampBase", 0.06, 0.02, (1.78, y1 - 0.25, 0.71)), brass, bevel=0.003)
+    give(cylinder("TableLampStem", 0.008, 0.3, (1.78, y1 - 0.25, 0.87), verts=10), brass)
+    give(cone("TableLampShade", 0.12, 0.07, 0.16, (1.78, y1 - 0.25, 1.06)), shade)
+    import_model("standing_picture_frame_01", "1k", (1.56, y1 - 0.3, 0.7), rot_z_deg=-20)
+    # Libros apilados en el suelo, al lado de la librería.
+    import random
+    books_stack(1.75, -0.72, 0, 5, random.Random(11))
 
 
 def export_final(path):

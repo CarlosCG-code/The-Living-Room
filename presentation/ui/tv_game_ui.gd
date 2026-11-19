@@ -119,13 +119,11 @@ func _show_menu() -> void:
 	_osd.hide_intro()
 	_menu.show()
 	_menu.show_main()
-	EventBus.tv_menu_changed.emit(true)
 
 
 func _start_playing() -> void:
 	_menu.hide()
 	Game.running = true
-	EventBus.tv_menu_changed.emit(false)
 	# Partida nueva: carta de ajuste con lo básico (se va con el primer clic).
 	if Game.economy.state.run_index == 1 and Game.economy.state.energy_produced_run == 0.0:
 		_osd.show_intro(tr("UI_INTRO"))
