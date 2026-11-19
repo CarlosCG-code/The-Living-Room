@@ -10,7 +10,12 @@ A = 6.0  # coste de los generadores: 15 × A^posición
 B = 5.5  # escala de los generadores: 0,2 × B^posición
 P = 0.4  # producción por segundo: P × 0,2 × B^posición
 C = 0.03  # bono por clic (antes del multiplicador de clic): C × 0,2 × B^posición
-THRESHOLD = 75_000_000.0
+THRESHOLD = 45_000_000.0
+## Techo: la última mejora de cada run cuesta casi el umbral. Quien reinicia en cuanto puede no la alcanza;
+## quien aguanta un poco más en la tele (más terror), sí (petición del usuario, 2026-11-19).
+TECHO = 0.8 * THRESHOLD
+TECHO_APPEARS = 0.2 * THRESHOLD
+THRESHOLD_MULT = [1.0, 1.0, 1.0, 1.4]  # umbral de cada run (× THRESHOLD)
 
 # id, clave, energía producida para aparecer
 GENERATORS = [
@@ -26,6 +31,11 @@ CRIT = (0.0, 3.0)  # crítico de partida: probabilidad, multiplicador
 PACKAGE_BAR = 300.0  # clics a mano por cinta
 PACKAGE_SECONDS = (8, 24)  # premio de la común y la rara, en segundos de ingresos
 
+def machine_cost(position: int, units: int) -> int:
+    """Mejora de máquina: 4 veces lo que cuesta la unidad número units de ese generador."""
+    return round(4 * 15 * A ** position * 1.15 ** (units - 1))
+
+
 # UpgradeDef.Kind
 GEN_MULT, CLICK_MULT, HOLD, SHARE, AUTO, CRIT_CHANCE, CRIT_MULT, COMBO, MANUAL_MULT, PER_OWNED, \
     GEN_CLICK_MULT, SYNERGY, PKG_UNLOCK, PKG_RATE, PKG_RARITY, PKG_REWARD, EVENT_REWARD, SKILL, ECHO, PROD_MULT = range(20)
@@ -37,7 +47,7 @@ UPGRADES = [
     ("pulse", CLICK_MULT, 5, "", (0, 0), "pulse", {"value": 2.0, "req_energy": 0}),
     ("bare_cable", CRIT_CHANCE, 175, "pulse", (1, 0), "crit", {"value": 0.08}),
     ("discharge", CRIT_MULT, 4_000, "bare_cable", (2, 0), "pulse_strong", {"value": 4.0, "req_manual_clicks": 400}),
-    ("no_ground", CRIT_CHANCE, 88_000, "discharge", (3, 0), "crit", {"value": 0.04, "req_manual_clicks": 1500}),
+    ("no_ground", CRIT_CHANCE, TECHO, "discharge", (3, 0), "crit", {"run": 2, "value": 0.04, "req_manual_clicks": 1500}),
     ("heartbeat", COMBO, 500, "bare_cable", (1, 1), "combo", {"value": 1.2}),
     ("tachycardia", COMBO, 19_000, "heartbeat", (2, 1), "combo", {"value": 1.35}),
     ("every_antenna", PER_OWNED, 3_500, "bare_cable", (3, 1), "listen", {"value": 0.003}),
@@ -45,22 +55,22 @@ UPGRADES = [
     # D: dial automático
     ("dial_hold", HOLD, 61, "", (5, 0), "dial_hold", {"value": 6.0}),
     ("dial_auto", AUTO, 56_500, "dial_hold", (6, 0), "dial_auto", {"value": 2.0}),
-    ("echo", ECHO, 2_000_000, "dial_auto", (7, 0), "echo", {}),
-    ("dial_auto_2", AUTO, 14_000_000, "echo", (8, 0), "dial_auto_2", {"value": 4.0}),
+    ("echo", ECHO, 2_000_000, "dial_auto", (7, 0), "echo", {"req_energy": 400_000}),
+    ("dial_auto_2", AUTO, TECHO, "echo", (8, 0), "dial_auto_2", {"run": 4, "req_energy": TECHO_APPEARS, "value": 4.0}),
     # H: habilidades del mando
-    ("sweep", SKILL, 3_000, "dial_hold", (6, 1), "sweep", {"skill": "sweep", "duration": 10.0, "cooldown": 180.0}),
+    ("sweep", SKILL, 3_000, "dial_hold", (6, 1), "sweep", {"run": 2, "skill": "sweep", "duration": 10.0, "cooldown": 180.0}),
     ("surge", SKILL, 12_000, "sweep", (7, 1), "surge",
-     {"skill": "surge", "value": 3.0, "duration": 12.0, "cooldown": 240.0}),
-    ("seek", SKILL, 150_000, "surge", (8, 1), "seek", {"skill": "seek", "cooldown": 300.0}),
+     {"run": 2, "skill": "surge", "value": 3.0, "duration": 12.0, "cooldown": 240.0}),
+    ("seek", SKILL, 150_000, "surge", (8, 1), "seek", {"run": 2, "skill": "seek", "cooldown": 300.0}),
     ("overload", SKILL, 9_000_000, "seek", (9, 1), "overload",
-     {"skill": "overload", "value": 5.0, "value2": 8.0, "duration": 20.0, "cooldown": 300.0, "warning": True}),
+     {"run": 4, "skill": "overload", "value": 5.0, "value2": 8.0, "duration": 20.0, "cooldown": 300.0, "warning": True}),
     # C: cintas
     ("tuning", PKG_UNLOCK, 1_500, "", (6, 2), "tape", {}),
     ("tuning_fine", PKG_RATE, 8_000, "tuning", (7, 2), "tape", {"value": 0.75, "req_packages": 3}),
     ("blank_tape", PKG_RARITY, 11_000, "tuning_fine", (8, 2), "tape_rare",
      {"value": 0.25, "value2": 0.06, "req_packages": 6}),
-    ("double_deck", PKG_REWARD, 200_000, "blank_tape", (9, 2), "tape", {"value": 1.5}),
-    ("unlabeled_tape", PKG_RARITY, 6_000_000, "double_deck", (9, 3), "tape_black", {"value": 0.25, "value2": 0.12}),
+    ("double_deck", PKG_REWARD, 200_000, "blank_tape", (9, 2), "tape", {"run": 2, "value": 1.5}),
+    ("unlabeled_tape", PKG_RARITY, 6_000_000, "double_deck", (9, 3), "tape_black", {"run": 3, "value": 0.25, "value2": 0.12}),
     # M: máquinas
     ("antenna_tune", GEN_MULT, 180, "antenna", (0, 3), "antenna",
      {"target": "antenna", "value": 2.0, "req_generator_count": 10}),
@@ -70,15 +80,35 @@ UPGRADES = [
      {"target": "audio_frequency", "source": "valves", "value": 0.03, "req_generator_count": 10}),
     ("tuner_double", GEN_MULT, 38_880, "tuner", (3, 3), "tuner",
      {"target": "tuner", "value": 2.0, "req_generator_count": 10}),
-    ("zapping", SYNERGY, 300_000, "remote", (4, 3), "remote",
-     {"source": "remote", "value": 0.02, "req_energy": 600_000}),  # sin target: todas las máquinas
+    ("zapping", SYNERGY, TECHO, "remote", (4, 3), "remote",
+     {"source": "remote", "value": 0.02, "req_energy": TECHO_APPEARS}),  # sin target: todas las máquinas
+    # M: ×2 de cada máquina al tener muchas (GDD §4: 10 y 25; frecuencia, mandos y Canal 3, 20); rellenan la segunda
+    # mitad de la run 1.
+    ("antenna_25", GEN_MULT, machine_cost(0, 25), "antenna_tune", (0, 4), "antenna",
+     {"target": "antenna", "value": 2.0, "req_generator_count": 25}),
+    ("valves_25", GEN_MULT, machine_cost(1, 25), "valves_hot", (1, 4), "valves",
+     {"target": "valves", "value": 2.0, "req_generator_count": 25}),
+    ("audio_20", GEN_MULT, machine_cost(2, 20), "feedback", (2, 4), "audio_frequency",
+     {"target": "audio_frequency", "value": 2.0, "req_generator_count": 20}),
+    ("remote_10", GEN_MULT, machine_cost(4, 10), "remote", (5, 1), "remote",
+     {"target": "remote", "value": 2.0, "req_generator_count": 10}),
+    ("remote_20", GEN_MULT, machine_cost(4, 20), "remote_10", (4, 0), "remote",
+     {"target": "remote", "value": 2.0, "req_generator_count": 20}),
+    ("channel_3_10", GEN_MULT, machine_cost(5, 10), "channel_3", (5, 3), "channel_3",
+     {"target": "channel_3", "value": 2.0, "req_generator_count": 9}),  # a las 9: con 10 quedaba un hueco de 2,6 min
+    ("channel_3_20", GEN_MULT, machine_cost(5, 20), "channel_3_10", (5, 4), "channel_3",
+     {"target": "channel_3", "value": 2.0, "req_generator_count": 20}),
     # X: consumo
-    ("bypass", PROD_MULT, 45_000, "tuner_double", (3, 4), "meter", {"value": 1.5, "warning": True}),
-    ("divert", PROD_MULT, 4_000_000, "bypass", (4, 4), "meter", {"value": 2.0, "warning": True}),
+    ("bypass", PROD_MULT, 45_000, "tuner_double", (3, 4), "meter", {"run": 3, "value": 1.5, "warning": True}),
+    ("divert", PROD_MULT, TECHO, "bypass", (4, 4), "meter", {"run": 3, "req_energy": TECHO_APPEARS, "value": 2.0, "warning": True}),
     # E: eventos
     ("sharp_eye", EVENT_REWARD, 5_200, "", (6, 4), "eye", {"value": 1.5, "value2": 0.75, "req_events_caught": 1}),
+    # Rama escondida: solo existe con Tus ojos (petición del usuario, 2026-11-19).
+    ("ghost_image", EVENT_REWARD, 30_000, "sharp_eye", (6, 3), "eye", {"perk": "eyes", "value": 3.0}),
+    ("ghost_hands", MANUAL_MULT, 400_000, "ghost_image", (7, 3), "pulse_strong", {"perk": "eyes", "value": 3.0}),
+    ("ghost_signal", PROD_MULT, 8_000_000, "ghost_hands", (8, 3), "meter", {"perk": "eyes", "value": 2.5}),
     ("dont_look_away", EVENT_REWARD, 570_000, "sharp_eye", (7, 4), "eye",
-     {"target": "silhouette", "value": 2.0, "req_events_caught": 4}),
+     {"run": 3, "target": "silhouette", "value": 2.0, "req_events_caught": 4}),
 ]
 
 # Mejoras permanentes (specs/incremental_v2.md §4), en cualquier orden: id, clave, coste, PerkDef.Kind, datos.
@@ -126,6 +156,8 @@ def upgrade_block(uid, kind, cost, parent, cell, icon, extra):
         f"req_manual_clicks = {extra.get('req_manual_clicks', 0)}",
         f"req_packages = {extra.get('req_packages', 0)}",
         f"req_events_caught = {extra.get('req_events_caught', 0)}",
+        f"req_run = {extra.get('run', 1)}",
+        f'req_perk = &"{extra.get("perk", "")}"',
         f'requires_id = &"{parent}"',
         f'skill = &"{extra.get("skill", "")}"',
         f"duration = {num(extra.get('duration', 0.0))}",
@@ -203,6 +235,7 @@ def main() -> None:
         "upgrades = Array[ExtResource(\"upg_script\")]([" + ", ".join(f'SubResource("{s}")' for s in upg_ids) + "])",
         "cost_growth = 1.15",
         f"threshold = {num(THRESHOLD)}",
+        "threshold_mult = Array[float]([" + ", ".join(num(x) for x in THRESHOLD_MULT) + "])",
         "base_click_value = 1.0",
         "events = Array[ExtResource(\"evt_script\")]([" + ", ".join(f'SubResource("{s}")' for s in event_ids) + "])",
         "perks = Array[ExtResource(\"perk_script\")]([" + ", ".join(f'SubResource("{s}")' for s in perk_ids) + "])",

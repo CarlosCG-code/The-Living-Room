@@ -29,9 +29,6 @@ var _restart: Button
 var _progress := 0.0
 var _notice_tween: Tween
 var _intro: Label
-var _lore: Label
-var _lore_queue: Array[String] = []
-var _lore_tween: Tween
 var _tape := -1.0  # fracción de la barra de cintas (-1: aún no hay cintas)
 var _combo := 0.0
 var _skills := {}  # skill -> {"button": TextureButton, "cd": fracción de espera, "active": bool}
@@ -72,12 +69,6 @@ func _ready() -> void:
 		b.pressed.connect(skill_pressed.emit.bind(SKILLS[i]))
 		add_child(b)
 		_skills[SKILLS[i]] = {"button": b, "cd": 0.0, "active": false}
-	# Fragmentos de lore: otra emisión que se cruza, en gris de subtítulo, arriba en el cielo.
-	_lore = _label(Vector2(12, 70), 8, Color("c8d0dc"))
-	_lore.size = Vector2(296, 24)
-	_lore.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_lore.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_lore.visible_ratio = 0.0
 	_restart = Button.new()
 	_restart.text = tr("UI_RESTART")
 	_restart.focus_mode = FOCUS_NONE
@@ -141,33 +132,6 @@ func _glitch(text: String) -> String:
 	if text[i] < "0" or text[i] > "9":
 		return text
 	return text.substr(0, i) + str(randi() % 10) + text.substr(i + 1)
-
-
-## Fragmento de lore: se escribe letra a letra (20 por segundo), se queda 4 s y se va; si llegan varios,
-## salen uno tras otro.
-func show_lore(text: String) -> void:
-	_lore_queue.append(text)
-	if _lore_tween == null or not _lore_tween.is_running():
-		_next_lore()
-
-
-func lore_text() -> String:
-	return _lore.text if _lore.visible_ratio > 0.0 else ""
-
-
-func _next_lore() -> void:
-	if _lore_queue.is_empty():
-		return
-	_lore.text = _lore_queue.pop_front()
-	_lore.visible_ratio = 0.0
-	_lore.modulate.a = 1.0
-	_lore_tween = create_tween()
-	_lore_tween.tween_property(_lore, "visible_ratio", 1.0, _lore.text.length() / 20.0)
-	_lore_tween.tween_interval(4.0)
-	_lore_tween.tween_property(_lore, "modulate:a", 0.0, 0.0)
-	_lore_tween.tween_property(_lore, "visible_ratio", 0.0, 0.0)
-	_lore_tween.tween_interval(0.6)
-	_lore_tween.tween_callback(_next_lore)
 
 
 ## Aviso abajo a la izquierda que se va solo («+ ANTENA»).

@@ -1,10 +1,13 @@
 extends Node
 
 const RUNTIME_SCRIPT := "res://addons/godot_mcp_runtime/mcp_runtime_autoload.gd"
+## Trucos para probar (F1). Como el addon, solo en depuración: tools/ no se exporta.
+const CHEATS_SCRIPT := "res://tools/dev_cheats.gd"
 
 
 func _ready() -> void:
 	load_runtime(RUNTIME_SCRIPT, get_tree().root)
+	load_runtime(CHEATS_SCRIPT, get_tree().root)
 
 
 ## Devuelve null y no añade nada fuera de la build de depuración o si el script no existe.

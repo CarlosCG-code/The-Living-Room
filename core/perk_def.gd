@@ -10,8 +10,8 @@ enum Kind {
 	CLICK_MULT,  ## clic a mano × value
 	CARGA_BONUS,
 	COMBO_GRACE,  ## la racha aguanta value s; cada crítico llena value2 de la barra de cinta
-	EVENT_BOOST,  ## eventos cada value–value2 s, avisados; atrapar uno sube un grado la siguiente cinta
-	NAME,  ## producción y clics × value; tu nombre en el OSD y en las cintas (lore)
+	EVENT_BOOST,  ## eventos cada value–value2 s; desvela las mejoras con req_perk = esta
+	NAME,  ## producción y clics × value
 }
 
 @export var id: StringName

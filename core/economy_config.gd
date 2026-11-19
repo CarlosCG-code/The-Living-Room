@@ -5,6 +5,8 @@ extends Resource
 @export var upgrades: Array[UpgradeDef] = []
 @export var cost_growth: float = 1.15
 @export var threshold: float = 10000000.0
+## Umbral de cada run como múltiplo de threshold (índice 0 = run 1); las que faltan usan el último.
+@export var threshold_mult: Array[float] = []
 @export var base_click_value: float = 1.0
 @export var events: Array[TvEventDef] = []
 @export var event_min: float = 120.0
@@ -27,6 +29,12 @@ extends Resource
 @export var black_seconds: float = 15.0
 ## Tope de clics a mano por segundo (ratón y Espacio juntos): frena los autoclickers y el doble clic.
 @export var max_clicks_per_second: float = 10.0
+
+
+func threshold_for(run_index: int) -> float:
+	if threshold_mult.is_empty():
+		return threshold
+	return threshold * threshold_mult[clampi(run_index - 1, 0, threshold_mult.size() - 1)]
 
 
 func find_generator(id: StringName) -> GeneratorDef:

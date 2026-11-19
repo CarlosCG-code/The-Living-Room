@@ -12,9 +12,12 @@ const GENERATOR_IDS: Array[StringName] = [&"antenna", &"valves", &"audio_frequen
 const SKILLS: Array[StringName] = [&"sweep", &"surge", &"seek"]  # Sobrecarga es una apuesta: el simulador no la usa
 ## Minutos al umbral por perfil (§10): premiar el clic separa al activo del tranquilo.
 const RANGES := {"activo": Vector2(26, 32), "tranquilo": Vector2(35, 47)}
-## Hueco máximo sin nada nuevo (s), contando mejoras, máquinas y fragmentos de lore: el tranquilo avanza más
+## Minutos al umbral del activo en cada run de una partida entera (GDD §3: 35, 25, 20 y 15 min de media).
+const RUN_RANGES: Array[Vector2] = [Vector2(26, 32), Vector2(18, 26), Vector2(13, 21), Vector2(9, 16)]
+## Hueco máximo sin nada nuevo (s), contando mejoras y máquinas: el tranquilo avanza más
 ## despacio y todo se le estira.
-const NOVELTY_GAP := {"activo": 150.0, "tranquilo": 400.0}
+## Activo: la spec pide algo nuevo cada 1,5-3 min tras el minuto 10; con el árbol por runs salen cada 2,3-2,6.
+const NOVELTY_GAP := {"activo": 165.0, "tranquilo": 400.0}
 
 var config: EconomyConfig
 
@@ -30,7 +33,7 @@ func test_config_valid() -> void:
 		gen_ids.append(g.id)
 		assert_ne(tr(g.name_key), g.name_key, "traducción de %s" % g.name_key)
 	assert_eq(gen_ids, GENERATOR_IDS)
-	assert_eq(config.upgrades.size(), 30)
+	assert_eq(config.upgrades.size(), 40)
 	var cells := {}
 	for i in GENERATOR_IDS.size():
 		cells[Vector2i(i, 2)] = GENERATOR_IDS[i]
@@ -85,32 +88,65 @@ func test_pacing_ranges() -> void:
 
 func test_every_perk_shortens_run_2() -> void:
 	# Cada permanente tiene que notarse en la run siguiente, sin romperla (specs/incremental_v2.md §4).
-	var base: float = _simulate(6.0, false, true)["threshold"]
+	var base: float = _simulate(6.0, false, true, [], 2)["threshold"]
 	for p in config.perks:
-		var t: float = _simulate(6.0, false, true, [p.id])["threshold"]
+		var t: float = _simulate(6.0, false, true, [p.id], 2)["threshold"]
 		gut.p("RUN2 [%s] %.1f min (sin permanentes: %.1f)" % [p.id, t / 60.0, base / 60.0])
 		assert_lt(t, base * 0.95, "%s acorta la run al menos un 5 %%" % p.id)
 	var all := config.perks.map(func(p: PerkDef) -> StringName: return p.id)
-	var t_all: float = _simulate(6.0, false, true, all)["threshold"]
-	assert_between(t_all / 60.0, 9.0, 18.0, "con todas, la run 4 dura cerca de 15 min (%.1f)" % (t_all / 60.0))
+	var t_all: float = _simulate(6.0, false, true, all, 4)["threshold"]
+	# Las seis piden 17 de Carga (lo normal es llegar a la run 4 con unas 9): quien tanto esperó la acaba antes.
+	assert_between(t_all / 60.0, 7.0, 18.0, "con todas, la run 4 no se rompe (%.1f)" % (t_all / 60.0))
+
+
+func test_four_runs_grow_and_shorten() -> void:
+	# Partida entera del jugador activo: reinicia al llegar al umbral y gasta la Carga en el orden del .tres
+	# (specs/incremental_v2.md §11). Cada run abre mejoras que no existían y dura menos que la anterior.
+	var eco := Economy.new(config, null, 1)
+	var seen := {}
+	var times: Array[float] = []
+	for run in range(1, 5):
+		var r := _play(eco, 6.0, false, true)
+		var thr: float = r["threshold"]
+		times.append(thr)
+		var fresh: Array = (r["appear"] as Dictionary).keys().filter(func(id: StringName) -> bool: return not seen.has(id))
+		var unbought := eco.visible_upgrades().map(func(u: UpgradeDef) -> StringName: return u.id)
+		gut.p("RUN%d %.1f min | perks %s | nuevas: %s | sin comprar al umbral: %s" % [
+			run, thr / 60.0, eco.state.perks, fresh, unbought])
+		assert_true(thr > 0.0, "la run %d llega al umbral" % run)
+		var range_v: Vector2 = RUN_RANGES[run - 1]
+		assert_between(thr / 60.0, range_v.x, range_v.y, "run %d en su duración" % run)
+		if run > 1:
+			assert_gte(fresh.size(), 2, "la run %d trae al menos 2 mejoras nuevas" % run)
+			assert_lt(thr, times[run - 2], "la run %d dura menos que la anterior" % run)
+		if run < 4:
+			assert_false(unbought.is_empty(), "en la run %d queda algo por comprar al llegar al umbral" % run)
+		for id in r["appear"]:
+			seen[id] = true
+		eco.restart()
+		for p in config.perks:
+			eco.buy_perk(p.id)
 
 
 # --- Simulador ---
 
-func _simulate(manual_cps: float, tranquil: bool, catch_interferences: bool, perks: Array = []) -> Dictionary:
+func _simulate(manual_cps: float, tranquil: bool, catch_interferences: bool, perks: Array = [], run := 1) -> Dictionary:
 	var eco := Economy.new(config, null, 1)
-	if not perks.is_empty():
-		eco.state.run_index = 2
-		eco.state.carga = 99
-		for p in perks:
-			eco.buy_perk(p)
+	eco.state.run_index = run
+	eco.state.carga = 99
+	for p in perks:
+		eco.buy_perk(p)
+	return _play(eco, manual_cps, tranquil, catch_interferences)
+
+
+## Juega la run de eco hasta el umbral (o MAX_TIME) con el perfil dado.
+func _play(eco: Economy, manual_cps: float, tranquil: bool, catch_interferences: bool) -> Dictionary:
 	var t := 0.0
 	var acc := 0.0
 	var purchases: Array[float] = []
 	var bought_ids: Array = []
 	var appear := {}
 	_record_appearances(eco, appear, 0.0)
-	var lore := LoreFeed.ratios(load("res://data/lore.tres").get_meta(&"fragments"), eco.state.run_index)
 	var threshold_time := -1.0
 	while t < MAX_TIME:
 		# El perfil tranquilo pasa siempre holding = true: no tiene efecto hasta comprar Dial firme.
@@ -138,9 +174,6 @@ func _simulate(manual_cps: float, tranquil: bool, catch_interferences: bool, per
 		eco.tick(STEP, holding)
 		t += STEP
 		_record_appearances(eco, appear, t)
-		for r in lore:  # los fragmentos de lore también son algo nuevo en la tele
-			if eco.state.energy_produced_run >= r * config.threshold and not appear.has("lore_%s" % r):
-				appear["lore_%s" % r] = t
 		if eco.can_restart():
 			threshold_time = t
 			break

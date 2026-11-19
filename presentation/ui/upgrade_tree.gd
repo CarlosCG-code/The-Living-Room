@@ -91,6 +91,9 @@ func is_revealed(id: StringName) -> bool:
 	var parent := _parent_of(id)
 	if parent == &"" or Game.economy.config.find_generator(id) != null:
 		return true
+	var u := Game.economy.config.find_upgrade(id)
+	if u and u.req_perk != &"" and not Game.economy.state.perks.has(u.req_perk):
+		return false  # la rama escondida no se insinúa: aparece de golpe al comprar la permanente
 	return Game.economy.owned(parent) > 0 or Game.economy.is_bought(parent)
 
 
@@ -119,9 +122,14 @@ func state_of(id: StringName) -> StringName:
 
 func describe(id: StringName) -> String:
 	if id != &"" and state_of(id) == &"locked":
-		return tr("UI_LOCKED")
+		return tr(_locked_key(id))
 	var c := card(id)
 	return " — ".join(PackedStringArray([c.get("title", ""), c.get("body", ""), c.get("effect", ""), c.get("cost", "")]))
+
+
+func _locked_key(id: StringName) -> String:
+	var u := Game.economy.config.find_upgrade(id)
+	return "UI_LOCKED_RUN" if u and u.req_run > Game.economy.state.run_index else "UI_LOCKED"
 
 
 ## Textos de la ficha: title, cost (y cost_color), body y effect.
@@ -131,7 +139,7 @@ func card(id: StringName) -> Dictionary:
 	var eco := Game.economy
 	var state := state_of(id)
 	if state == &"locked":
-		return {"title": "???", "body": tr("UI_LOCKED"), "cost_color": DIM}
+		return {"title": "???", "body": tr(_locked_key(id)), "cost_color": DIM}
 	var cost_text := tr("UI_BOUGHT") if state == &"bought" else NumberFormat.energy(eco.cost_of(id))
 	var cost_color: Color = {&"bought": GREEN, &"affordable": GOLD}.get(state, RED)
 	var g := eco.config.find_generator(id)

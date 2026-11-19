@@ -99,7 +99,7 @@ Se compran **en cualquier orden** (antes era en orden fijo, una queja de *Click 
 |---|---|---|
 | 2 | Tu memoria | empiezas con 10 Antenas, 5 Válvulas, Pulso y Dial firme |
 | 2 | Tus manos | la racha aguanta 3 s sin clicar y cada crítico llena un 20 % de la barra de cinta |
-| 3 | Tus ojos | eventos cada 1–2 min (la subida de grado de la cinta se quitó el 2026-11-19: sobraba) |
+| 3 | Tus ojos | eventos cada 1–2 min y desvela la rama escondida (§11) |
 | 3 | Tu costumbre | generadores −25 %; las mejoras de máquina piden la mitad de unidades |
 | 3 | Tu pulso | clic a mano ×2 |
 | 4 | Tu nombre | tu nombre aparece en el OSD y en las cintas; la tabla de récords te reconoce (lore) |
@@ -131,7 +131,7 @@ Se compran **en cualquier orden** (antes era en orden fijo, una queja de *Click 
 9. **Al pulsar Reiniciar:** carta de "FIN DE LA EMISIÓN" con un tono de prueba que desafina, y después la pantalla de Carga.
 10. **Los eventos alegres pierden color:** en la R4, la aurora sale gris.
 
-## 7. Lore (lo de la fase 4, ya aprobado)
+## 7. Lore (quitado el 2026-11-19, §11)
 
 - Fragmentos a 0,25 / 0,5 / 0,75 / 1 / 1,5 / 2,5 / 4 × el umbral, y en las cintas negras.
 - **"Emisión del 3.º":** rutina de la señora con doble lectura.
@@ -168,6 +168,29 @@ Pasos 1-7 hechos (commits 7201eb0 → este). Ajustes respecto a la propuesta, me
   Cada una acorta la run 2 un 5-25 %; con las seis dura ~11 min (test).
 - Pendiente para más adelante: espejo del mundo de la tele en la run 2, árboles que desaparecen, cifras de
   runs anteriores en la run 4 y el aviso previo de «Tus ojos».
+
+## 11. Árbol que crece con los reinicios (aprobado por el usuario, 2026-11-19)
+
+Problema: todo el árbol se compraba en la run 1 y las runs 2-4 repetían lo mismo más deprisa. Cambios:
+- **Ramas por run** (`UpgradeDef.req_run`; en el árbol salen como «???» con «Aún no. Algo cambia cada vez
+  que reinicias»):
+  - run 1: pulso, dial, máquinas y cintas básicas, más ×2 de cada máquina al tener muchas (Antena 25,
+    Válvulas 25, Frecuencia 20, Mando 10 y 20, Canal 3 9 y 20), *Eco* y *Zapping*;
+  - run 2: habilidades del mando (*Barrido*, *Sobretensión*, *Buscar señal*), *Sin toma de tierra* y *Doble pletina*;
+  - run 3: consumo (*Puentear*, *Derivar*), *No apartes la vista* y *Cinta sin etiqueta*;
+  - run 4: *Sobrecarga* y *Alguien más sintoniza*.
+- **Techo:** *Zapping*, *Sin toma de tierra*, *Derivar* y *Alguien más sintoniza* cuestan 0,8 × el umbral.
+  Quien reinicia en cuanto puede no las compra; quien aguanta en la tele, sí.
+- **Rama escondida** (`UpgradeDef.req_perk`): *Tus ojos* ya no sube la siguiente cinta; desvela *Imagen
+  fantasma* (eventos ×3), *Manos de estática* (clic a mano ×3) y *Señal fantasma* (producción ×2,5), que no
+  se ven ni como «???» sin ella.
+- **Umbral:** 45 M (× 1,4 en la run 4, `EconomyConfig.threshold_mult`).
+- **Lore quitado** (petición del usuario): distraía de la tele; la historia se cuenta en el piso.
+- **Test de ritmo de las 4 runs** (jugador activo, reinicia al umbral, gasta la Carga en orden): 27,9 / 20,5 /
+  16,9 / 13,6 min. Cada run trae mejoras nuevas y en las runs 1-3 queda algo por comprar. Novedades cada
+  2,3-2,6 min en la segunda mitad de la run 1 (tope del test: 165 s).
+- Con las seis permanentes (17 de Carga) la run 4 dura 8,4 min: el final se dispara. Se acepta como premio a
+  quien esperó; revisar en el playtest.
 
 ## 10. Orden de implementación
 

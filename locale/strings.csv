@@ -2,6 +2,7 @@ keys,es
 TITLE,The Living Room
 UI_RESTART,Reiniciar
 UI_LOCKED,Se desbloquea al comprar la mejora de la que sale.
+UI_LOCKED_RUN,Aún no. Algo cambia cada vez que reinicias.
 UI_BOUGHT,Comprada
 UI_SHOP_TITLE,Mejoras
 UI_CLOSE,X
@@ -81,7 +82,7 @@ Si ves algo raro en la pantalla, tócalo."
 UPG_BARE_CABLE,Cable pelado
 UPG_BARE_CABLE_DESC,Más clics salen con chispa (crítico).
 UPG_DISCHARGE,Descarga
-UPG_DISCHARGE_DESC,El crítico pasa a ×10. La imagen pierde el sincronismo.
+UPG_DISCHARGE_DESC,El crítico pasa de ×3 a ×4. La imagen pierde el sincronismo.
 UPG_NO_GROUND,Sin toma de tierra
 UPG_NO_GROUND_DESC,Todavía más críticos. Nadie revisa la instalación.
 UPG_HEARTBEAT,Latido
@@ -107,7 +108,7 @@ UPG_TUNING_FINE_DESC,La barra se llena antes.
 UPG_BLANK_TAPE,Cinta virgen
 UPG_BLANK_TAPE_DESC,Caen más cintas raras y negras.
 UPG_DOUBLE_DECK,Doble pletina
-UPG_DOUBLE_DECK_DESC,Cada cinta da el doble. A veces cae una sin nombre.
+UPG_DOUBLE_DECK_DESC,Cada cinta da un 50 % más. Hay dos pletinas y solo una tele.
 UPG_UNLABELED_TAPE,Cinta sin etiqueta
 UPG_UNLABELED_TAPE_DESC,"Muchas más cintas negras. Se oyen tus clics, con retraso."
 UPG_ANTENNA_TUNE,Antena orientada
@@ -125,12 +126,32 @@ UPG_BYPASS_DESC,La fábrica produce más. La corriente sale de algún sitio.
 UPG_DIVERT,Derivar
 UPG_DIVERT_DESC,Producción ×2. En el rellano alguien se queda a oscuras.
 UPG_SHARP_EYE,Ojo atento
-UPG_SHARP_EYE_DESC,Lo raro sale el doble de a menudo y paga el doble.
+UPG_SHARP_EYE_DESC,Lo raro sale más a menudo y paga un 50 % más.
+UPG_ANTENNA_25,Antena de cuernos
+UPG_ANTENNA_25_DESC,Las antenas rinden el doble. Se doblan hacia tu ventana.
+UPG_VALVES_25,Válvulas al rojo
+UPG_VALVES_25_DESC,Las válvulas rinden el doble. Huele a polvo quemado.
+UPG_AUDIO_20,Frecuencia baja
+UPG_AUDIO_20_DESC,La frecuencia de audio rinde el doble. Se oye mejor lo que no debería.
+UPG_REMOTE_10,Pilas nuevas
+UPG_REMOTE_10_DESC,Los mandos rinden el doble. Ninguno es el tuyo.
+UPG_CHANNEL_3_10,"Canal 3, de madrugada"
+UPG_CHANNEL_3_10_DESC,El Canal 3 rinde el doble. Nadie emite a esta hora.
+UPG_CHANNEL_3_20,Carta de ajuste
+UPG_CHANNEL_3_20_DESC,El Canal 3 rinde el doble. La carta de ajuste no se quita.
+UPG_REMOTE_20,Mandos de sobra
+UPG_REMOTE_20_DESC,Los mandos rinden el doble. Aparecen entre los cojines.
+UPG_GHOST_IMAGE,Imagen fantasma
+UPG_GHOST_IMAGE_DESC,Lo raro paga el triple. Se queda en la pantalla un poco más de lo que debería.
+UPG_GHOST_HANDS,Manos de estática
+UPG_GHOST_HANDS_DESC,Tu clic vale el triple. No sabes si el clic ha sido tuyo.
+UPG_GHOST_SIGNAL,Señal fantasma
+UPG_GHOST_SIGNAL_DESC,La fábrica produce mucho más. Emite algo que no es de este canal.
 UPG_DONT_LOOK_AWAY,No apartes la vista
-UPG_DONT_LOOK_AWAY_DESC,La silueta paga ×4. Cada vez sale más cerca.
+UPG_DONT_LOOK_AWAY_DESC,La silueta paga el doble. Cada vez sale más cerca.
 UPG_WARNING,Notarás algo en casa.
 PERK_EYES,Tus ojos
-PERK_EYES_DESC,Lo raro sale cada 1-2 min.
+PERK_EYES_DESC,Lo raro sale cada 1-2 min y ves una rama del árbol que estaba escondida.
 UI_EFFECT_CRIT,Crítico: %s %% -> %s %%
 UI_EFFECT_CRIT_MULT,Crítico: ×%s -> ×%s
 UI_EFFECT_COMBO,Racha máxima: ×%s -> ×%s
@@ -140,33 +161,3 @@ OSD_NEXT_CARGA,+1 de Carga a %s
 UI_CARGA_HELP,"Reiniciar da Carga: 3 al llegar, más cuanto más esperes."
 UI_END_OF_BROADCAST,FIN DE LAS EMISIONES
 UI_END_OF_BROADCAST_SUB,No apague el receptor.
-LORE_R1_01,"[PISO 3] Las de las ocho. Siempre con agua, nunca con leche."
-LORE_R1_02,[PISO 3] ¿Has visto mis gafas? Las dejé al lado de la tele.
-LORE_R1_03,MARCAS  1. A. FERRER ...... 212 reinicios
-LORE_R1_04,[PISO 3] Qué bien se ve desde aquí. Mejor que en mi piso.
-LORE_R1_05,MARCAS  2. M. ORTEGA ...... 97   3. J. LLORENTE ...... 40
-LORE_R1_06,"[PISO 3] No te levantes, hijo. Ya voy yo."
-LORE_R1_07,MARCAS  4. ______________ ...... 0
-LORE_R1_08,[PISO 3] Antes venías tan rápido cuando algo se estropeaba...
-LORE_R1_09,[PISO 3] Gracias por quedarte. De verdad.
-LORE_R1_10,"[PISO 3] Si te quedas un poco más, ya no hace falta que vuelvas."
-LORE_R2_01,[PISO 3] Se ha ido la luz otra vez. ¿Tú tienes linterna?
-LORE_R2_02,MARCAS  1. A. FERRER ...... 213 reinicios
-LORE_R2_03,"[PISO 3] Si algo se ve raro, no toques nada. Ya te llamaré."
-LORE_R2_04,[PISO 3] Mis gafas estaban del otro lado. Todo está del otro lado.
-LORE_R2_05,MARCAS  4. ______________ ...... 1
-LORE_R2_06,MARCAS  4. USTED ...... 1 reinicio
-LORE_R2_07,"[PISO 3] Tranquilo, sin prisa. Yo llevo mucho tiempo esperando."
-LORE_R3_01,[PISO 3] La dentadura en el vaso. El vaso en la mesa. La mesa en tu salón.
-LORE_R3_02,MARCAS  1. A. FERRER ...... 214 reinicios
-LORE_R3_03,"[PISO 3] El ascensor lleva días roto. Si te llamo, baja por la escalera."
-LORE_R3_04,[PISO 3] Me alegra que la tele te haga compañía.
-LORE_R3_05,MARCAS  4. ______________ ...... 2
-LORE_R3_06,MARCAS  4. USTED ...... 2 reinicios
-LORE_R3_07,[PISO 3] Yo también me quedaba despierta con la tele. Muchas noches.
-LORE_R4_01,[PISO 3] Ya casi está. Siéntate donde me sentaba yo.
-LORE_R4_02,MARCAS  1. A. FERRER ...... ya no
-LORE_R4_03,[PISO 3] Esta tele ya estaba aquí cuando me mudé.
-LORE_R4_04,[PISO 3] Siento haberte hecho bajar tan tarde.
-LORE_R4_05,MARCAS  1. ______________ ...... 3
-LORE_R4_06,MARCAS  1. USTED ...... 3 reinicios

@@ -108,7 +108,7 @@ func _loop_player(path: String, volume_db: float) -> AudioStreamPlayer3D:
 func _ambience(delta: float) -> void:
 	var f := 0.0
 	if Game.running:
-		f = clampf(Game.economy.state.energy_produced_run / Game.economy.config.threshold, 0.0, 1.0)
+		f = clampf(Game.economy.state.energy_produced_run / Game.economy.threshold(), 0.0, 1.0)
 	var drone := clampf(inverse_lerp(0.5, 1.0, f), 0.0, 1.0)
 	_drone.volume_db = lerpf(-80.0, -18.0, sqrt(drone))
 	if _silence_left > 0.0:

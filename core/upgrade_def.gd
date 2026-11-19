@@ -38,6 +38,9 @@ enum Kind {
 @export var req_manual_clicks: int
 @export var req_packages: int
 @export var req_events_caught: int
+## Run a partir de la que existe (el árbol crece con cada reinicio) y permanente que la desvela (vacío = ninguna).
+@export var req_run: int = 1
+@export var req_perk: StringName
 ## Padre en el árbol de mejoras: debe estar comprado (o, si es un generador, tener al menos uno).
 @export var requires_id: StringName
 ## SKILL: &"sweep" (clics automáticos extra), &"surge" (clic × value), &"seek" (provoca un evento),

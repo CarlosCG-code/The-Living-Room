@@ -113,6 +113,8 @@ func test_buy_from_tree_and_tapes_and_skills() -> void:
 	assert_true(eco.is_bought(&"pulse"))
 	assert_true(Game.buy(&"tuning"))
 	assert_true(Game.buy(&"dial_hold"))
+	assert_false(Game.buy(&"sweep"), "las habilidades se abren en la run 2")
+	eco.state.run_index = 2
 	assert_true(Game.buy(&"sweep"))
 	# Cinta: se llena la barra a mano y aparece en su hueco de la nieve; al pulsarla da Energía y desaparece.
 	eco.state.package_bar = eco.bar_size() - 0.5
@@ -187,19 +189,3 @@ func test_save_and_load_keeps_everything() -> void:
 	for f in DirAccess.get_files_at(dir):
 		DirAccess.remove_absolute(dir.path_join(f))
 	DirAccess.remove_absolute(dir)
-
-
-func test_lore_only_while_playing_and_never_twice() -> void:
-	ui.start_in_menu()
-	await wait_process_frames(2)
-	_rich(eco.config.threshold * 0.01)
-	await wait_process_frames(2)
-	assert_eq(ui._osd.lore_text(), "", "en el menú no sale lore")
-	ui._menu.play_requested.emit()
-	await wait_seconds(0.6)
-	_rich(eco.config.threshold * 0.05)
-	await wait_seconds(0.5)
-	assert_ne(ui._osd.lore_text(), "", "jugando, al pasar un ratio sale su fragmento")
-	var queued: int = ui._osd._lore_queue.size()
-	await wait_process_frames(5)
-	assert_eq(ui._osd._lore_queue.size(), queued, "no se vuelve a encolar lo mismo")

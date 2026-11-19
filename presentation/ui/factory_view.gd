@@ -211,7 +211,7 @@ func _process(delta: float) -> void:
 	show_counts(eco.state.generators)
 	show_event(eco.active_event(), eco.event_progress())
 	show_packages(eco.packages())
-	set_dread(eco.state.energy_produced_run / eco.config.threshold, eco.state.run_index)
+	set_dread(eco.state.energy_produced_run / eco.threshold(), eco.state.run_index)
 	if _freeze_left > 0.0:
 		_freeze_left -= delta
 		_snow.speed_scale = 0.0

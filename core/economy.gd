@@ -237,7 +237,7 @@ func restart() -> bool:
 func carga_if_restarted() -> int:
 	if not can_restart():
 		return 0
-	return int(floorf(config.carga_base * sqrt(state.energy_produced_run / config.threshold))) + _carga_bonus()
+	return int(floorf(config.carga_base * sqrt(state.energy_produced_run / threshold()))) + _carga_bonus()
 
 
 ## Energía producida en la run a la que reiniciar daría un punto más de Carga (INF si aún no se puede).
@@ -245,7 +245,7 @@ func next_carga_at() -> float:
 	if not can_restart():
 		return INF
 	var base := carga_if_restarted() - _carga_bonus() + 1
-	return config.threshold * pow(base / config.carga_base, 2.0)
+	return threshold() * pow(base / config.carga_base, 2.0)
 
 
 func _carga_bonus() -> int:
@@ -361,7 +361,9 @@ func is_visible(id: StringName) -> bool:
 	if g != null:
 		return state.energy_produced_run >= g.req_energy_produced and _parent_met(g.requires_id)
 	var u := config.find_upgrade(id)
-	if u == null or not _parent_met(u.requires_id):
+	if u == null or not _parent_met(u.requires_id) or state.run_index < u.req_run:
+		return false
+	if u.req_perk != &"" and not state.perks.has(u.req_perk):
 		return false
 	if state.energy_produced_run < u.req_energy_produced:
 		return false
@@ -387,8 +389,13 @@ func total_owned() -> int:
 	return n
 
 
+## Energía producida que pide Reiniciar en esta run.
+func threshold() -> float:
+	return config.threshold_for(state.run_index)
+
+
 func can_restart() -> bool:
-	return state.energy_produced_run >= config.threshold
+	return state.energy_produced_run >= threshold()
 
 
 func active_event() -> TvEventDef:
