@@ -3,13 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://cnffflwneu7yo"
-path="res://.godot/imported/living_room_mirror.glb-9f34e8125a71f908a6606a1febe811b6.scn"
+uid="uid://dpwila1c3ili8"
+path="res://.godot/imported/living_room_mirror.gltf-39ddd6586d2dc772d9dd3c6ce684fac7.scn"
 
 [deps]
 
-source_file="res://assets/models/living_room_mirror.glb"
-dest_files=["res://.godot/imported/living_room_mirror.glb-9f34e8125a71f908a6606a1febe811b6.scn"]
+source_file="res://assets/models/living_room/living_room_mirror.gltf"
+dest_files=["res://.godot/imported/living_room_mirror.gltf-39ddd6586d2dc772d9dd3c6ce684fac7.scn"]
 
 [params]
 

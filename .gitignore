@@ -13,3 +13,14 @@ Thumbs.db
 desktop.ini
 .DS_Store
 
+
+# Descargas de Poly Haven (se recuperan con tools/fetch_polyhaven.py)
+/art_source/polyhaven/
+*.blend1
+
+# Pesados y regenerables: fuera de GitHub hasta que el usuario pida subir el proyecto entero (2026-11-19)
+/assets/models/living_room/textures/
+/assets/models/living_room/*.bin
+/art_source/living_room.blend
+/world/player_flat/voxel_gi_data*.res
+/reviews/lookdev/

@@ -102,7 +102,7 @@ La Evidencia determina cuánto confiesa la señora (y por tanto cuánto sabe el 
 
 ## 8. Escenarios
 
-1. Piso del jugador (incluye la caja de plomos): normal, **en espejo**, **a oscuras** (la run 2 combina ambas; la técnica del espejo y de la variante a oscuras se valida en el hito 2).
+1. Piso del jugador (incluye la caja de plomos): normal, **en espejo**, **a oscuras** (la run 2 combina ambas; la técnica del espejo y de la variante a oscuras se valida en el hito 2). **Más de 10 habitaciones** (usuario, 2026-11-19): en el apagón en espejo de la run 2 el jugador tiene que poder perderse de verdad. La distribución se especifica en el hito 4.
 2. Escalera del 8.º a la planta baja (portal).
 3. Piso de la señora (salón y recibidor como mínimo).
 4. Portal / bajo del edificio, al pie de la escalera: **caja general** (final secreto).

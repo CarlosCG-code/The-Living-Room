@@ -11,7 +11,7 @@ import math
 import os
 
 import bpy
-from mathutils import Vector
+from mathutils import Matrix, Vector
 
 MODE = globals().get("MODE", "graybox")
 ROOT = globals().get("ROOT", os.getcwd())
@@ -68,13 +68,19 @@ def build_room():
     box("Shelf-col", (0.35, 1.0, 1.8), (-W / 2 + 0.2, -0.8, 0.9))
 
 
-def mirror_all():
+def mirror_all(recalc_normals=True):
     for o in bpy.context.scene.objects:
         o.select_set(True)
         o.location.x = -o.location.x
         o.scale.x = -o.scale.x
     bpy.context.view_layer.objects.active = bpy.context.scene.objects[0]
+    # Tras exportar, las mallas con modificadores (biselado) quedan con dos usuarios y no se dejaría aplicar.
+    bpy.ops.object.make_single_user(object=True, obdata=True)
     bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
+    # Blender 5.3 ya deja las normales hacia fuera al aplicar la escala negativa (comprobado 2026-11-19);
+    # recalcularlas estropearía mallas abiertas importadas (hojas de la planta, pantalla de la lámpara).
+    if not recalc_normals:
+        return
     for o in bpy.context.scene.objects:
         bpy.context.view_layer.objects.active = o
         bpy.ops.object.mode_set(mode="EDIT")
@@ -178,8 +184,212 @@ def build_tv():
     bpy.ops.object.transform_apply(location=False, rotation=True, scale=True)
 
 
+# --- Modo final (fase 2b): materiales con texturas CC0 de Poly Haven y muebles CC0 (specs/hito2.md D13, D18) ---
+
+PH = os.path.join(ROOT, "art_source", "polyhaven")  # lo descarga tools/fetch_polyhaven.py
+
+
+def uv_world(o, tile):
+    """UV en metros reales (tile = metros que cubre la textura), proyectadas por la cara: sin estirar en paredes largas."""
+    import bmesh
+    bm = bmesh.new()
+    bm.from_mesh(o.data)
+    uv = bm.loops.layers.uv.verify()
+    for f in bm.faces:
+        n = f.normal
+        ax = max(range(3), key=lambda i: abs(n[i]))
+        for loop in f.loops:
+            p = o.matrix_world @ loop.vert.co
+            u, v = {0: (p.y, p.z), 1: (p.x, p.z), 2: (p.x, p.y)}[ax]
+            loop[uv].uv = (u / tile, v / tile)
+    bm.to_mesh(o.data)
+    bm.free()
+
+
+def tex_mat(name, tex_id, res):
+    """Material PBR con las texturas de Poly Haven: color, normal (OpenGL) y rugosidad (+ oclusión si hay arm)."""
+    m = bpy.data.materials.get(name) or bpy.data.materials.new(name)
+    m.use_nodes = True
+    nt = m.node_tree
+    b = next(n for n in nt.nodes if n.type == "BSDF_PRINCIPLED")
+    folder = os.path.join(PH, tex_id)
+
+    def img(kind, colour):
+        node = nt.nodes.new("ShaderNodeTexImage")
+        node.image = bpy.data.images.load(os.path.join(folder, "%s_%s_%s.jpg" % (tex_id, kind, res)), check_existing=True)
+        node.image.colorspace_settings.name = "sRGB" if colour else "Non-Color"
+        return node
+
+    nt.links.new(img("diff", True).outputs["Color"], b.inputs["Base Color"])
+    nt.links.new(img("rough", False).outputs["Color"], b.inputs["Roughness"])
+    nmap = nt.nodes.new("ShaderNodeNormalMap")
+    nt.links.new(img("nor_gl", False).outputs["Color"], nmap.inputs["Color"])
+    nt.links.new(nmap.outputs["Normal"], b.inputs["Normal"])
+    b.inputs["Metallic"].default_value = 0.0
+    return m
+
+
+def import_model(asset_id, res, loc, rot_z_deg=0.0, scale=1.0):
+    """Importa el glTF de Poly Haven, lo deja sin padres, apoyado en loc (el suelo del modelo en loc.z) y girado."""
+    before = set(bpy.context.scene.objects)
+    bpy.ops.import_scene.gltf(filepath=os.path.join(PH, asset_id, "%s_%s.gltf" % (asset_id, res)))
+    new = [o for o in bpy.context.scene.objects if o not in before]
+    for o in new:
+        o.select_set(o.type == "MESH")
+    bpy.context.view_layer.objects.active = next(o for o in new if o.type == "MESH")
+    bpy.ops.object.parent_clear(type="CLEAR_KEEP_TRANSFORM")
+    for o in [o for o in new if o.type != "MESH"]:
+        bpy.data.objects.remove(o, do_unlink=True)
+    meshes = [o for o in new if o.name in bpy.context.scene.objects and o.type == "MESH"]
+    bpy.ops.object.select_all(action="DESELECT")
+    for o in meshes:
+        o.select_set(True)
+    bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
+    # Pivote: centro en planta y base del modelo, para colocarlo por el suelo.
+    pts = [o.matrix_world @ Vector(c) for o in meshes for c in o.bound_box]
+    cx = (min(p.x for p in pts) + max(p.x for p in pts)) / 2
+    cy = (min(p.y for p in pts) + max(p.y for p in pts)) / 2
+    cz = min(p.z for p in pts)
+    for o in meshes:
+        o.data.transform(Matrix.Translation((-cx, -cy, -cz)))
+        o.location = loc
+        o.rotation_mode = "XYZ"  # el importador de glTF deja cuaterniones: rotation_euler se ignoraría
+        o.rotation_euler = (0, 0, math.radians(rot_z_deg))
+        o.scale = (scale, scale, scale)
+        o.name = asset_id if len(meshes) == 1 else "%s_%s" % (asset_id, o.name)
+    bpy.ops.object.transform_apply(location=False, rotation=True, scale=True)
+    return meshes
+
+
+def cone(name, r_bottom, r_top, depth, loc, verts=32):
+    bpy.ops.mesh.primitive_cone_add(vertices=verts, radius1=r_bottom, radius2=r_top, depth=depth, location=loc,
+                                    end_fill_type="NOTHING")
+    o = bpy.context.active_object
+    o.name = name
+    return o
+
+
+def build_final():
+    build_room()
+    for name in ("TvStand-col", "Sofa-col", "SofaBack-col", "CoffeeTable-col", "Shelf-col"):
+        bpy.data.objects.remove(bpy.data.objects[name], do_unlink=True)  # los bloques del graybox
+    wall = tex_mat("Wallpaper", "decrepit_wallpaper", "2k")
+    floor = tex_mat("Parquet", "herringbone_parquet", "2k")
+    ceiling = tex_mat("Gotele", "white_stucco", "1k")
+    for o in list(bpy.context.scene.objects):
+        if o.name.startswith("Wall"):
+            give(o, wall)
+            uv_world(o, 2.5)
+        elif o.name.startswith("Floor"):
+            give(o, floor)
+            uv_world(o, 3.4)
+        elif o.name.startswith("Ceiling"):
+            give(o, ceiling)
+            uv_world(o, 2.0)
+
+    wood = mat("DarkWood", (0.05, 0.028, 0.016), 0.45)
+    door_wood = mat("DoorWood", (0.16, 0.085, 0.04), 0.4)
+    white_frame = mat("WindowFrame", (0.75, 0.74, 0.7), 0.35, metallic=0.2)
+    marble = mat("Marble", (0.62, 0.6, 0.57), 0.2)
+    blind = mat("Blind", (0.42, 0.38, 0.3), 0.6)
+    brass = mat("Brass", (0.6, 0.45, 0.22), 0.3, metallic=1.0)
+    shade = mat("LampShade", (0.72, 0.62, 0.45), 0.8)
+    shade.use_backface_culling = False  # se ve por dentro y por fuera: glTF doubleSided
+    glass = mat("Glass", (0.6, 0.65, 0.7), 0.05)
+    gb = next(n for n in glass.node_tree.nodes if n.type == "BSDF_PRINCIPLED")
+    gb.inputs["Alpha"].default_value = 0.12
+    glass.surface_render_method = "BLENDED"
+
+    # Rodapiés de madera oscura (8 cm), con hueco en la puerta.
+    sh, st = 0.08, 0.015
+    y0, y1 = -D / 2, D / 2
+    give(box("SkirtBack", (W, st, sh), (0, y0 + st / 2, sh / 2)), wood)
+    give(box("SkirtFront", (W, st, sh), (0, y1 - st / 2, sh / 2)), wood)
+    give(box("SkirtRight", (st, D, sh), (W / 2 - st / 2, 0, sh / 2)), wood)
+    door_y, door_w, door_top = 1.6, 0.9, 2.1
+    a1 = door_y - door_w / 2
+    give(box("SkirtLeftA", (st, a1 - y0, sh), (-W / 2 + st / 2, (y0 + a1) / 2, sh / 2)), wood)
+    a2 = door_y + door_w / 2
+    give(box("SkirtLeftB", (st, y1 - a2, sh), (-W / 2 + st / 2, (y1 + a2) / 2, sh / 2)), wood)
+
+    # Ventana (pared +X): marco, cristal, alféizar de mármol, persiana medio bajada por fuera y su cajón.
+    wx, win_y, win_w, win_bot, win_top = W / 2 + T / 2, 0.5, 1.2, 0.9, 2.1
+    f = 0.05
+    for name, size, loc in [
+        ("WinFrameTop", (T + 0.02, win_w, f), (wx, win_y, win_top - f / 2)),
+        ("WinFrameBottom", (T + 0.02, win_w, f), (wx, win_y, win_bot + f / 2)),
+        ("WinFrameL", (T + 0.02, f, win_top - win_bot), (wx, win_y - win_w / 2 + f / 2, (win_top + win_bot) / 2)),
+        ("WinFrameR", (T + 0.02, f, win_top - win_bot), (wx, win_y + win_w / 2 - f / 2, (win_top + win_bot) / 2)),
+        ("WinFrameMid", (0.06, 0.04, win_top - win_bot), (wx, win_y, (win_top + win_bot) / 2)),
+    ]:
+        give(box(name, size, loc), white_frame, bevel=0.004)
+    give(box("WindowGlass", (0.006, win_w - 2 * f, win_top - win_bot - 2 * f), (wx, win_y, (win_top + win_bot) / 2)), glass)
+    give(box("WindowSill", (0.2, win_w + 0.1, 0.03), (W / 2 - 0.02, win_y, win_bot - 0.015)), marble, bevel=0.005)
+    slats, gap, slat_h = [], 0.006, 0.042
+    z = win_top
+    while z > 1.5:  # persiana bajada hasta 1,5 m: entre lamas pasa la luz de la calle
+        slats.append(box("BlindSlat", (0.012, win_w + 0.06, slat_h), (W / 2 + T + 0.02, win_y, z - slat_h / 2)))
+        z -= slat_h + gap
+    bpy.ops.object.select_all(action="DESELECT")
+    for s in slats:
+        s.select_set(True)
+    bpy.context.view_layer.objects.active = slats[0]
+    bpy.ops.object.join()
+    give(bpy.context.active_object, blind).name = "Blind"
+    give(box("BlindBox", (0.14, win_w + 0.2, 0.22), (W / 2 - 0.07, win_y, win_top + 0.13)), white_frame, bevel=0.004)
+
+    # Puerta (pared -X), cerrada: marco, hoja y manilla. La hoja va aparte para poder abrirla en el hito 4.
+    dx = -W / 2 - T / 2
+    j = 0.07
+    for name, size, loc in [
+        ("DoorJambTop", (T + 0.03, door_w + 2 * j, j), (dx, door_y, door_top + j / 2)),
+        ("DoorJambL", (T + 0.03, j, door_top), (dx, door_y - door_w / 2 - j / 2, door_top / 2)),
+        ("DoorJambR", (T + 0.03, j, door_top), (dx, door_y + door_w / 2 + j / 2, door_top / 2)),
+    ]:
+        give(box(name, size, loc), door_wood, bevel=0.005)
+    give(box("DoorLeaf", (0.04, door_w - 0.006, door_top - 0.006), (dx, door_y, door_top / 2)), door_wood, bevel=0.004)
+    give(cylinder("DoorHandle", 0.009, 0.12, (-W / 2 + 0.01, door_y + door_w / 2 - 0.08, 1.0),
+                  rot=(math.radians(90), 0, 0), verts=12), brass)
+
+    # Lámpara de pie (modelada aquí: Poly Haven no tiene ninguna). La luz de Godot va dentro de la pantalla.
+    lx, ly = -1.6, 0.95
+    give(cylinder("LampBase", 0.15, 0.03, (lx, ly, 0.015)), brass, bevel=0.005)
+    give(cylinder("LampPole", 0.012, 1.42, (lx, ly, 0.74), verts=12), brass)
+    give(cone("LampShade", 0.22, 0.14, 0.28, (lx, ly, 1.55)), shade)
+
+    # Muebles CC0 de Poly Haven. Sofá contra la pared del fondo mirando a la tele (-Y).
+    import_model("sofa_03", "2k", (0, D / 2 - 0.5, 0))
+    import_model("throw_pillows_01", "1k", (-0.75, D / 2 - 0.55, 0.42), rot_z_deg=10)
+    import_model("small_wooden_table_01", "1k", (0, -D / 2 + 0.28, 0))  # mueble de la tele
+    import_model("side_table_01", "1k", (0, 0.65, 0))  # mesa baja
+    # Los modelos de Poly Haven miran a -Y: +90° los pone mirando a +X y -90° a -X.
+    import_model("vintage_cabinet_01", "2k", (-W / 2 + 0.36, -1.2, 0), rot_z_deg=90)  # aparador
+    import_model("wooden_bookshelf_worn", "1k", (W / 2 - 0.3, -1.6, 0), rot_z_deg=-90)
+    for k, z in enumerate((0.98, 1.45)):
+        import_model("book_encyclopedia_set_01", "1k", (W / 2 - 0.3, -1.6 + (k - 0.5) * 0.3, z), rot_z_deg=-90)
+    import_model("ArmChair_01", "1k", (1.45, -0.3, 0), rot_z_deg=-39)  # girado hacia la tele
+    import_model("potted_plant_02", "1k", (1.62, 0.55, 0))
+    import_model("wall_clock", "1k", (0, -D / 2 + 0.03, 1.75), rot_z_deg=180)
+
+
+def export_final(path):
+    # glTF separado: las dos versiones (normal y espejo) comparten las mismas texturas.
+    bpy.ops.export_scene.gltf(filepath=path, export_format="GLTF_SEPARATE", export_apply=True,
+                              export_texture_dir="textures", export_image_format="AUTO")
+
+
 def main():
     os.makedirs(OUT, exist_ok=True)
+    if MODE == "final":
+        os.makedirs(SRC, exist_ok=True)
+        reset()
+        build_final()
+        bpy.ops.wm.save_as_mainfile(filepath=os.path.join(SRC, "living_room.blend"))
+        export_final(os.path.join(OUT, "living_room", "living_room.gltf"))
+        mirror_all(recalc_normals=False)
+        export_final(os.path.join(OUT, "living_room", "living_room_mirror.gltf"))
+        print("BUILD_OK final")
+        return
     if MODE == "tv":  # solo la tele, sin tocar el salón
         reset()
         build_tv()

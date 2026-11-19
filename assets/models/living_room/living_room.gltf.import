@@ -3,13 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://bg2cgyrws0xxs"
-path="res://.godot/imported/living_room.glb-e367ec56822ffde9302649cf14c36898.scn"
+uid="uid://6kdmtdheykx6"
+path="res://.godot/imported/living_room.gltf-83a2b4041168a52c1a24ee40ae9090b6.scn"
 
 [deps]
 
-source_file="res://assets/models/living_room.glb"
-dest_files=["res://.godot/imported/living_room.glb-e367ec56822ffde9302649cf14c36898.scn"]
+source_file="res://assets/models/living_room/living_room.gltf"
+dest_files=["res://.godot/imported/living_room.gltf-83a2b4041168a52c1a24ee40ae9090b6.scn"]
 
 [params]
 

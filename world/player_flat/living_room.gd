@@ -2,8 +2,8 @@ extends Node3D
 
 # Salón del jugador (specs/hito2.md D1, D14). Expone anclas, entorno y luces; no conoce a nadie.
 
-const GEOMETRY := "res://assets/models/living_room.glb"
-const GEOMETRY_MIRROR := "res://assets/models/living_room_mirror.glb"
+const GEOMETRY := "res://assets/models/living_room/living_room.gltf"
+const GEOMETRY_MIRROR := "res://assets/models/living_room/living_room_mirror.gltf"
 const GI_DATA := "res://world/player_flat/voxel_gi_data.res"
 const GI_DATA_MIRROR := "res://world/player_flat/voxel_gi_data_mirror.res"
 
