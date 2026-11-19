@@ -1,2 +1,3 @@
 # Godot escribe LF; evita diferencias fantasma por CRLF en Windows
 * text=auto eol=lf
+*.bat text eol=crlf
