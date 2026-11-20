@@ -120,3 +120,24 @@ func test_leftover_tmp_is_removed() -> void:
 	_write(path + ".tmp", "a medias")
 	saves.load_run(config)
 	assert_false(FileAccess.file_exists(path + ".tmp"))
+
+
+func test_complete_tmp_without_main_is_recovered() -> void:
+	saves.save_run(_state(1))
+	saves.save_run(_state(2))  # run.json = 2, .bak = 1
+	# Corte entre los dos renombrados: el principal ya pasó a .bak y el .tmp (el más nuevo) no llegó a renombrarse.
+	DirAccess.rename_absolute(path, path + ".bak")
+	_write(path + ".tmp", JSON.stringify(_state(3).to_dict()))
+	var state := saves.load_run(config)
+	assert_almost_eq(state.energy, 3.0, 0.0001, "se carga el .tmp, no el .bak más viejo")
+	assert_true(FileAccess.file_exists(path))
+	assert_false(FileAccess.file_exists(path + ".tmp"))
+
+
+func test_complete_tmp_beside_main_wins_and_rotates() -> void:
+	saves.save_run(_state(4))
+	_write(path + ".tmp", JSON.stringify(_state(9).to_dict()))  # corte justo antes de rotar
+	assert_almost_eq(saves.load_run(config).energy, 9.0, 0.0001)
+	assert_false(FileAccess.file_exists(path + ".tmp"))
+	DirAccess.remove_absolute(path)
+	assert_almost_eq(saves.load_run(config).energy, 4.0, 0.0001, "el anterior quedó de .bak")

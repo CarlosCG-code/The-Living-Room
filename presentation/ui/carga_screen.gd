@@ -71,6 +71,10 @@ func _buy(id: StringName) -> void:
 		_focus_next()
 
 
+func can_buy_any() -> bool:
+	return Game.economy.config.perks.any(_affordable)
+
+
 func _affordable(p: PerkDef) -> bool:
 	return not Game.economy.has_perk(p.id) and Game.economy.state.carga >= p.cost
 

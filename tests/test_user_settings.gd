@@ -82,8 +82,9 @@ func test_bad_new_values_are_corrected() -> void:
 
 func test_resolution_options_fit_the_screen() -> void:
 	var opts := UserSettings.resolution_options(Vector2i(1920, 1080))
-	assert_eq(opts[0], Vector2i.ZERO, "primero, la de la pantalla")
-	assert_false(Vector2i(1920, 1080) in opts, "la de la pantalla no se repite")
+	assert_eq(opts[0], Vector2i.ZERO, "primero, auto")
+	assert_true(Vector2i(1920, 1080) in opts, "la de la pantalla también se puede elegir")
+	assert_true(Vector2i(2560, 1080) in UserSettings.resolution_options(Vector2i(2560, 1080)), "aunque no sea común")
 	assert_false(Vector2i(2560, 1440) in opts, "ninguna mayor que la pantalla")
 	assert_true(Vector2i(1280, 720) in opts)
 	assert_eq(UserSettings.cycle(opts, Vector2i(777, 777), 1), Vector2i.ZERO, "si no está, vuelve al principio")

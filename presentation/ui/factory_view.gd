@@ -209,8 +209,10 @@ func _process(delta: float) -> void:
 	elif _run >= 3 and _dread > 0.5 and randf() < delta / 40.0:
 		_freeze_left = 1.0  # la nieve se para en el aire un segundo
 	_flicker(delta)
-	# Dial solo (y mantener pulsado): las máquinas dan saltitos solas, uno por clic automático.
-	_auto_acc += eco.auto_clicks_per_second(_any_held()) * delta
+	# Dial solo (y mantener pulsado): las máquinas dan saltitos solas, uno por clic automático (en pausa o en el
+	# menú la economía está parada y no saltan).
+	if Game.running:
+		_auto_acc += eco.auto_clicks_per_second(_any_held()) * delta
 	while _auto_acc >= 1.0:
 		_auto_acc -= 1.0
 		_bounce(_random_machine())

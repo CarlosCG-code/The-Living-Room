@@ -14,7 +14,8 @@ var _holding := false
 var _since_save := 0.0
 var _window_applied := []  # [pantalla completa, resolución] aplicados por última vez
 # TLR_NO_SAVE=1 (tests y verify.sh): no se toca la partida real. Va en una variable de entorno porque GUT rechaza argumentos que no conoce.
-var _no_save := OS.get_environment("TLR_NO_SAVE") == "1"
+# Con GUT tampoco, aunque falte la variable.
+var _no_save := OS.get_environment("TLR_NO_SAVE") == "1" or "gut_cmdln" in " ".join(OS.get_cmdline_args())
 
 
 func _ready() -> void:

@@ -63,6 +63,34 @@ func test_cancel_goes_back_one_level() -> void:
 	assert_eq(_focus(), menu._play, "de la lista al menú")
 
 
+func _arrow_right(echo: bool) -> InputEventKey:
+	var e := InputEventKey.new()
+	e.keycode = KEY_RIGHT
+	e.physical_keycode = KEY_RIGHT
+	e.pressed = true
+	e.echo = echo
+	return e
+
+
+func test_held_arrow_keeps_focus_and_only_repeats_percentages() -> void:
+	menu.show_page("UI_PAGE_DISPLAY")
+	var brightness := menu.get_option_button("brightness")
+	brightness.grab_focus()
+	Game.settings.brightness = 1.3
+	for i in 5:
+		menu.get_viewport().push_input(_arrow_right(i > 0))
+		await wait_process_frames(1)
+	assert_eq(_focus(), brightness, "mantener la flecha no mueve el foco")
+	assert_almost_eq(Game.settings.brightness, 1.5, 0.0001, "repite y se queda en el tope, sin dar la vuelta")
+	var res := menu.get_option_button("vsync")
+	res.grab_focus()
+	for i in 4:
+		menu.get_viewport().push_input(_arrow_right(i > 0))
+		await wait_process_frames(1)
+	assert_eq(_focus(), res)
+	assert_false(Game.settings.vsync, "un cambio por pulsación: las repeticiones no lo vuelven a cambiar")
+
+
 func test_new_rows_cycle() -> void:
 	menu.get_option_button("max_fps").pressed.emit()
 	assert_eq(Game.settings.max_fps, 30)
@@ -157,4 +185,22 @@ func test_tv_starts_in_menu_and_play_changes_channel() -> void:
 	await wait_seconds(0.6)
 	assert_false(ui.is_in_menu())
 	assert_true(Game.running, "tras el cambio de canal, a jugar")
+	Game.running = false
+
+
+func test_continue_with_unspent_carga_reopens_carga_screen() -> void:
+	var saved_state := Game.economy.state
+	Game.economy.state = RunState.new()
+	Game.economy.state.run_index = 2
+	Game.economy.state.carga = 2
+	var vp := SubViewport.new()
+	vp.size = Vector2i(320, 240)
+	add_child_autofree(vp)
+	var ui: Node = (load("res://presentation/ui/tv_game_ui.tscn") as PackedScene).instantiate()
+	vp.add_child(ui)
+	ui.start_playing()
+	assert_true(ui.is_restarting(), "se salió en la pantalla de Carga: vuelve a ella")
+	assert_false(Game.running)
+	Game.economy.state = saved_state
+	Game.economy._recalc()
 	Game.running = false

@@ -86,7 +86,7 @@ func _apply_user_settings() -> void:
 	var s := Game.settings
 	settings.brightness = s.brightness
 	settings.user_scale = s.render_scale
-	settings.max_rows = s.resolution.y if s.fullscreen else 0
+	settings.max_rows = s.resolution.y
 	_film_grain.visible = s.film_grain
 
 

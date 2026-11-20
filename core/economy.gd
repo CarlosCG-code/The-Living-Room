@@ -228,7 +228,7 @@ func restart() -> bool:
 		_grant_start(config.find_perk(id))
 	_recalc()
 	if mods.eyes:
-		state.event_next_in = _rng.randf_range(mods.eyes.value, mods.eyes.value2)
+		state.event_next_in = _next_event_delay()
 	restarted.emit(state.run_index)
 	return true
 
@@ -237,7 +237,7 @@ func restart() -> bool:
 func carga_if_restarted() -> int:
 	if not can_restart():
 		return 0
-	return int(floorf(config.carga_base * sqrt(state.energy_produced_run / threshold()))) + _carga_bonus()
+	return int(floorf(config.carga_base * sqrt(state.energy_produced_run / threshold()) + 1e-6)) + _carga_bonus()  # sin el margen, justo en next_carga_at podía salir uno menos
 
 
 ## Energía producida en la run a la que reiniciar daría un punto más de Carga (INF si aún no se puede).
@@ -542,14 +542,21 @@ func _start_event() -> void:
 func _end_event() -> void:
 	state.event_id = &""
 	state.event_left = 0.0
+	state.event_next_in = _next_event_delay()
+
+
+# Espera hasta el siguiente evento; la misma al acabar uno y al empezar la run.
+func _next_event_delay() -> float:
 	var lo := config.event_min
 	var hi := config.event_max
 	if mods.eyes:
 		lo = mods.eyes.value
 		hi = mods.eyes.value2
-	state.event_next_in = _rng.randf_range(lo, hi) * mods.event_freq
+	return _rng.randf_range(lo, hi) * mods.event_freq
 
 
+# shortcut: gain_if_bought no cuenta la unidad hipotética como fuente de una sinergia (la infravalora un poco);
+# corregirlo cambia las compras del test de ritmo aprobado, así que espera a revisar el balance (hitos 4-5).
 func _gen_prod_mult(m: Mods, id: StringName) -> float:
 	var mult: float = m.gen_mult.get(id, 1.0)
 	for s: Array in m.synergies:

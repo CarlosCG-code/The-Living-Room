@@ -123,6 +123,11 @@ func _show_menu() -> void:
 
 func _start_playing() -> void:
 	_menu.hide()
+	# Run recién empezada con Carga sin gastar: se salió del juego en la carta o en la pantalla de Carga.
+	var state := Game.economy.state
+	if state.run_index > 1 and state.energy_produced_run == 0.0 and _carga.can_buy_any():
+		_carga.open()
+		return
 	Game.running = true
 	# Partida nueva: carta de ajuste con lo básico (se va con el primer clic).
 	if Game.economy.state.run_index == 1 and Game.economy.state.energy_produced_run == 0.0:

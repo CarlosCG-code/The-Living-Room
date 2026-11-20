@@ -39,8 +39,8 @@ const AMBIENT_GI_SCALE := 0.4  # con iluminación global, la luz ambiente base s
 var current: Dictionary = {}
 ## Claves del preset forzadas (p. ej. TLR_OFF en depuración); sobreviven a cada apply_preset.
 var overrides: Dictionary = {}
-## Del jugador (UserSettings): multiplicador de exposición, escala 3D (0 = la del preset) y filas a las
-## que se dibuja el 3D en pantalla completa (0 = las de la pantalla).
+## Del jugador (UserSettings): multiplicador de exposición, escala 3D (0 = la del preset) y filas de la
+## resolución elegida (0 = auto).
 var brightness := 1.0
 var user_scale := 0.0
 var max_rows := 0
@@ -80,13 +80,14 @@ func apply_preset(preset: StringName) -> void:
 	_apply()
 
 
-## Escala 3D final: la del preset, limitada por sus filas máximas; si el jugador eligió una escala, esa,
-## limitada solo por la resolución que eligió.
-static func final_scale(preset: Dictionary, user_scale: float, max_rows: int, viewport_height: float) -> float:
-	var rows: float = float(max_rows) if max_rows > 0 else INF
-	if user_scale > 0.0:
-		return render_scale(user_scale, rows, viewport_height)
-	return render_scale(preset["scale"], minf(preset["max_height"], rows), viewport_height)
+## Escala 3D final. Con resolución elegida (rows > 0), el 3D se dibuja a esas filas por la escala (la del
+## jugador o, en auto, la del preset), aunque pasen del tope del preset: el jugador lo pidió. En auto, la
+## escala sin pasar del tope de filas del preset (salvo que el jugador fijara la escala).
+static func final_scale(preset: Dictionary, user_scale: float, rows: int, viewport_height: float) -> float:
+	var scale: float = user_scale if user_scale > 0.0 else preset["scale"]
+	if rows > 0 and viewport_height > 0.0:
+		return clampf(scale * rows / viewport_height, 0.25, 1.0)
+	return render_scale(scale, INF if user_scale > 0.0 else float(preset["max_height"]), viewport_height)
 
 
 func _apply() -> void:

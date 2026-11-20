@@ -21,6 +21,8 @@ const PAGES := {
 	"UI_PAGE_AUDIO": ["volume", "volume_tv", "volume_room"],
 }
 
+const REPEATABLE: Array[String] = ["brightness", "volume", "volume_tv", "volume_room"]
+
 var _main: VBoxContainer
 var _options: VBoxContainer  # lista de apartados
 var _pages := {}  # clave del apartado -> VBoxContainer
@@ -71,7 +73,7 @@ func _ready() -> void:
 		column.hide()
 		_pages[page] = column
 		for key: String in PAGES[page]:
-			var b := _button(column, "", _change.bind(key, 1), 14)
+			var b := _button(column, "", _change.bind(key, 1, true), 14)
 			b.gui_input.connect(_on_option_input.bind(key))
 			_rows[key] = b
 		_button(column, tr("UI_BACK"), show_options, 14)
@@ -146,12 +148,16 @@ func get_option_button(key: String) -> Button:
 
 
 func _on_option_input(event: InputEvent, key: String) -> void:
-	if event.is_action_pressed("ui_right") or event.is_action_pressed("ui_left"):
-		_change(key, 1 if event.is_action_pressed("ui_right") else -1)
+	# Con la tecla mantenida llegan repeticiones (echo): se aceptan siempre, para que la navegación de Godot no
+	# mueva el foco, pero solo repiten los porcentajes; la ventana o el preset no se rehacen 20 veces por segundo.
+	if event.is_action_pressed("ui_right", true) or event.is_action_pressed("ui_left", true):
+		if not event.is_echo() or key in REPEATABLE:
+			_change(key, 1 if event.is_action_pressed("ui_right", true) else -1)
 		accept_event()
 
 
-func _change(key: String, step: int) -> void:
+## wrap: con clic o Intro los porcentajes dan la vuelta (del máximo al mínimo); con flechas se quedan en el tope.
+func _change(key: String, step: int, wrap := false) -> void:
 	var s := Game.settings
 	match key:
 		"quality":
@@ -165,13 +171,13 @@ func _change(key: String, step: int) -> void:
 		"max_fps":
 			s.max_fps = UserSettings.cycle(UserSettings.FPS_LIMITS, s.max_fps, step)
 		"brightness":
-			s.brightness = _step(s.brightness, step, UserSettings.BRIGHTNESS_MIN, UserSettings.BRIGHTNESS_MAX)
+			s.brightness = _step(s.brightness, step, UserSettings.BRIGHTNESS_MIN, UserSettings.BRIGHTNESS_MAX, wrap)
 		"render_scale":
 			s.render_scale = UserSettings.cycle(UserSettings.RENDER_SCALES, s.render_scale, step)
 		"film_grain":
 			s.film_grain = not s.film_grain
 		"volume", "volume_tv", "volume_room":
-			s.set(key, _step(s.get(key), step, 0.0, 1.0))
+			s.set(key, _step(s.get(key), step, 0.0, 1.0, wrap))
 		"crt":
 			var i := CRT_LEVELS.find(_nearest_crt(s.crt))
 			s.crt = CRT_LEVELS[posmod(i + step, CRT_LEVELS.size())]
@@ -180,10 +186,10 @@ func _change(key: String, step: int) -> void:
 	_refresh()
 
 
-# Un paso de 10 %; con clic (hacia arriba) da la vuelta: del máximo pasa al mínimo.
-static func _step(v: float, step: int, lo: float, hi: float) -> float:
+# Un paso de 10 %.
+static func _step(v: float, step: int, lo: float, hi: float, wrap: bool) -> float:
 	var next := snappedf(v + step * VOLUME_STEP, VOLUME_STEP)
-	return lo if next > hi + 0.001 else clampf(next, lo, hi)
+	return lo if wrap and next > hi + 0.001 else clampf(next, lo, hi)
 
 
 func _screen_size() -> Vector2i:
@@ -196,7 +202,7 @@ func _refresh() -> void:
 	var percent := func(v: float) -> int: return roundi(v * 100.0)
 	(_rows["quality"] as Button).text = tr("UI_QUALITY") % tr("QUALITY_" + String(s.quality).to_upper())
 	(_rows["fullscreen"] as Button).text = tr("UI_FULLSCREEN") % tr("UI_SCREEN_FULL" if s.fullscreen else "UI_SCREEN_WINDOW")
-	var res := tr("UI_NATIVE") if s.resolution == Vector2i.ZERO else "%dx%d" %[s.resolution.x, s.resolution.y]
+	var res := tr("UI_AUTO") if s.resolution == Vector2i.ZERO else "%dx%d" %[s.resolution.x, s.resolution.y]
 	(_rows["resolution"] as Button).text = tr("UI_RESOLUTION") % res
 	(_rows["vsync"] as Button).text = tr("UI_VSYNC") % yes_no.call(s.vsync)
 	(_rows["max_fps"] as Button).text = tr("UI_MAX_FPS") % (tr("UI_UNLIMITED") if s.max_fps == 0 else str(s.max_fps))
@@ -238,6 +244,9 @@ func _button(parent: Container, text: String, action: Callable, font_size: int =
 	b.add_theme_font_size_override(&"font_size", font_size)
 	b.add_theme_color_override(&"font_color", DIM)
 	b.size_flags_horizontal = SIZE_SHRINK_CENTER
+	# Menús en columna: izquierda/derecha nunca mueven el foco (en las filas de ajustes cambian el valor).
+	b.focus_neighbor_left = NodePath(".")
+	b.focus_neighbor_right = NodePath(".")
 	b.pressed.connect(action)
 	# El ratón mueve el foco solo cuando se mueve de verdad: al cambiar un ajuste, el texto y la tele se
 	# redibujan y Godot puede mandar un «ratón entra» falso que se llevaba el foco a otra fila.

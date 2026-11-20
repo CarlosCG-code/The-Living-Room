@@ -61,7 +61,6 @@ UI_PAGE_DISPLAY,Pantalla
 UI_PAGE_GRAPHICS,Gráficos
 UI_PAGE_AUDIO,Sonido
 UI_RESOLUTION,Resolución: %s
-UI_NATIVE,la de la pantalla
 UI_VSYNC,VSync: %s
 UI_MAX_FPS,Límite de FPS: %s
 UI_UNLIMITED,sin límite

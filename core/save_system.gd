@@ -12,13 +12,23 @@ func _init(dir: String = "user://") -> void:
 	_dir = dir
 
 
-## Devuelve null si no hay partida legible (partida nueva). Nunca borra X ni X.bak.
+## Devuelve null si no hay partida legible (partida nueva). Un .tmp legible es el guardado más nuevo y se recupera
+## (rota como save_run); si no, nunca borra X ni X.bak.
 func load_run(config: EconomyConfig) -> RunState:
 	warnings.clear()
 	var path := _path()
 	var bak := path + ".bak"
-	if FileAccess.file_exists(path + ".tmp"):
-		DirAccess.remove_absolute(path + ".tmp")
+	var tmp := path + ".tmp"
+	if FileAccess.file_exists(tmp):
+		# save_run escribe el .tmp justo antes de rotar: si se lee entero, es el guardado más nuevo y el corte
+		# fue antes de terminar de rotar. A medias no se puede leer (JSON cortado) y se borra.
+		if _read(tmp, config) != null:
+			if FileAccess.file_exists(path):
+				DirAccess.remove_absolute(bak)
+				DirAccess.rename_absolute(path, bak)
+			DirAccess.rename_absolute(tmp, path)
+		else:
+			DirAccess.remove_absolute(tmp)
 	if FileAccess.file_exists(path):
 		var state := _read(path, config)
 		if state != null:
@@ -40,7 +50,11 @@ func save_run(state: RunState) -> bool:
 		_warn("cannot write %s.tmp (%s)" % [path, error_string(FileAccess.get_open_error())])
 		return false
 	file.store_string(JSON.stringify(state.to_dict(), "", true, true))
+	var written := file.get_error()
 	file.close()
+	if written != OK:  # disco lleno, p. ej.: no se rota nada y el guardado anterior sigue intacto
+		_warn("cannot write %s.tmp (%s)" % [path, error_string(written)])
+		return false
 	if FileAccess.file_exists(path) and DirAccess.rename_absolute(path, path + ".bak") != OK:
 		_warn("cannot rotate %s to .bak" % path)
 		return false

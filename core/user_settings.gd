@@ -19,7 +19,7 @@ const BRIGHTNESS_MAX := 1.5
 
 var quality: StringName = &"medium"
 var fullscreen := false
-## Tamaño de la ventana; en pantalla completa, la resolución a la que se dibuja el 3D. (0, 0) = la de la pantalla.
+## Resolución del 3D y, en ventana, tamaño de la ventana. (0, 0) = auto: decide el preset (en ventana, maximizada).
 var resolution := Vector2i.ZERO
 var vsync := true
 var max_fps := 0
@@ -86,12 +86,14 @@ func next_quality(step: int = 1) -> void:
 	quality = QUALITIES[posmod(QUALITIES.find(quality) + step, QUALITIES.size())]
 
 
-## Resoluciones que caben en la pantalla, empezando por (0, 0) = la de la pantalla.
+## Resoluciones que caben en la pantalla, empezando por (0, 0) = auto; la de la pantalla siempre está.
 static func resolution_options(screen: Vector2i) -> Array[Vector2i]:
 	var out: Array[Vector2i] = [Vector2i.ZERO]
 	for r in COMMON_RESOLUTIONS:
-		if r.x <= screen.x and r.y <= screen.y and r != screen:
+		if r.x <= screen.x and r.y <= screen.y:
 			out.append(r)
+	if screen.x > 0 and screen.y > 0 and screen not in out:
+		out.append(screen)
 	return out
 
 
