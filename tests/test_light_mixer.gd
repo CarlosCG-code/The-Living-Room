@@ -36,6 +36,7 @@ func test_normal_state() -> void:
 
 
 func test_dark_keeps_only_street_and_flashlight() -> void:
+	mixer.set_flashlight_on(true)
 	mixer.set_state(&"dark")
 	assert_false(lamp.visible)
 	assert_true(street.visible)
@@ -69,11 +70,11 @@ func test_soft_shadows_off_and_back() -> void:
 	assert_almost_eq(lamp.light_size, 0.3, 0.0001)
 
 
-func test_flashlight_only_dark_and_switched_on() -> void:
+func test_flashlight_follows_switch_in_any_state() -> void:
+	assert_false(flashlight.visible, "empieza apagada")
+	mixer.set_flashlight_on(true)
+	assert_true(flashlight.visible, "con luz también se enciende con F")
 	mixer.set_state(&"dark")
+	assert_true(flashlight.visible)
 	mixer.set_flashlight_on(false)
 	assert_false(flashlight.visible, "apagada con F")
-	mixer.set_flashlight_on(true)
-	assert_true(flashlight.visible)
-	mixer.set_state(&"normal")
-	assert_false(flashlight.visible, "con luz no se ve aunque esté encendida")

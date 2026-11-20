@@ -1,6 +1,18 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://presentation/camera/game_camera.gd" id="1_cam"]
+
+[sub_resource type="Gradient" id="beam_gradient"]
+offsets = PackedFloat32Array(0, 0.12, 0.3, 0.42, 0.5, 0.75, 1)
+colors = PackedColorArray(1, 1, 1, 1, 0.92, 0.92, 0.92, 1, 0.5, 0.5, 0.5, 1, 0.36, 0.36, 0.36, 1, 0.24, 0.24, 0.24, 1, 0.1, 0.1, 0.1, 1, 0, 0, 0, 1)
+
+[sub_resource type="GradientTexture2D" id="beam_cookie"]
+gradient = SubResource("beam_gradient")
+width = 256
+height = 256
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(1, 0.5)
 
 [node name="GameCamera" type="Camera3D"]
 current = true
@@ -9,8 +21,12 @@ script = ExtResource("1_cam")
 [node name="Flashlight" type="SpotLight3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.15, -0.15, 0)
 visible = false
-light_color = Color(1, 0.95, 0.85, 1)
-light_energy = 4.0
+light_color = Color(1, 0.94, 0.84, 1)
+light_energy = 7.0
+light_projector = SubResource("beam_cookie")
+light_size = 0.02
 shadow_enabled = true
-spot_range = 12.0
-spot_angle = 22.0
+spot_range = 14.0
+spot_angle = 38.0
+spot_attenuation = 0.75
+spot_angle_attenuation = 0.5

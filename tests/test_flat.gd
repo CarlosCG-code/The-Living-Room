@@ -40,3 +40,13 @@ func test_locked_front_door_does_not_grab() -> void:
 	var front: Door = f.get_node("door_front")
 	assert_true(front.locked)
 	assert_false(front.try_grab(Vector3.ZERO))
+
+
+func test_sound_occlusion_counts_walls_not_furniture() -> void:
+	var f: Node3D = _flat(false)
+	await wait_physics_frames(2)
+	var space := (f as Node3D).get_world_3d().direct_space_state
+	var rain := (f.living_room.get_node("RainSound") as Node3D).global_position
+	var sofa := (f.living_room.get_node("Anchors/SeatAnchor") as Node3D).global_position + Vector3.UP * 0.5
+	assert_eq(SoundOcclusion.obstacles(space, sofa, rain), 0, "dentro del salón la lluvia se oye")
+	assert_gt(SoundOcclusion.obstacles(space, Vector3(-2.75, 1.6, 4.6), rain), 0, "desde el pasillo la tapa un muro")

@@ -20,6 +20,7 @@ const SOUNDS := {
 }
 ## Tramos (s) de door_creak.ogg con crujido limpio: el resto de la grabación trae golpes de picaporte y de
 ## cierre que, sonando a mitad de un giro, parecían la puerta cerrándose (usuario, 2026-11-20).
+const VOLUME_DB := -6.0  # el directo; antes solo sonaba el eco, a media potencia
 const CREAK_SEGMENTS: Array[Vector2] = [Vector2(3.2, 5.05), Vector2(8.5, 12.0), Vector2(18.5, 20.65),
 		Vector2(23.4, 24.95), Vector2(36.1, 37.45)]
 
@@ -90,8 +91,10 @@ func _build() -> void:
 	for key: StringName in SOUNDS:
 		var p := AudioStreamPlayer3D.new()
 		p.stream = SOUNDS[key]
-		p.bus = &"Room"
+		p.bus = &"House"  # directo y en su sitio; el eco lo añade el área de acústica del piso (flat.gd)
 		p.position = Vector3(_width * 0.6, 1.2, 0.0)
+		p.volume_db = VOLUME_DB
+		p.unit_size = 2.0  # con el valor por defecto (10 m) sonaba igual de cerca desde cualquier punto del piso
 		add_child(p)
 		_players[key] = p
 
@@ -181,7 +184,7 @@ func _update_creak() -> void:
 		p.play(seg.x)
 	elif speed < 0.1 and p.playing:
 		p.stop()
-	p.volume_db = linear_to_db(clampf(speed / 2.0, 0.15, 1.0))
+	p.volume_db = VOLUME_DB + linear_to_db(clampf(speed / 2.0, 0.15, 1.0))
 
 
 func _play(key: StringName) -> void:

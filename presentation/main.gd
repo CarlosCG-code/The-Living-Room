@@ -20,7 +20,7 @@ var _film_grain: CanvasLayer
 var _camera: Camera3D
 var _player: Player
 var _ui: Node
-var _flashlight_on := true
+var _flashlight_on := false
 
 
 func _ready() -> void:
@@ -140,6 +140,8 @@ func _stand(t: Transform3D) -> void:
 func _sit_down() -> void:
 	var paused := Input.is_action_pressed("ui_cancel")
 	_player.sit()
+	_flashlight_on = false  # sentado no alumbra la tele: al levantarse se vuelve a encender con F
+	mixer.set_flashlight_on(false)
 	_player.camera.get_node("Flashlight").reparent(_camera, false)
 	_transition(_player.camera, _camera)
 	if paused:

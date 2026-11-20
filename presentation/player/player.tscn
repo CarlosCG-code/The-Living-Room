@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://presentation/player/player.gd" id="1_player"]
 [ext_resource type="Script" path="res://presentation/ui/crosshair.gd" id="2_cross"]
-[ext_resource type="AudioStream" path="res://assets/audio/flat/footsteps.ogg" id="3_steps"]
+[ext_resource type="AudioStream" path="res://assets/audio/flat/footsteps_wood.ogg" id="3_steps"]
 
 [sub_resource type="CapsuleShape3D" id="Capsule"]
 radius = 0.25
@@ -28,6 +28,9 @@ fov = 70.0
 [node name="Crosshair" type="Control" parent="Hud"]
 script = ExtResource("2_cross")
 
-[node name="Footsteps" type="AudioStreamPlayer" parent="."]
+[node name="Footsteps" type="AudioStreamPlayer3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, 0)
 stream = ExtResource("3_steps")
-volume_db = 14.0
+volume_db = 4.0
+unit_size = 2.0
+bus = &"House"

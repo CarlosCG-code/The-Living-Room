@@ -11,12 +11,19 @@ const SPEED := 1.3  # andar lento: no hay correr (usuario, 2026-11-20)
 const ACCEL := 5.0
 const REACH := 2.0
 const PITCH_LIMIT := 1.4
+## Un paso cada STRIDE metros. Tramos (s) de footsteps_wood.ogg con un paso de zapato de calle cada uno: la
+## grabación trae 21 pasos sueltos con 7 calzados distintos.
+const STRIDE := 0.65
+const STEP_CLIPS: Array[Vector2] = [Vector2(10.35, 10.75), Vector2(11.24, 11.62), Vector2(12.08, 12.45)]
 
 var active := false
 var _layout: FlatLayout
 var _mirrored := false
 var _zone: StringName = &""
 var _grabbed: Door
+var _stride_left := 0.0
+var _step_end := 0.0
+var _last_clip := -1
 
 @onready var _head: Node3D = $Head
 @onready var camera: Camera3D = $Head/Camera3D
@@ -101,7 +108,7 @@ func _physics_process(delta: float) -> void:
 	velocity.y = 0.0 if is_on_floor() else velocity.y - 9.8 * delta
 	move_and_slide()
 	_update_zone()
-	_footsteps(Vector2(velocity.x, velocity.z).length())
+	_footsteps(Vector2(velocity.x, velocity.z).length() * delta)
 	if _grabbed and _grabbed.global_position.distance_to(global_position) > REACH + 0.6:
 		_let_go()  # se alejó demasiado
 	var aimed := _aimed()
@@ -130,13 +137,26 @@ func _let_go() -> void:
 		_grabbed = null
 
 
-# Pasos en bucle mientras anda; se pausan al pararse para que el siguiente paso siga donde iba.
-func _footsteps(speed: float) -> void:
-	var p: AudioStreamPlayer = $Footsteps
-	var walking := speed > 0.3
-	if walking and not p.playing:
-		p.play()
-	p.stream_paused = not walking
+# Un paso al recorrer cada zancada; el primero, nada más arrancar. Nunca el mismo tramo dos veces seguidas y con
+# un poco de variación de tono, para que no suene a bucle.
+func _footsteps(moved: float) -> void:
+	var p: AudioStreamPlayer3D = $Footsteps
+	if p.playing and p.get_playback_position() >= _step_end:
+		p.stop()
+	if moved < 0.0005:
+		_stride_left = 0.0
+		return
+	_stride_left -= moved
+	if _stride_left > 0.0:
+		return
+	_stride_left = STRIDE
+	var i := randi() % STEP_CLIPS.size()
+	if i == _last_clip:
+		i = (i + 1) % STEP_CLIPS.size()
+	_last_clip = i
+	_step_end = STEP_CLIPS[i].y
+	p.pitch_scale = randf_range(0.93, 1.04)
+	p.play(STEP_CLIPS[i].x)
 
 
 static func _door_of(collider: Object) -> Door:

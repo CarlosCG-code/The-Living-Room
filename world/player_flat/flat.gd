@@ -38,6 +38,7 @@ func _ready() -> void:
 			door.setup(conn, mirrored)
 			doors.append(door)
 	_add_lamps()
+	_add_acoustics()
 	var backdrop := living_room.get_node("WindowBackdrop") as Node3D
 	for zone in FACADE_WINDOWS:
 		var marker := geometry.find_child("Window_" + zone, true, false) as Node3D
@@ -54,6 +55,30 @@ func get_layout() -> FlatLayout:
 ## Las del salón y las del resto del piso: todas pasan por el único LightMixer (specs/hito4a.md D8, D12).
 func get_lights() -> Array[Light3D]:
 	return living_room.get_lights() + _lights
+
+
+# Eco de la casa: los sonidos 3D del piso (bus House) mandan parte al bus Room, la reverberación. El salón tiene
+# su propia área (RoomAcoustics), con más prioridad.
+func _add_acoustics() -> void:
+	var r: Rect2 = LAYOUT.zones[0].rect
+	for zone in LAYOUT.zones:
+		r = r.merge(zone.rect)
+	var area := Area3D.new()
+	area.name = "FlatAcoustics"
+	area.monitoring = false
+	area.priority = -1
+	area.reverb_bus_enabled = true
+	area.reverb_bus_name = &"Room"
+	area.reverb_bus_amount = 0.45
+	area.reverb_bus_uniformity = 0.6
+	var box := BoxShape3D.new()
+	box.size = Vector3(r.size.x, 2.6, r.size.y)
+	var shape := CollisionShape3D.new()
+	shape.shape = box
+	area.add_child(shape)
+	var c := r.get_center()
+	area.position = Vector3(-c.x if mirrored else c.x, 1.3, c.y)
+	add_child(area)
 
 
 # Lámparas de techo tenues, como los apliques del salón; se apagan con la distancia. Con sombra: sin ella la luz

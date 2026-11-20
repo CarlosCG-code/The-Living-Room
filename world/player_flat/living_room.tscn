@@ -142,6 +142,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.2, 1.5, -0.5)
 stream = ExtResource("3_rain")
 volume_db = -4.0
 unit_size = 1.2
+bus = &"House"
 attenuation_filter_cutoff_hz = 3500.0
 autoplay = true
 

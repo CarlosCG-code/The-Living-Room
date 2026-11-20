@@ -15,7 +15,7 @@ var _screen_base: float
 var _flashlight_base: float
 
 var _state: StringName = &"normal"
-var _flashlight_on := true
+var _flashlight_on := false
 var _tv_state: StringName = &"on"
 var _factor := 1.0
 var _ambient_gi_scale := 1.0
@@ -38,7 +38,7 @@ func set_state(state: StringName) -> void:
 	apply()
 
 
-## La linterna se ve a oscuras y solo si el jugador la lleva encendida (F, de pie).
+## La linterna se ve siempre que el jugador la lleve encendida (F, de pie), con luz o a oscuras (usuario, 2026-11-20).
 func set_flashlight_on(on: bool) -> void:
 	_flashlight_on = on
 	apply()
@@ -81,7 +81,7 @@ func apply() -> void:
 		_screen_light.visible = screen_energy > 0.0
 	if _flashlight:
 		_flashlight.light_energy = _flashlight_base
-		_flashlight.visible = _state == &"dark" and _flashlight_on
+		_flashlight.visible = _flashlight_on
 	if _environment and _ambient.has(_state):
 		var amb: Dictionary = _ambient[_state]
 		_environment.ambient_light_color = amb["color"]

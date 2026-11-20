@@ -148,31 +148,15 @@ func _ambience(delta: float) -> void:
 	_hum.volume_db = move_toward(_hum.volume_db, target, delta * 120.0)
 
 
-# Cuenta muros y puertas en la recta cámara → pantalla y apaga y amortigua el bus TV en consecuencia. Los muebles
-# (Solid_*, SeatSofa) no cuentan: un sofá no tapa el sonido de una habitación.
+# Apaga y amortigua el bus TV según los muros y puertas entre la cámara y la pantalla (SoundOcclusion).
 func _occlusion(delta: float) -> void:
 	var cam := get_viewport().get_camera_3d()
 	if cam == null or _occlusion_lp == null or _occlusion_gain == null:
 		return
 	var target := _screen.global_position
-	var to_screen := target - cam.global_position
-	var dir := to_screen.normalized()
-	var end := target - dir * 0.35  # sin llegar a la propia tele
-	var q := PhysicsRayQueryParameters3D.create(cam.global_position, end)
-	var space := get_world_3d().direct_space_state
-	var hits := 0
-	while hits < OCCLUSION.size() - 1 and to_screen.length() > 0.5:
-		var hit := space.intersect_ray(q)
-		if hit.is_empty():
-			break
-		var c: Object = hit["collider"]
-		var name_ := String((c as Node).name) if c is Node else ""
-		if not (c is CharacterBody3D or name_.begins_with("Solid_") or name_.begins_with("SeatSofa")):
-			hits += 1
-		# Sigue desde dentro del obstáculo: un rayo que empieza dentro de una forma no la vuelve a tocar.
-		q.from = (hit["position"] as Vector3) + dir * 0.02
-		if (end - q.from).dot(dir) <= 0.0:
-			break
+	var end := target + (cam.global_position - target).normalized() * 0.35  # sin llegar a la propia tele
+	var hits := SoundOcclusion.obstacles(get_world_3d().direct_space_state, cam.global_position, end,
+			OCCLUSION.size() - 1)
 	var goal := OCCLUSION[hits]
 	var k := 1.0 - exp(-OCCLUSION_SPEED * delta)
 	_occlusion_lp.cutoff_hz = exp(lerpf(log(_occlusion_lp.cutoff_hz), log(goal.x), k))

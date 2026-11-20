@@ -150,7 +150,7 @@ Lo que lo hace difícil de memorizar (GDD §8, run 2):
 - Un solo juego de pasos CC0 para todo el piso; los pasos según el suelo van con el audio del hito 3.
 - Se mueve en `_physics_process`, que es física de presentación, no lógica de juego, así que cumple la regla del reloj único de `CLAUDE.md`. Con `physics/common/physics_interpolation` activado, no da tirones a 144 fps o más.
 - Con los trucos acelerando el tiempo, o con el modo libre, el jugador no se mueve.
-- La linterna (F) es el mismo nodo que la de la cámara sentada y pasa de una cámara a otra. `LightMixer` la muestra cuando el estado es a oscuras **y** el jugador la tiene encendida (`set_flashlight_on`).
+- La linterna (F) es el mismo nodo que la de la cámara sentada y pasa de una cámara a otra. `LightMixer` la muestra siempre que el jugador la tenga encendida (`set_flashlight_on`), con luz o a oscuras (usuario, 2026-11-20). Empieza apagada.
 
 **D7 — Levantarse y sentarse (provisional, §10 P2).**
 - **Levantarse:** con la tecla Q, sin tienda, árbol ni pausa abiertos. El jugador aparece 0,6 m delante del asiento, mirando a la tele, tras una transición de cámara de 0,5 s.
