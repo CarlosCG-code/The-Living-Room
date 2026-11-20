@@ -158,7 +158,7 @@ Cada hito empieza con su **especificación de implementación** (archivos, pasos
 
 - Balance de las runs 2-4 y su umbral de Energía (la run 1 está fijada, §4).
 - Más mejoras para el incremental (petición del usuario, 2026-11-17): proponerlas en los hitos 4-5, junto a la Carga y las runs siguientes.
-- Si la tele sigue produciendo Energía mientras el jugador explora (hito 4; propuesta: sí, para que explorar no retrase). Las duraciones de la §3 cuentan solo el tiempo delante de la tele; explorar no tiene límite.
+- ~~Si la tele sigue produciendo Energía mientras el jugador explora~~ **Decidido (usuario, 2026-11-20):** sí, salvo durante el apagón, para que explorar no retrase. Las duraciones de la §3 cuentan solo el tiempo delante de la tele; explorar no tiene límite.
 - Música (si la hay) y voces/idiomas.
 - Epílogos detallados de cada final.
 - Nombres y diseño de las pistas; niveles de confesión según la Evidencia.

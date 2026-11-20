@@ -1,6 +1,6 @@
 # Especificación — Hito 4a: el piso, andar y las puertas
 
-> Estado: **v2, corregida tras la revisión EGM (`reviews/hito4a/egm_report.md`); pendiente de las decisiones de §10 y de la aprobación del usuario.**
+> Estado: **v2 aprobada por el usuario (2026-11-20)**, tras la revisión EGM (`reviews/hito4a/egm_report.md`). §10: P1-P4 y P6 aprobadas tal como se proponen; P5 se pregunta en el paso 6.
 >
 > Fuentes: `GAME_DESIGN.md` §2-§4, §7, §8, §11 (hito 4) y §12; `CLAUDE.md`; `specs/hito2.md` (salón, D2, D9, D10, D12, espejo D14, presets D15, benchmark D16).
 
