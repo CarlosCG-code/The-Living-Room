@@ -6,7 +6,7 @@ extends RefCounted
 
 enum Event { NONE, LATCH, SLAM }
 
-const MAX_ANGLE := deg_to_rad(100.0)
+const MAX_ANGLE := deg_to_rad(90.0)  # más allá, la hoja entra en el marco
 const AJAR_ANGLE := deg_to_rad(6.0)
 ## Lo deprisa que la hoja sigue al ratón mientras se arrastra (1/s).
 const GRIP := 12.0

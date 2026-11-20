@@ -10,6 +10,10 @@ const PX_TO_RAD := 0.004  # giro por píxel de ratón con la sensibilidad por de
 const DEFAULT_SENSITIVITY := 0.0012
 const HEIGHT := 2.074
 const THICKNESS := 0.04
+## El eje de giro va al borde interior del marco, no al eje del muro: girando en el eje, la hoja abierta se
+## cruzaba en ángulo muy cerrado con la cara del marco y parpadeaba (usuario, 2026-11-20). La hoja se acorta igual.
+const HINGE_INSET := 0.026
+const LATCH_GAP := 0.006
 const WOOD := Color(0.16, 0.085, 0.04)
 const BRASS := Color(0.6, 0.45, 0.22)
 const SOUNDS := {
@@ -43,11 +47,11 @@ var _creak_end := 0.0
 ## Coloca la puerta según el plano. La bisagra queda en el origen y la hoja cerrada a lo largo de +X local.
 func setup(conn: ConnectionDef, mirrored: bool) -> void:
 	id = conn.id
-	_width = conn.width
+	_width = conn.width - HINGE_INSET - LATCH_GAP
 	locked = conn.start == &"locked"
 	angle = DoorMath.AJAR_ANGLE if conn.start == &"ajar" else 0.0
 	var x := conn.direction.normalized()
-	var t := Transform3D(Basis(x, Vector3.UP, x.cross(Vector3.UP)), conn.hinge)
+	var t := Transform3D(Basis(x, Vector3.UP, x.cross(Vector3.UP)), conn.hinge + x * HINGE_INSET)
 	transform = MirrorMath.mirror_transform(t) if mirrored else t
 	_sign = conn.swing * (-1.0 if mirrored else 1.0)
 	_build()
@@ -60,7 +64,7 @@ func _build() -> void:
 	_leaf.name = "Leaf"
 	_leaf.physics_interpolation_mode = Node.PHYSICS_INTERPOLATION_MODE_ON  # gira en _physics_process
 	add_child(_leaf)
-	var size := Vector3(_width - 0.006, HEIGHT, THICKNESS)
+	var size := Vector3(_width, HEIGHT, THICKNESS)
 	var center := Vector3(_width / 2.0, 0.02 + HEIGHT / 2.0, 0.0)  # rendija de 2 cm bajo la hoja, como en el salón
 	_shape = BoxShape3D.new()
 	_shape.size = size
