@@ -16,6 +16,7 @@ var active := false
 var _layout: FlatLayout
 var _mirrored := false
 var _zone: StringName = &""
+var _grabbed: Door
 
 @onready var _head: Node3D = $Head
 @onready var camera: Camera3D = $Head/Camera3D
@@ -45,6 +46,7 @@ func stand_at(t: Transform3D) -> void:
 
 
 func sit() -> void:
+	_let_go()
 	_set_active(false)
 
 
@@ -64,15 +66,24 @@ func _set_active(on: bool) -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if not camera.current:  # la cámara libre de los trucos manda
 		return
-	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
+	if event is InputEventMouseMotion and _grabbed:
+		_grabbed.drag((event as InputEventMouseMotion).relative.y)  # con la hoja agarrada la vista no gira
+	elif event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
 		var sens := Game.settings.mouse_sensitivity
 		var r := (event as InputEventMouseMotion).relative * sens
 		rotate_y(-r.x)
 		_head.rotation.x = clampf(_head.rotation.x - r.y, -PITCH_LIMIT, PITCH_LIMIT)
-	elif event is InputEventMouseButton and event.pressed and (event as InputEventMouseButton).button_index == MOUSE_BUTTON_LEFT:
-		if _is_sofa(_aimed()):
+	elif event is InputEventMouseButton and (event as InputEventMouseButton).button_index == MOUSE_BUTTON_LEFT:
+		if not event.pressed:
+			_let_go()
+			return
+		var aimed := _aimed()
+		var door := _door_of(aimed)
+		if door and door.try_grab(camera.global_position):
+			_grabbed = door
+		elif _is_sofa(aimed):
 			sit_requested.emit()
-			get_viewport().set_input_as_handled()
+		get_viewport().set_input_as_handled()
 	elif event.is_action_pressed("ui_cancel"):
 		sit_requested.emit()  # main.gd abre además la pausa de la tele
 		get_viewport().set_input_as_handled()
@@ -89,7 +100,11 @@ func _physics_process(delta: float) -> void:
 	velocity.y = 0.0 if is_on_floor() else velocity.y - 9.8 * delta
 	move_and_slide()
 	_update_zone()
-	_crosshair.highlight = _is_sofa(_aimed())
+	_footsteps(Vector2(velocity.x, velocity.z).length())
+	if _grabbed and _grabbed.global_position.distance_to(global_position) > REACH + 0.6:
+		_let_go()  # se alejó demasiado
+	var aimed := _aimed()
+	_crosshair.highlight = _grabbed != null or _door_of(aimed) != null or _is_sofa(aimed)
 
 
 func _update_zone() -> void:
@@ -106,6 +121,25 @@ func _aimed() -> Object:
 	var query := PhysicsRayQueryParameters3D.create(from, from - camera.global_basis.z * REACH)
 	query.exclude = [get_rid()]
 	return get_world_3d().direct_space_state.intersect_ray(query).get("collider")
+
+
+func _let_go() -> void:
+	if _grabbed:
+		_grabbed.release()
+		_grabbed = null
+
+
+# Pasos en bucle mientras anda; se pausan al pararse para que el siguiente paso siga donde iba.
+func _footsteps(speed: float) -> void:
+	var p: AudioStreamPlayer = $Footsteps
+	var walking := speed > 0.3
+	if walking and not p.playing:
+		p.play()
+	p.stream_paused = not walking
+
+
+static func _door_of(collider: Object) -> Door:
+	return (collider as Node).get_parent() as Door if collider is AnimatableBody3D else null
 
 
 static func _is_sofa(collider: Object) -> bool:

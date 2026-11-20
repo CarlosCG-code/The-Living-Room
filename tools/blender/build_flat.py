@@ -126,7 +126,7 @@ def build():
     lintels = []
     # Puertas y vanos: hueco hasta 2,1 m y dintel encima; marco de madera en las hojas y en el vano del recibidor.
     for conn in L.CONNECTIONS:
-        cid, a, b, kind, pos, start = conn
+        cid, a, b, kind, pos, start = conn[:6]
         if pos is None or cid == "door_living":  # juntas abiertas; la puerta del salón ya tiene su hueco y su marco
             continue
         axis, coord, _ = L.wall_of(conn)

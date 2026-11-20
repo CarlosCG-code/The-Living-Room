@@ -38,7 +38,7 @@ func test_leaves_open_towards_zone_a_and_sit_in_the_wall() -> void:
 		var a := layout.find_zone(c.zone_a).rect
 		var hinge := Vector2(c.hinge.x, c.hinge.z)
 		var d := Vector2(c.direction.x, c.direction.z)
-		var swing := Vector2(d.y, -d.x)  # derivada de R_y(θ)·d en θ = 0, en planta (x, z)
+		var swing := Vector2(d.y, -d.x) * c.swing  # derivada de R_y(swing·θ)·d en θ = 0, en planta (x, z)
 		assert_gt(swing.dot(a.get_center() - hinge), 0.0, "%s abre hacia %s" % [c.id, c.zone_a])
 		var mid := hinge + d * c.width * 0.5
 		assert_eq(layout.zone_at(mid, false), &"", "%s: el centro del hueco está en el muro" % c.id)

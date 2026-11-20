@@ -45,7 +45,7 @@ func _ready() -> void:
 	_player.sit_requested.connect(_sit_down)
 
 	var environment: Environment = room.get_environment().environment
-	mixer = LightMixer.new(room.get_lights(), tv.get_screen_light(), camera.get_flashlight(), environment, room.get_ambient())
+	mixer = LightMixer.new(flat.get_lights(), tv.get_screen_light(), camera.get_flashlight(), environment, room.get_ambient())
 	settings = GraphicsSettings.new(get_viewport(), environment, room.get_voxel_gi(), room.get_reflection_probe(),
 			camera.get_flashlight(), mixer)
 	var dev_preset := StringName(_dev("TLR_PRESET"))

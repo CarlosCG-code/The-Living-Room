@@ -14,3 +14,5 @@ extends Resource
 @export var hinge: Vector3
 @export var direction: Vector3
 @export var width := 0.0
+## Sentido de giro que abre hacia zone_a: +1 o -1 (según en qué jamba esté la bisagra).
+@export var swing := 1.0

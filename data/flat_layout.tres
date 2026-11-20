@@ -10,7 +10,7 @@ id = &"bedroom_main"
 name_key = "ZONE_BEDROOM_MAIN"
 rect = Rect2(-2, 2.65, 4, 4.275)
 floor_type = &"wood"
-lights = Array[Dictionary]([{"pos": Vector3(0, 2.3, 4.7875), "color": Color(1, 0.82, 0.64, 1), "energy": 0.15, "range": 4.2062, "base_normal": 0.15, "base_dark": 0}])
+lights = Array[Dictionary]([{"pos": Vector3(0, 2.3, 4.7875), "color": Color(1, 0.82, 0.64, 1), "energy": 0.8, "range": 4.2062, "base_normal": 0.8, "base_dark": 0}])
 
 [sub_resource type="Resource" id="z_living_room"]
 script = ExtResource("zone_script")
@@ -26,7 +26,7 @@ id = &"dining_room"
 name_key = "ZONE_DINING_ROOM"
 rect = Rect2(-2, -7, 4, 4.35)
 floor_type = &"wood"
-lights = Array[Dictionary]([{"pos": Vector3(0, 2.3, -4.825), "color": Color(1, 0.82, 0.64, 1), "energy": 0.15, "range": 4.2625, "base_normal": 0.15, "base_dark": 0}])
+lights = Array[Dictionary]([{"pos": Vector3(0, 2.3, -4.825), "color": Color(1, 0.82, 0.64, 1), "energy": 0.8, "range": 4.2625, "base_normal": 0.8, "base_dark": 0}])
 
 [sub_resource type="Resource" id="z_workshop"]
 script = ExtResource("zone_script")
@@ -34,7 +34,7 @@ id = &"workshop"
 name_key = "ZONE_WORKSHOP"
 rect = Rect2(-6.8, -10.5, 8.8, 3.35)
 floor_type = &"tile"
-lights = Array[Dictionary]([{"pos": Vector3(-2.4, 2.3, -8.825), "color": Color(1, 0.82, 0.64, 1), "energy": 0.15, "range": 7.6, "base_normal": 0.15, "base_dark": 0}])
+lights = Array[Dictionary]([{"pos": Vector3(-2.4, 2.3, -8.825), "color": Color(1, 0.82, 0.64, 1), "energy": 0.8, "range": 7.6, "base_normal": 0.8, "base_dark": 0}])
 
 [sub_resource type="Resource" id="z_corridor_main_w"]
 script = ExtResource("zone_script")
@@ -42,7 +42,7 @@ id = &"corridor_main_w"
 name_key = "ZONE_CORRIDOR"
 rect = Rect2(-3.35, 2.4, 1.2, 4.525)
 floor_type = &"wood"
-lights = Array[Dictionary]([{"pos": Vector3(-2.75, 2.3, 4.6625), "color": Color(1, 0.82, 0.64, 1), "energy": 0.15, "range": 4.3937, "base_normal": 0.15, "base_dark": 0}])
+lights = Array[Dictionary]([{"pos": Vector3(-2.75, 2.3, 4.6625), "color": Color(1, 0.82, 0.64, 1), "energy": 0.8, "range": 4.3937, "base_normal": 0.8, "base_dark": 0}])
 
 [sub_resource type="Resource" id="z_corridor_main_m"]
 script = ExtResource("zone_script")
@@ -50,7 +50,7 @@ id = &"corridor_main_m"
 name_key = "ZONE_CORRIDOR"
 rect = Rect2(-3.35, -2.6, 1.2, 5)
 floor_type = &"wood"
-lights = Array[Dictionary]([{"pos": Vector3(-2.75, 2.3, -0.1), "color": Color(1, 0.82, 0.64, 1), "energy": 0.15, "range": 4.75, "base_normal": 0.15, "base_dark": 0}])
+lights = Array[Dictionary]([{"pos": Vector3(-2.75, 2.3, -0.1), "color": Color(1, 0.82, 0.64, 1), "energy": 0.8, "range": 4.75, "base_normal": 0.8, "base_dark": 0}])
 
 [sub_resource type="Resource" id="z_corridor_main_e"]
 script = ExtResource("zone_script")
@@ -58,7 +58,7 @@ id = &"corridor_main_e"
 name_key = "ZONE_CORRIDOR"
 rect = Rect2(-3.35, -7, 1.2, 4.4)
 floor_type = &"wood"
-lights = Array[Dictionary]([{"pos": Vector3(-2.75, 2.3, -4.8), "color": Color(1, 0.82, 0.64, 1), "energy": 0.15, "range": 4.3, "base_normal": 0.15, "base_dark": 0}])
+lights = Array[Dictionary]([{"pos": Vector3(-2.75, 2.3, -4.8), "color": Color(1, 0.82, 0.64, 1), "energy": 0.8, "range": 4.3, "base_normal": 0.8, "base_dark": 0}])
 
 [sub_resource type="Resource" id="z_corridor_side"]
 script = ExtResource("zone_script")
@@ -66,7 +66,7 @@ id = &"corridor_side"
 name_key = "ZONE_CORRIDOR"
 rect = Rect2(-6.95, 5.725, 3.6, 1.2)
 floor_type = &"wood"
-lights = Array[Dictionary]([{"pos": Vector3(-5.15, 2.3, 6.325), "color": Color(1, 0.82, 0.64, 1), "energy": 0.15, "range": 3.7, "base_normal": 0.15, "base_dark": 0}])
+lights = Array[Dictionary]([{"pos": Vector3(-5.15, 2.3, 6.325), "color": Color(1, 0.82, 0.64, 1), "energy": 0.8, "range": 3.7, "base_normal": 0.8, "base_dark": 0}])
 
 [sub_resource type="Resource" id="z_bedroom_2"]
 script = ExtResource("zone_script")
@@ -74,7 +74,7 @@ id = &"bedroom_2"
 name_key = "ZONE_BEDROOM_2"
 rect = Rect2(-6.8, 2.225, 3.3, 3.35)
 floor_type = &"wood"
-lights = Array[Dictionary]([{"pos": Vector3(-5.15, 2.3, 3.9), "color": Color(1, 0.82, 0.64, 1), "energy": 0.15, "range": 3.5125, "base_normal": 0.15, "base_dark": 0}])
+lights = Array[Dictionary]([{"pos": Vector3(-5.15, 2.3, 3.9), "color": Color(1, 0.82, 0.64, 1), "energy": 0.8, "range": 3.5125, "base_normal": 0.8, "base_dark": 0}])
 
 [sub_resource type="Resource" id="z_bathroom"]
 script = ExtResource("zone_script")
@@ -82,7 +82,7 @@ id = &"bathroom"
 name_key = "ZONE_BATHROOM"
 rect = Rect2(-6.8, -0.175, 3.3, 2.25)
 floor_type = &"tile"
-lights = Array[Dictionary]([{"pos": Vector3(-5.15, 2.3, 0.95), "color": Color(1, 0.82, 0.64, 1), "energy": 0.15, "range": 3.475, "base_normal": 0.15, "base_dark": 0}])
+lights = Array[Dictionary]([{"pos": Vector3(-5.15, 2.3, 0.95), "color": Color(1, 0.82, 0.64, 1), "energy": 0.8, "range": 3.475, "base_normal": 0.8, "base_dark": 0}])
 
 [sub_resource type="Resource" id="z_bedroom_3"]
 script = ExtResource("zone_script")
@@ -90,7 +90,7 @@ id = &"bedroom_3"
 name_key = "ZONE_BEDROOM_3"
 rect = Rect2(-6.8, -3.675, 3.3, 3.35)
 floor_type = &"wood"
-lights = Array[Dictionary]([{"pos": Vector3(-5.15, 2.3, -2), "color": Color(1, 0.82, 0.64, 1), "energy": 0.15, "range": 3.5125, "base_normal": 0.15, "base_dark": 0}])
+lights = Array[Dictionary]([{"pos": Vector3(-5.15, 2.3, -2), "color": Color(1, 0.82, 0.64, 1), "energy": 0.8, "range": 3.5125, "base_normal": 0.8, "base_dark": 0}])
 
 [sub_resource type="Resource" id="z_pantry_hall"]
 script = ExtResource("zone_script")
@@ -98,7 +98,7 @@ id = &"pantry_hall"
 name_key = "ZONE_PANTRY_HALL"
 rect = Rect2(-6.8, -7, 3.3, 3.175)
 floor_type = &"tile"
-lights = Array[Dictionary]([{"pos": Vector3(-5.15, 2.3, -5.4125), "color": Color(1, 0.82, 0.64, 1), "energy": 0.15, "range": 3.475, "base_normal": 0.15, "base_dark": 0}])
+lights = Array[Dictionary]([{"pos": Vector3(-5.15, 2.3, -5.4125), "color": Color(1, 0.82, 0.64, 1), "energy": 0.8, "range": 3.475, "base_normal": 0.8, "base_dark": 0}])
 
 [sub_resource type="Resource" id="z_corridor_service_w"]
 script = ExtResource("zone_script")
@@ -106,7 +106,7 @@ id = &"corridor_service_w"
 name_key = "ZONE_CORRIDOR"
 rect = Rect2(-8.15, 1.2, 1.2, 5.725)
 floor_type = &"wood"
-lights = Array[Dictionary]([{"pos": Vector3(-7.55, 2.3, 4.0625), "color": Color(1, 0.82, 0.64, 1), "energy": 0.15, "range": 5.2937, "base_normal": 0.15, "base_dark": 0}])
+lights = Array[Dictionary]([{"pos": Vector3(-7.55, 2.3, 4.0625), "color": Color(1, 0.82, 0.64, 1), "energy": 0.8, "range": 5.2937, "base_normal": 0.8, "base_dark": 0}])
 
 [sub_resource type="Resource" id="z_corridor_service_m"]
 script = ExtResource("zone_script")
@@ -114,7 +114,7 @@ id = &"corridor_service_m"
 name_key = "ZONE_CORRIDOR"
 rect = Rect2(-8.15, -4.6, 1.2, 5.8)
 floor_type = &"wood"
-lights = Array[Dictionary]([{"pos": Vector3(-7.55, 2.3, -1.7), "color": Color(1, 0.82, 0.64, 1), "energy": 0.15, "range": 5.35, "base_normal": 0.15, "base_dark": 0}])
+lights = Array[Dictionary]([{"pos": Vector3(-7.55, 2.3, -1.7), "color": Color(1, 0.82, 0.64, 1), "energy": 0.8, "range": 5.35, "base_normal": 0.8, "base_dark": 0}])
 
 [sub_resource type="Resource" id="z_corridor_service_e"]
 script = ExtResource("zone_script")
@@ -122,7 +122,7 @@ id = &"corridor_service_e"
 name_key = "ZONE_CORRIDOR"
 rect = Rect2(-8.15, -10.5, 1.2, 5.9)
 floor_type = &"wood"
-lights = Array[Dictionary]([{"pos": Vector3(-7.55, 2.3, -7.55), "color": Color(1, 0.82, 0.64, 1), "energy": 0.15, "range": 5.425, "base_normal": 0.15, "base_dark": 0}])
+lights = Array[Dictionary]([{"pos": Vector3(-7.55, 2.3, -7.55), "color": Color(1, 0.82, 0.64, 1), "energy": 0.8, "range": 5.425, "base_normal": 0.8, "base_dark": 0}])
 
 [sub_resource type="Resource" id="z_gallery"]
 script = ExtResource("zone_script")
@@ -130,7 +130,7 @@ id = &"gallery"
 name_key = "ZONE_GALLERY"
 rect = Rect2(-11.6, 4.075, 3.3, 2.85)
 floor_type = &"tile"
-lights = Array[Dictionary]([{"pos": Vector3(-9.95, 2.3, 5.5), "color": Color(1, 0.82, 0.64, 1), "energy": 0.15, "range": 3.475, "base_normal": 0.15, "base_dark": 0}])
+lights = Array[Dictionary]([{"pos": Vector3(-9.95, 2.3, 5.5), "color": Color(1, 0.82, 0.64, 1), "energy": 0.8, "range": 3.475, "base_normal": 0.8, "base_dark": 0}])
 
 [sub_resource type="Resource" id="z_storage"]
 script = ExtResource("zone_script")
@@ -138,7 +138,7 @@ id = &"storage"
 name_key = "ZONE_STORAGE"
 rect = Rect2(-11.6, 2.475, 3.3, 1.45)
 floor_type = &"tile"
-lights = Array[Dictionary]([{"pos": Vector3(-9.95, 2.3, 3.2), "color": Color(1, 0.82, 0.64, 1), "energy": 0.15, "range": 3.475, "base_normal": 0.15, "base_dark": 0}])
+lights = Array[Dictionary]([{"pos": Vector3(-9.95, 2.3, 3.2), "color": Color(1, 0.82, 0.64, 1), "energy": 0.8, "range": 3.475, "base_normal": 0.8, "base_dark": 0}])
 
 [sub_resource type="Resource" id="z_entrance_hall"]
 script = ExtResource("zone_script")
@@ -146,7 +146,7 @@ id = &"entrance_hall"
 name_key = "ZONE_ENTRANCE_HALL"
 rect = Rect2(-11.6, -1.525, 3.3, 3.85)
 floor_type = &"wood"
-lights = Array[Dictionary]([{"pos": Vector3(-9.95, 2.3, 0.4), "color": Color(1, 0.82, 0.64, 1), "energy": 0.15, "range": 3.8875, "base_normal": 0.15, "base_dark": 0}])
+lights = Array[Dictionary]([{"pos": Vector3(-9.95, 2.3, 0.4), "color": Color(1, 0.82, 0.64, 1), "energy": 0.8, "range": 3.8875, "base_normal": 0.8, "base_dark": 0}])
 
 [sub_resource type="Resource" id="z_larder"]
 script = ExtResource("zone_script")
@@ -154,7 +154,7 @@ id = &"larder"
 name_key = "ZONE_LARDER"
 rect = Rect2(-11.6, -3.125, 3.3, 1.45)
 floor_type = &"tile"
-lights = Array[Dictionary]([{"pos": Vector3(-9.95, 2.3, -2.4), "color": Color(1, 0.82, 0.64, 1), "energy": 0.15, "range": 3.475, "base_normal": 0.15, "base_dark": 0}])
+lights = Array[Dictionary]([{"pos": Vector3(-9.95, 2.3, -2.4), "color": Color(1, 0.82, 0.64, 1), "energy": 0.8, "range": 3.475, "base_normal": 0.8, "base_dark": 0}])
 
 [sub_resource type="Resource" id="z_kitchen"]
 script = ExtResource("zone_script")
@@ -162,7 +162,7 @@ id = &"kitchen"
 name_key = "ZONE_KITCHEN"
 rect = Rect2(-11.6, -7.425, 3.3, 4.15)
 floor_type = &"tile"
-lights = Array[Dictionary]([{"pos": Vector3(-9.95, 2.3, -5.35), "color": Color(1, 0.82, 0.64, 1), "energy": 0.15, "range": 4.1125, "base_normal": 0.15, "base_dark": 0}])
+lights = Array[Dictionary]([{"pos": Vector3(-9.95, 2.3, -5.35), "color": Color(1, 0.82, 0.64, 1), "energy": 0.8, "range": 4.1125, "base_normal": 0.8, "base_dark": 0}])
 
 [sub_resource type="Resource" id="z_service_toilet"]
 script = ExtResource("zone_script")
@@ -170,17 +170,18 @@ id = &"service_toilet"
 name_key = "ZONE_SERVICE_TOILET"
 rect = Rect2(-11.6, -10.5, 3.3, 2.925)
 floor_type = &"tile"
-lights = Array[Dictionary]([{"pos": Vector3(-9.95, 2.3, -9.0375), "color": Color(1, 0.82, 0.64, 1), "energy": 0.15, "range": 3.475, "base_normal": 0.15, "base_dark": 0}])
+lights = Array[Dictionary]([{"pos": Vector3(-9.95, 2.3, -9.0375), "color": Color(1, 0.82, 0.64, 1), "energy": 0.8, "range": 3.475, "base_normal": 0.8, "base_dark": 0}])
 
 [sub_resource type="Resource" id="c_door_living"]
 script = ExtResource("conn_script")
 id = &"door_living"
-zone_a = &"living_room"
-zone_b = &"corridor_main_m"
+zone_a = &"corridor_main_m"
+zone_b = &"living_room"
 kind = &"leaf"
 start = &"closed"
-hinge = Vector3(-2.075, 0, -2.05)
-direction = Vector3(0, 0, 1)
+hinge = Vector3(-2.075, 0, -1.15)
+swing = 1
+direction = Vector3(0, 0, -1)
 width = 0.9
 
 [sub_resource type="Resource" id="c_door_bedroom_main"]
@@ -191,6 +192,7 @@ zone_b = &"corridor_main_w"
 kind = &"leaf"
 start = &"closed"
 hinge = Vector3(-2.075, 0, 2.95)
+swing = 1
 direction = Vector3(0, 0, 1)
 width = 0.9
 
@@ -202,6 +204,7 @@ zone_b = &"corridor_main_e"
 kind = &"leaf"
 start = &"ajar"
 hinge = Vector3(-2.075, 0, -4.45)
+swing = 1
 direction = Vector3(0, 0, 1)
 width = 0.9
 
@@ -213,6 +216,7 @@ zone_b = &"corridor_main_e"
 kind = &"leaf"
 start = &"closed"
 hinge = Vector3(-3.2, 0, -7.075)
+swing = 1
 direction = Vector3(1, 0, 0)
 width = 0.9
 
@@ -224,6 +228,7 @@ zone_b = &"corridor_service_e"
 kind = &"leaf"
 start = &"closed"
 hinge = Vector3(-6.875, 0, -9.25)
+swing = 1
 direction = Vector3(0, 0, 1)
 width = 0.9
 
@@ -235,6 +240,7 @@ zone_b = &"corridor_main_w"
 kind = &"leaf"
 start = &"closed"
 hinge = Vector3(-3.425, 0, 4.85)
+swing = 1
 direction = Vector3(0, 0, -1)
 width = 0.9
 
@@ -246,6 +252,7 @@ zone_b = &"corridor_main_m"
 kind = &"leaf"
 start = &"ajar"
 hinge = Vector3(-3.425, 0, 1.45)
+swing = 1
 direction = Vector3(0, 0, -1)
 width = 0.9
 
@@ -257,6 +264,7 @@ zone_b = &"corridor_service_m"
 kind = &"leaf"
 start = &"ajar"
 hinge = Vector3(-6.875, 0, -2.45)
+swing = 1
 direction = Vector3(0, 0, 1)
 width = 0.9
 
@@ -268,6 +276,7 @@ zone_b = &"corridor_main_e"
 kind = &"leaf"
 start = &"closed"
 hinge = Vector3(-3.425, 0, -5.15)
+swing = 1
 direction = Vector3(0, 0, -1)
 width = 0.9
 
@@ -279,6 +288,7 @@ zone_b = &"corridor_service_e"
 kind = &"leaf"
 start = &"closed"
 hinge = Vector3(-6.875, 0, -6.35)
+swing = 1
 direction = Vector3(0, 0, 1)
 width = 0.9
 
@@ -290,6 +300,7 @@ zone_b = &"corridor_service_w"
 kind = &"leaf"
 start = &"closed"
 hinge = Vector3(-8.225, 0, 5.95)
+swing = 1
 direction = Vector3(0, 0, -1)
 width = 0.9
 
@@ -301,6 +312,7 @@ zone_b = &"corridor_service_w"
 kind = &"leaf"
 start = &"closed"
 hinge = Vector3(-8.225, 0, 3.65)
+swing = 1
 direction = Vector3(0, 0, -1)
 width = 0.9
 
@@ -321,6 +333,7 @@ zone_b = &"corridor_service_m"
 kind = &"leaf"
 start = &"closed"
 hinge = Vector3(-8.225, 0, -3.55)
+swing = 1
 direction = Vector3(0, 0, -1)
 width = 0.9
 
@@ -332,6 +345,7 @@ zone_b = &"kitchen"
 kind = &"leaf"
 start = &"closed"
 hinge = Vector3(-9.575, 0, -3.2)
+swing = 1
 direction = Vector3(-1, 0, 0)
 width = 0.9
 
@@ -343,6 +357,7 @@ zone_b = &"corridor_service_e"
 kind = &"leaf"
 start = &"closed"
 hinge = Vector3(-8.225, 0, -8.55)
+swing = 1
 direction = Vector3(0, 0, -1)
 width = 0.9
 
@@ -354,6 +369,7 @@ zone_b = &""
 kind = &"leaf"
 start = &"locked"
 hinge = Vector3(-11.675, 0, -0.05)
+swing = 1
 direction = Vector3(0, 0, 1)
 width = 0.9
 

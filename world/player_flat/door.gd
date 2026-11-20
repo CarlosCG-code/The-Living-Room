@@ -1,0 +1,181 @@
+class_name Door
+extends Node3D
+
+# Puerta como en Visage (specs/hito4a.md D5): con la hoja agarrada, el ratón hacia arriba la aleja de ti y
+# hacia abajo la acerca; al soltarla sigue con su inercia. La física es DoorMath; aquí, la hoja, el choque
+# con el jugador y los muebles (se para, no empuja) y los sonidos. Se mueve en _physics_process solo mientras
+# está agarrada o en movimiento.
+
+const PX_TO_RAD := 0.004  # giro por píxel de ratón con la sensibilidad por defecto
+const DEFAULT_SENSITIVITY := 0.0012
+const HEIGHT := 2.074
+const THICKNESS := 0.04
+const WOOD := Color(0.16, 0.085, 0.04)
+const BRASS := Color(0.6, 0.45, 0.22)
+const SOUNDS := {
+	&"creak": preload("res://assets/audio/flat/door_creak.ogg"),
+	&"latch": preload("res://assets/audio/flat/door_latch.ogg"),
+	&"slam": preload("res://assets/audio/flat/door_slam.ogg"),
+	&"locked": preload("res://assets/audio/flat/door_locked.ogg"),
+}
+
+var id: StringName
+var locked := false
+var angle := 0.0
+var velocity := 0.0
+
+var _width := 0.9
+var _sign := 1.0  # swing del plano, y además -1 en espejo: reflejar R_y(θ) da R_y(-θ)
+var _held := false
+var _side := 1.0
+var _pending_dy := 0.0
+var _leaf: AnimatableBody3D
+var _shape: BoxShape3D
+var _players := {}
+
+
+## Coloca la puerta según el plano. La bisagra queda en el origen y la hoja cerrada a lo largo de +X local.
+func setup(conn: ConnectionDef, mirrored: bool) -> void:
+	id = conn.id
+	_width = conn.width
+	locked = conn.start == &"locked"
+	angle = DoorMath.AJAR_ANGLE if conn.start == &"ajar" else 0.0
+	var x := conn.direction.normalized()
+	var t := Transform3D(Basis(x, Vector3.UP, x.cross(Vector3.UP)), conn.hinge)
+	transform = MirrorMath.mirror_transform(t) if mirrored else t
+	_sign = conn.swing * (-1.0 if mirrored else 1.0)
+	_build()
+	_apply_angle()
+	set_physics_process(false)
+
+
+func _build() -> void:
+	_leaf = AnimatableBody3D.new()
+	_leaf.name = "Leaf"
+	_leaf.physics_interpolation_mode = Node.PHYSICS_INTERPOLATION_MODE_ON  # gira en _physics_process
+	add_child(_leaf)
+	var size := Vector3(_width - 0.006, HEIGHT, THICKNESS)
+	var center := Vector3(_width / 2.0, 0.02 + HEIGHT / 2.0, 0.0)  # rendija de 2 cm bajo la hoja, como en el salón
+	_shape = BoxShape3D.new()
+	_shape.size = size
+	var col := CollisionShape3D.new()
+	col.shape = _shape
+	col.position = center
+	_leaf.add_child(col)
+	var mesh := MeshInstance3D.new()
+	var box := BoxMesh.new()
+	box.size = size
+	box.material = _material(WOOD, 0.4, 0.0)
+	mesh.mesh = box
+	mesh.position = center
+	mesh.gi_mode = GeometryInstance3D.GI_MODE_DYNAMIC  # no deja su sombra horneada al abrirse
+	_leaf.add_child(mesh)
+	for side in [-1.0, 1.0]:  # manilla a cada lado, cerca del pestillo
+		var handle := MeshInstance3D.new()
+		var cyl := CylinderMesh.new()
+		cyl.top_radius = 0.009
+		cyl.bottom_radius = 0.009
+		cyl.height = 0.12
+		cyl.material = _material(BRASS, 0.3, 1.0)
+		handle.mesh = cyl
+		handle.rotation.z = PI / 2.0
+		handle.position = Vector3(_width - 0.12, 1.0, side * (THICKNESS / 2.0 + 0.03))
+		handle.gi_mode = GeometryInstance3D.GI_MODE_DYNAMIC
+		_leaf.add_child(handle)
+	for key: StringName in SOUNDS:
+		var p := AudioStreamPlayer3D.new()
+		p.stream = SOUNDS[key]
+		p.bus = &"Room"
+		p.position = Vector3(_width * 0.6, 1.2, 0.0)
+		add_child(p)
+		_players[key] = p
+
+
+static func _material(color: Color, roughness: float, metallic: float) -> StandardMaterial3D:
+	var m := StandardMaterial3D.new()
+	m.albedo_color = color
+	m.roughness = roughness
+	m.metallic = metallic
+	return m
+
+
+## Agarrar la hoja desde eye. Con llave no se mueve: suena el traqueteo y devuelve false.
+func try_grab(eye: Vector3) -> bool:
+	if locked:
+		_play(&"locked")
+		return false
+	# Lado del jugador respecto a hacia dónde se abre: subir el ratón siempre la aleja de él.
+	var open_dir := _latch_at(angle + 0.01) - _latch_at(angle)
+	_side = 1.0 if (eye - _latch_at(angle)).dot(open_dir) < 0.0 else -1.0
+	_held = true
+	_pending_dy = 0.0
+	set_physics_process(true)
+	return true
+
+
+func drag(mouse_dy: float) -> void:
+	_pending_dy += mouse_dy
+
+
+func release() -> void:
+	_held = false
+
+
+func _physics_process(delta: float) -> void:
+	var sens_scale := Game.settings.mouse_sensitivity / DEFAULT_SENSITIVITY
+	var drag_rate := -_pending_dy * PX_TO_RAD * sens_scale / delta * _side if _held else 0.0
+	_pending_dy = 0.0
+	var r := DoorMath.step(angle, velocity, drag_rate, _held, delta)
+	if not is_equal_approx(r.x, angle) and _blocked(r.x):
+		velocity = 0.0  # la hoja se para contra el jugador o un mueble, como en Visage
+	else:
+		angle = r.x
+		velocity = r.y
+		match int(r.z):
+			DoorMath.Event.LATCH:
+				_play(&"latch")
+			DoorMath.Event.SLAM:
+				_play(&"slam")
+		_apply_angle()
+	_update_creak()
+	if not _held and velocity == 0.0:
+		set_physics_process(false)
+
+
+func _apply_angle() -> void:
+	_leaf.rotation.y = _sign * angle
+
+
+func _latch_at(a: float) -> Vector3:
+	return global_transform * (Basis(Vector3.UP, _sign * a) * Vector3(_width, 1.0, 0.0))
+
+
+# ¿Chocaría la hoja en el ángulo a con el jugador o con un mueble? Los muros y marcos no cuentan: la hoja
+# gira pegada a ellos en la bisagra.
+func _blocked(a: float) -> bool:
+	var q := PhysicsShapeQueryParameters3D.new()
+	q.shape = _shape
+	q.transform = global_transform * Transform3D(Basis(Vector3.UP, _sign * a), Vector3.ZERO) \
+			* Transform3D(Basis.IDENTITY, Vector3(_width / 2.0, 0.02 + HEIGHT / 2.0, 0.0))
+	q.exclude = [_leaf.get_rid()]
+	for hit in get_world_3d().direct_space_state.intersect_shape(q, 8):
+		var c: Object = hit["collider"]
+		if c is CharacterBody3D or (c is Node and String((c as Node).name).begins_with("Solid_")) \
+				or (c is Node and String((c as Node).name).begins_with("SeatSofa")):
+			return true
+	return false
+
+
+# Crujido mientras se mueve con cierta velocidad: más fuerte cuanto más deprisa.
+func _update_creak() -> void:
+	var p: AudioStreamPlayer3D = _players[&"creak"]
+	var speed := absf(velocity)
+	if speed > 0.35 and not p.playing:
+		p.play(randf_range(0.0, maxf(p.stream.get_length() - 2.0, 0.0)))
+	elif speed < 0.1 and p.playing:
+		p.stop()
+	p.volume_db = linear_to_db(clampf(speed / 2.0, 0.15, 1.0))
+
+
+func _play(key: StringName) -> void:
+	(_players[key] as AudioStreamPlayer3D).play()

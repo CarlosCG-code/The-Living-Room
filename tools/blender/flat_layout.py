@@ -61,7 +61,8 @@ OPEN_SEAMS = [
 # id, zona_a (la hoja abre hacia ella), zona_b ("" = rellano), tipo, posición a lo largo del muro (px o py
 # del centro del hueco), estado inicial
 CONNECTIONS = [
-    ("door_living", "living_room", "corridor_main_m", "leaf", 8.6, "closed"),  # la puerta actual del salón
+    # La del salón abre hacia el pasillo: hacia dentro chocaba con el sofá (2,7 m, a 63 cm de esa pared).
+    ("door_living", "corridor_main_m", "living_room", "leaf", 8.6, "closed", "lo"),
     ("door_bedroom_main", "bedroom_main", "corridor_main_w", "leaf", 3.6, "closed"),
     ("door_dining", "dining_room", "corridor_main_e", "leaf", 11.0, "ajar"),
     ("door_workshop_main", "workshop", "corridor_main_e", "leaf", Y1 + 0.675, "closed"),
@@ -83,7 +84,7 @@ CONNECTIONS = [
 FUSE_BOX_ZONE = "storage"
 PASSAGE_W = 1.4  # vano del recibidor
 
-LAMP = {"color": (1.0, 0.82, 0.64), "energy": 0.15, "base_dark": 0.0}
+LAMP = {"color": (1.0, 0.82, 0.64), "energy": 0.8, "base_dark": 0.0}  # más que los apliques del salón: aquí aún no hay GI que rebote
 
 
 def zone(zid):
@@ -128,7 +129,7 @@ def to_godot(px, py):
 def wall_of(conn):
     """Muro compartido por las dos zonas de una conexión: ('h', py) si es horizontal en el plano (separa filas),
     ('v', px) si es vertical; y la normal (en el plano) que apunta hacia zona_a."""
-    _, a, b, _, _, _ = conn
+    _, a, b = conn[:3]
     ra = zone(a)[2]
     if b == "":  # puerta de entrada: muro del fondo del recibidor
         return "h", ra[3], (0.0, -1.0)
@@ -145,8 +146,9 @@ def wall_of(conn):
 
 
 def door_frame(conn):
-    """Bisagra y dirección de la hoja cerrada (bisagra -> pestillo), en el plano. La bisagra se elige en la jamba
-    con la que girar en sentido positivo (Godot, eje Y) abre hacia zona_a."""
+    """Bisagra, dirección de la hoja cerrada (bisagra -> pestillo) en el plano, y sentido de giro (swing, ±1) con
+    el que se abre hacia zona_a. Sin jamba elegida (7.º campo, "lo" | "hi" a lo largo del muro), la bisagra va
+    en la que abre girando en positivo (Godot, eje Y)."""
     axis, coord, n = wall_of(conn)
     pos = conn[4]
     half = DOOR_W / 2
@@ -157,10 +159,13 @@ def door_frame(conn):
     # En Godot: x = 2 - py, z = 7 - px. Dirección y normal pasan a (gx, gz) = (-dy, -dx).
     dg, ng = (-d[1], -d[0]), (-n[1], -n[0])
     # R_y(θ) con θ pequeño positivo lleva (x, z) a (x + θz, z - θx): abre hacia ng si dz*nx - dx*nz > 0.
-    if dg[1] * ng[0] - dg[0] * ng[1] < 0:
+    positive = dg[1] * ng[0] - dg[0] * ng[1] > 0
+    end = conn[6] if len(conn) > 6 else ("lo" if positive else "hi")
+    if end == "hi":  # bisagra en la otra jamba: la hoja apunta al revés y el sentido de giro también cambia
         hinge = (hinge[0] + 2 * half * d[0], hinge[1] + 2 * half * d[1])
         d = (-d[0], -d[1])
-    return hinge, d
+        positive = not positive
+    return hinge, d, 1.0 if positive else -1.0
 
 
 def godot_rect(zid):
@@ -193,14 +198,14 @@ def write_tres(path):
                   "rect = Rect2(%s, %s, %s, %s)" % tuple(_num(v) for v in (x, z, w, d)),
                   'floor_type = &"%s"' % floor, "lights = Array[Dictionary]([%s])" % lights, ""]
     for conn in CONNECTIONS:
-        cid, a, b, kind, pos, start = conn
+        cid, a, b, kind, pos, start = conn[:6]
         lines += ['[sub_resource type="Resource" id="c_%s"]' % cid, 'script = ExtResource("conn_script")',
                   'id = &"%s"' % cid, 'zone_a = &"%s"' % a, 'zone_b = &"%s"' % b, 'kind = &"%s"' % kind,
                   'start = &"%s"' % start]
         if kind == "leaf":
-            (hx, hy), d = door_frame(conn)
+            (hx, hy), d, swing = door_frame(conn)
             gx, gz = to_godot(hx, hy)
-            lines += ["hinge = Vector3(%s, 0, %s)" % (_num(gx), _num(gz)),
+            lines += ["hinge = Vector3(%s, 0, %s)" % (_num(gx), _num(gz)), "swing = %s" % _num(swing),
                       "direction = Vector3(%s, 0, %s)" % (_num(-d[1]), _num(-d[0])), "width = %s" % _num(DOOR_W)]
         elif pos is not None:
             lines += ["width = %s" % _num(PASSAGE_W)]

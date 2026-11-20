@@ -14,6 +14,8 @@ const FACADE_WINDOWS: Array[StringName] = [&"bedroom_main", &"dining_room", &"wo
 @export var mirrored := false
 
 var living_room: Node3D
+var doors: Array[Door] = []
+var _lights: Array[Light3D] = []
 
 
 func _ready() -> void:
@@ -23,11 +25,19 @@ func _ready() -> void:
 	var geometry := (load(GEOMETRY_MIRROR if mirrored else GEOMETRY) as PackedScene).instantiate()
 	geometry.name = "FlatGeometry"
 	add_child(geometry)
-	# shortcut: sin la hoja horneada del salón la puerta queda abierta; la sustituye una Door en el paso 4.
+	# La hoja horneada en el glTF del salón la sustituye su Door (specs/hito4a.md D3).
 	for leaf_name in ["DoorLeaf", "DoorHandle"]:
 		var leaf := living_room.find_child(leaf_name, true, false)
 		if leaf:
-			leaf.queue_free()
+			leaf.free()
+	for conn in LAYOUT.connections:
+		if conn.kind == &"leaf":
+			var door := Door.new()
+			door.name = String(conn.id)
+			add_child(door)
+			door.setup(conn, mirrored)
+			doors.append(door)
+	_add_lamps()
 	var backdrop := living_room.get_node("WindowBackdrop") as Node3D
 	for zone in FACADE_WINDOWS:
 		var marker := geometry.find_child("Window_" + zone, true, false) as Node3D
@@ -39,3 +49,30 @@ func _ready() -> void:
 
 func get_layout() -> FlatLayout:
 	return LAYOUT
+
+
+## Las del salón y las del resto del piso: todas pasan por el único LightMixer (specs/hito4a.md D8, D12).
+func get_lights() -> Array[Light3D]:
+	return living_room.get_lights() + _lights
+
+
+# Lámparas de techo tenues, como los apliques del salón, sin sombras; se apagan con la distancia.
+func _add_lamps() -> void:
+	for zone in LAYOUT.zones:
+		for l: Dictionary in zone.lights:
+			var lamp := OmniLight3D.new()
+			lamp.name = "Lamp_%s" % zone.id
+			var p: Vector3 = l["pos"]
+			lamp.position = Vector3(-p.x if mirrored else p.x, p.y, p.z)
+			lamp.light_color = l["color"]
+			lamp.light_energy = l["energy"]
+			lamp.omni_range = l["range"]
+			lamp.omni_attenuation = 1.0
+			lamp.light_specular = 0.0
+			lamp.distance_fade_enabled = true
+			lamp.distance_fade_begin = 12.0
+			lamp.distance_fade_length = 4.0
+			lamp.set_meta(&"base_normal", l["base_normal"])
+			lamp.set_meta(&"base_dark", l["base_dark"])
+			add_child(lamp)
+			_lights.append(lamp)
