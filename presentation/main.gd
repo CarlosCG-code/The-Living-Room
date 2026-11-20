@@ -4,7 +4,7 @@ extends Node
 # la escena de arranque: el menú principal se muestra en la tele.
 # Variables TLR_* solo en la build de depuración; la exportada las ignora.
 
-const ROOM := preload("res://world/player_flat/living_room.tscn")
+const FLAT := preload("res://world/player_flat/flat.tscn")
 const TV := preload("res://presentation/tv/tv.tscn")
 const CAMERA := preload("res://presentation/camera/game_camera.tscn")
 const VIEWS: Array[StringName] = [&"game", &"sofa", &"window", &"door", &"corner"]
@@ -17,10 +17,11 @@ var _film_grain: CanvasLayer
 
 
 func _ready() -> void:
-	var room := ROOM.instantiate()
+	var flat := FLAT.instantiate()
+	flat.mirrored = _dev("TLR_MIRROR") == "1"
+	add_child(flat)
+	var room: Node3D = flat.living_room  # anclas, entorno, luces y cámaras de captura siguen siendo del salón
 	_room = room
-	room.mirrored = _dev("TLR_MIRROR") == "1"
-	add_child(room)
 	var tv := TV.instantiate()
 	add_child(tv)
 	tv.global_transform = room.get_anchor(&"TvAnchor").global_transform

@@ -401,6 +401,26 @@ def build_final():
     import_model("potted_plant_02", "1k", (1.62, 0.55, 0))
     decorate()
     decorate_1940s(wood, brass, shade)
+    floor_colliders()
+
+
+SKIP_COLLIDE = ("Wall", "Floor", "Ceiling", "Skirt", "Win", "Door", "Blind", "Jamb", "Lintel", "Sill")
+
+
+def floor_colliders():
+    """Colisión invisible (-colonly) con la caja de cada mueble que se apoya en el suelo (specs/hito4a.md D3):
+    sin ella, de pie se atravesarían. La del sofá se llama SeatSofa: hacer clic en ella sienta al jugador."""
+    for o in list(bpy.context.scene.objects):
+        if o.type != "MESH" or "-col" in o.name or o.name.startswith(SKIP_COLLIDE):
+            continue
+        pts = [o.matrix_world @ Vector(c) for c in o.bound_box]
+        lo, hi = min(p.z for p in pts), max(p.z for p in pts)
+        if lo > 0.05 or hi - lo < 0.25:  # colgado en la pared o encima de otro mueble, o casi plano (alfombras, libros)
+            continue
+        x0, x1 = min(p.x for p in pts), max(p.x for p in pts)
+        y0, y1 = min(p.y for p in pts), max(p.y for p in pts)
+        name = ("SeatSofa" if o.name.startswith("sofa_03") else "Solid_" + o.name.replace(".", "_")) + "-colonly"
+        box(name, (x1 - x0, y1 - y0, hi - lo), ((x0 + x1) / 2, (y0 + y1) / 2, (lo + hi) / 2))
 
 
 def to_wall(objs, axis, coord):
@@ -673,4 +693,5 @@ def main():
     print("BUILD_OK", MODE)
 
 
-main()
+if globals().get("RUN_MAIN", True):  # build_flat.py ejecuta este archivo con RUN_MAIN = False para usar sus funciones
+    main()

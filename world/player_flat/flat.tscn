@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://world/player_flat/flat.gd" id="1_flat"]
+
+[node name="Flat" type="Node3D"]
+script = ExtResource("1_flat")
