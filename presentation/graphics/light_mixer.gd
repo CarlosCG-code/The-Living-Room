@@ -19,6 +19,7 @@ var _flashlight_on := false
 var _tv_state: StringName = &"on"
 var _factor := 1.0
 var _ambient_gi_scale := 1.0
+var _scale := {}  # Light3D -> factor de parpadeo (LightFlicker); sin entrada, 1
 
 
 func _init(room_lights: Array[Light3D], screen_light: Light3D, flashlight: Light3D,
@@ -64,6 +65,15 @@ func set_soft_shadows(on: bool) -> void:
 		light.light_size = float(light.get_meta("base_size")) if on else 0.0
 
 
+## Factor momentáneo de una luz (parpadeos). No cambia su visibilidad: encender y apagar rehace sombras.
+func set_light_scale(light: Light3D, s: float) -> void:
+	if s >= 1.0:
+		_scale.erase(light)
+	else:
+		_scale[light] = s
+	apply()
+
+
 func set_ambient_gi_scale(f: float) -> void:
 	_ambient_gi_scale = f
 	apply()
@@ -73,14 +83,14 @@ func apply() -> void:
 	var key := "base_dark" if _state == &"dark" else "base_normal"
 	for light in _room_lights:
 		var energy: float = light.get_meta(key, 0.0) * _factor
-		light.light_energy = energy
+		light.light_energy = energy * _scale.get(light, 1.0)
 		light.visible = energy > 0.0
 	if _screen_light:
 		var screen_energy: float = _screen_base * TV_SCREEN_SCALE.get(_tv_state, 1.0) * _factor
 		_screen_light.light_energy = screen_energy
 		_screen_light.visible = screen_energy > 0.0
 	if _flashlight:
-		_flashlight.light_energy = _flashlight_base
+		_flashlight.light_energy = _flashlight_base * _scale.get(_flashlight, 1.0)
 		_flashlight.visible = _flashlight_on
 	if _environment and _ambient.has(_state):
 		var amb: Dictionary = _ambient[_state]

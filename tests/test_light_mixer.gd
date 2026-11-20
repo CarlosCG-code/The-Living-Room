@@ -78,3 +78,23 @@ func test_flashlight_follows_switch_in_any_state() -> void:
 	assert_true(flashlight.visible)
 	mixer.set_flashlight_on(false)
 	assert_false(flashlight.visible, "apagada con F")
+
+
+func test_light_scale_dims_without_hiding() -> void:
+	mixer.set_light_scale(lamp, 0.1)
+	assert_almost_eq(lamp.light_energy, 0.2, 0.0001)
+	assert_true(lamp.visible, "un bajón no apaga la luz: no rehace sus sombras")
+	mixer.set_light_scale(lamp, 1.0)
+	assert_almost_eq(lamp.light_energy, 2.0, 0.0001)
+
+
+func test_flicker_bursts_stay_under_three_dips_per_second() -> void:
+	var rng := RandomNumberGenerator.new()
+	for s in 200:
+		rng.seed = s
+		var burst := LightFlicker.make_burst(rng, 4, 0.03, 0.4)
+		for i in burst.size():
+			assert_between(burst[i].z, 0.0, 1.0)
+			if i > 0:
+				assert_gte(burst[i].x - burst[i - 1].x, LightFlicker.MIN_DIP_GAP)
+		assert_eq(LightFlicker.level_at(burst, LightFlicker.burst_end(burst) + 0.01), 1.0, "termina encendida")

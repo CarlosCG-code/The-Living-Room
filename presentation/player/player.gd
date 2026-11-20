@@ -21,7 +21,7 @@ var _layout: FlatLayout
 var _mirrored := false
 var _zone: StringName = &""
 var _grabbed: Door
-var _stride_left := 0.0
+var _stride_left := STRIDE * 0.5
 var _step_end := 0.0
 var _last_clip := -1
 
@@ -137,14 +137,15 @@ func _let_go() -> void:
 		_grabbed = null
 
 
-# Un paso al recorrer cada zancada; el primero, nada más arrancar. Nunca el mismo tramo dos veces seguidas y con
+# Un paso al recorrer cada zancada; el primero tras media zancada, cuando el pie vuelve al suelo (un toque
+# corto de tecla no suena: usuario, 2026-11-20). Nunca el mismo tramo dos veces seguidas y con
 # un poco de variación de tono, para que no suene a bucle.
 func _footsteps(moved: float) -> void:
 	var p: AudioStreamPlayer3D = $Footsteps
 	if p.playing and p.get_playback_position() >= _step_end:
 		p.stop()
 	if moved < 0.0005:
-		_stride_left = 0.0
+		_stride_left = STRIDE * 0.5
 		return
 	_stride_left -= moved
 	if _stride_left > 0.0:

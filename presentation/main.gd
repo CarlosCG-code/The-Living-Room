@@ -55,6 +55,10 @@ func _ready() -> void:
 	for key in _dev("TLR_OFF").split(",", false):
 		if GraphicsSettings.PRESETS[&"high"].get(key) is bool:
 			settings.overrides[key] = false
+	var flicker := LightFlicker.new()
+	flicker.name = "LightFlicker"
+	add_child(flicker)
+	flicker.setup(mixer, flat.get_lights(), camera.get_flashlight())
 	_add_film_grain()
 	_apply_user_settings()
 	var preset_now := func() -> StringName: return dev_preset if dev_preset in GraphicsSettings.PRESETS else Game.settings.quality
