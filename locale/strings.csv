@@ -60,6 +60,8 @@ UI_SCREEN_WINDOW,ventana
 UI_PAGE_DISPLAY,Pantalla
 UI_PAGE_GRAPHICS,Gráficos
 UI_PAGE_AUDIO,Sonido
+UI_PAGE_CONTROLS,Controles
+UI_SENSITIVITY,Sensibilidad del ratón: %d
 UI_RESOLUTION,Resolución: %s
 UI_VSYNC,VSync: %s
 UI_MAX_FPS,Límite de FPS: %s

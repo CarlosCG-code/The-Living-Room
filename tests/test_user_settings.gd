@@ -65,6 +65,19 @@ func test_old_file_without_new_keys_keeps_defaults() -> void:
 	assert_true(s.film_grain)
 
 
+func test_mouse_sensitivity_round_trip_and_clamp() -> void:
+	var s := UserSettings.new()
+	assert_eq(s.sensitivity_level(), 4, "0,0012 por defecto: el paso 4 de 10")
+	s.mouse_sensitivity = 0.002
+	s.save_to(PATH)
+	assert_almost_eq(UserSettings.load_from(PATH).mouse_sensitivity, 0.002, 0.000001)
+	var cfg := ConfigFile.new()
+	cfg.set_value("settings", "version", 1)
+	cfg.set_value("settings", "mouse_sensitivity", 5.0)
+	cfg.save(PATH)
+	assert_eq(UserSettings.load_from(PATH).sensitivity_level(), 10, "fuera de rango: al tope")
+
+
 func test_bad_new_values_are_corrected() -> void:
 	var cfg := ConfigFile.new()
 	cfg.set_value("settings", "version", 1)

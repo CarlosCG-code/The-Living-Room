@@ -328,6 +328,7 @@ func _toggle_fly() -> void:
 	if _fly_prev == null:
 		return
 	_fly = Camera3D.new()
+	_fly.physics_interpolation_mode = Node.PHYSICS_INTERPOLATION_MODE_OFF  # se mueve en _process
 	_fly.name = "FlyCamera"
 	_fly.fov = 70.0
 	_fly_prev.get_parent().add_child(_fly)

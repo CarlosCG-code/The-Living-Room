@@ -7,6 +7,9 @@ extends Node
 const FLAT := preload("res://world/player_flat/flat.tscn")
 const TV := preload("res://presentation/tv/tv.tscn")
 const CAMERA := preload("res://presentation/camera/game_camera.tscn")
+const PLAYER := preload("res://presentation/player/player.tscn")
+const STAND_OFFSET := 0.6  # de pie, delante del asiento hacia la tele
+const TRANSITION := 0.5
 const VIEWS: Array[StringName] = [&"game", &"sofa", &"window", &"door", &"corner"]
 
 var mixer: LightMixer
@@ -14,9 +17,16 @@ var settings: GraphicsSettings
 
 var _room: Node3D
 var _film_grain: CanvasLayer
+var _camera: Camera3D
+var _player: Player
+var _ui: Node
+var _flashlight_on := true
 
 
 func _ready() -> void:
+	# Interpolación física (project.godot) solo para el jugador, que anda en _physics_process; el resto de la
+	# escena se mueve en _process y con ella daría tirones.
+	physics_interpolation_mode = PHYSICS_INTERPOLATION_MODE_OFF
 	var flat := FLAT.instantiate()
 	flat.mirrored = _dev("TLR_MIRROR") == "1"
 	add_child(flat)
@@ -28,6 +38,11 @@ func _ready() -> void:
 	var camera := CAMERA.instantiate()
 	add_child(camera)
 	camera.setup(room.get_anchor(&"SeatAnchor"), tv.get_screen_node(), tv.get_screen_size(), tv.get_input())
+	_camera = camera
+	_player = PLAYER.instantiate()
+	add_child(_player)
+	_player.setup(flat.get_layout(), flat.mirrored)
+	_player.sit_requested.connect(_sit_down)
 
 	var environment: Environment = room.get_environment().environment
 	mixer = LightMixer.new(room.get_lights(), tv.get_screen_light(), camera.get_flashlight(), environment, room.get_ambient())
@@ -56,10 +71,20 @@ func _ready() -> void:
 	# El juego arranca en el menú de la tele; las capturas y el benchmark entran directamente a jugar.
 	var ui: Node = tv.get_subviewport().get_child(0)
 	var skip_menu := _dev("TLR_SKIP_MENU") == "1" or _dev("TLR_BENCHMARK") == "1" or _dev("TLR_VIEW") not in ["", "game"]
+	_ui = ui
 	if skip_menu:
 		ui.start_playing()
 	else:
 		ui.start_in_menu()
+	# TLR_SPAWN=<zona>: de pie en el centro de esa zona (capturas del piso).
+	var spawn := StringName(_dev("TLR_SPAWN"))
+	if spawn != &"":
+		var zone: ZoneDef = flat.get_layout().find_zone(spawn)
+		if zone == null:
+			push_warning("TLR_SPAWN: zona desconocida %s" % spawn)
+		else:
+			var c := zone.rect.get_center()
+			_stand(Transform3D(Basis.IDENTITY, Vector3(-c.x if flat.mirrored else c.x, 0.0, c.y)))
 
 	var view := _dev("TLR_VIEW")
 	if view != "" and view != "game":
@@ -89,6 +114,51 @@ func _apply_user_settings() -> void:
 	settings.user_scale = s.render_scale
 	settings.max_rows = s.resolution.y
 	_film_grain.visible = s.film_grain
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if not (event is InputEventKey and event.pressed and not event.echo):
+		return
+	# Q, solo en la build de pruebas: en la normal, levantarse llega con el repartidor (specs/hito4a.md D7, P2).
+	if (event as InputEventKey).physical_keycode == KEY_Q and OS.is_debug_build() and not _player.active and _ui.is_idle():
+		var seat: Transform3D = _room.get_anchor(&"SeatAnchor").global_transform
+		_stand(Transform3D(seat.basis, Vector3(seat.origin.x, 0.0, seat.origin.z) - seat.basis.z * STAND_OFFSET))
+		get_viewport().set_input_as_handled()
+	elif event.is_action_pressed("flashlight") and _player.active:
+		_flashlight_on = not _flashlight_on
+		mixer.set_flashlight_on(_flashlight_on)
+
+
+func _stand(t: Transform3D) -> void:
+	Game.set_holding(false)
+	_player.stand_at(t)
+	_camera.get_flashlight().reparent(_player.camera, false)
+	_transition(_camera, _player.camera)
+
+
+## Clic en el sofá o Esc de pie: se sienta; con Esc, además, la pausa de la tele (no hay pausa propia de pie).
+func _sit_down() -> void:
+	var paused := Input.is_action_pressed("ui_cancel")
+	_player.sit()
+	_player.camera.get_node("Flashlight").reparent(_camera, false)
+	_transition(_player.camera, _camera)
+	if paused:
+		_ui.open_pause()
+
+
+# La cámara viaja de una pose a la otra en TRANSITION segundos; mientras, el jugador no se mueve.
+func _transition(from: Camera3D, to: Camera3D) -> void:
+	var travel := Camera3D.new()
+	add_child(travel)
+	travel.global_transform = from.global_transform
+	travel.fov = from.fov
+	travel.make_current()
+	var tween := travel.create_tween().set_parallel().set_trans(Tween.TRANS_SINE)
+	tween.tween_property(travel, "global_transform", to.global_transform, TRANSITION)
+	tween.tween_property(travel, "fov", to.fov, TRANSITION)
+	tween.chain().tween_callback(func() -> void:
+		to.make_current()
+		travel.queue_free())
 
 
 func _add_film_grain() -> void:

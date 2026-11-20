@@ -404,7 +404,7 @@ def build_final():
     floor_colliders()
 
 
-SKIP_COLLIDE = ("Wall", "Floor", "Ceiling", "Skirt", "Win", "Door", "Blind", "Jamb", "Lintel", "Sill")
+SKIP_COLLIDE = ("Wall", "Floor", "Ceiling", "Skirt", "Win", "Door", "Blind", "Jamb", "Lintel", "Sill", "Wainscot")
 
 
 def floor_colliders():
@@ -419,6 +419,8 @@ def floor_colliders():
             continue
         x0, x1 = min(p.x for p in pts), max(p.x for p in pts)
         y0, y1 = min(p.y for p in pts), max(p.y for p in pts)
+        if (x1 - x0) * (y1 - y0) > 4.0:  # rodea la habitación (zócalo, alfombra grande): su caja la llenaría
+            continue
         name = ("SeatSofa" if o.name.startswith("sofa_03") else "Solid_" + o.name.replace(".", "_")) + "-colonly"
         box(name, (x1 - x0, y1 - y0, hi - lo), ((x0 + x1) / 2, (y0 + y1) / 2, (lo + hi) / 2))
 

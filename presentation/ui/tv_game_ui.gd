@@ -278,6 +278,12 @@ func is_paused() -> bool:
 	return _pause.visible
 
 
+## Jugando, sin menú, pausa, tienda, carta ni pantalla de Carga: se puede levantar (specs/hito4a.md D7).
+func is_idle() -> bool:
+	return Game.running and not (_pause.visible or _carga.visible or _menu.visible or _static.visible or _card_open
+			or _tree.visible)
+
+
 func _open_shop() -> void:
 	Game.set_holding(false)
 	_tree.show()

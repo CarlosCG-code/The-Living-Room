@@ -16,6 +16,10 @@ const COMMON_RESOLUTIONS: Array[Vector2i] = [Vector2i(1280, 720), Vector2i(1366,
 		Vector2i(1920, 1080), Vector2i(2560, 1440), Vector2i(3840, 2160)]
 const BRIGHTNESS_MIN := 0.5
 const BRIGHTNESS_MAX := 1.5
+## Sensibilidad del ratón de pie, en rad por píxel: 10 pasos (specs/hito4a.md D10).
+const SENSITIVITY_MIN := 0.0006
+const SENSITIVITY_STEP := 0.0002
+const SENSITIVITY_MAX := 0.0024
 
 var quality: StringName = &"medium"
 var fullscreen := false
@@ -34,6 +38,7 @@ var volume_tv := 1.0
 var volume_room := 1.0
 ## Intensidad del filtro CRT/VHS de la tele, 0–1 (0 = imagen limpia).
 var crt := 1.0
+var mouse_sensitivity := 0.0012
 
 
 ## Lee el archivo; si falta o es ilegible, devuelve los valores por defecto. Corrige valores fuera de rango.
@@ -60,6 +65,8 @@ static func load_from(path: String) -> UserSettings:
 	s.volume_tv = clampf(_num(cfg.get_value(SECTION, "volume_tv", s.volume_tv), s.volume_tv), 0.0, 1.0)
 	s.volume_room = clampf(_num(cfg.get_value(SECTION, "volume_room", s.volume_room), s.volume_room), 0.0, 1.0)
 	s.crt = clampf(_num(cfg.get_value(SECTION, "crt", s.crt), s.crt), 0.0, 1.0)
+	s.mouse_sensitivity = clampf(_num(cfg.get_value(SECTION, "mouse_sensitivity", s.mouse_sensitivity), s.mouse_sensitivity),
+			SENSITIVITY_MIN, SENSITIVITY_MAX)
 	return s
 
 
@@ -78,7 +85,13 @@ func save_to(path: String) -> bool:
 	cfg.set_value(SECTION, "volume_tv", volume_tv)
 	cfg.set_value(SECTION, "volume_room", volume_room)
 	cfg.set_value(SECTION, "crt", crt)
+	cfg.set_value(SECTION, "mouse_sensitivity", mouse_sensitivity)
 	return cfg.save(path) == OK
+
+
+## Sensibilidad como paso de 1 a 10, para el menú.
+func sensitivity_level() -> int:
+	return roundi((mouse_sensitivity - SENSITIVITY_MIN) / SENSITIVITY_STEP) + 1
 
 
 ## Siguiente calidad en la lista (vuelve a la primera tras la última).

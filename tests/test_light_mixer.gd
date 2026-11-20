@@ -67,3 +67,13 @@ func test_soft_shadows_off_and_back() -> void:
 	assert_eq(lamp.light_size, 0.0, "en bajo, sombras duras: sin ruido")
 	mixer.set_soft_shadows(true)
 	assert_almost_eq(lamp.light_size, 0.3, 0.0001)
+
+
+func test_flashlight_only_dark_and_switched_on() -> void:
+	mixer.set_state(&"dark")
+	mixer.set_flashlight_on(false)
+	assert_false(flashlight.visible, "apagada con F")
+	mixer.set_flashlight_on(true)
+	assert_true(flashlight.visible)
+	mixer.set_state(&"normal")
+	assert_false(flashlight.visible, "con luz no se ve aunque esté encendida")

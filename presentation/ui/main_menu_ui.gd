@@ -19,9 +19,10 @@ const PAGES := {
 	"UI_PAGE_DISPLAY": ["fullscreen", "resolution", "vsync", "max_fps", "brightness"],
 	"UI_PAGE_GRAPHICS": ["quality", "render_scale", "film_grain", "crt"],
 	"UI_PAGE_AUDIO": ["volume", "volume_tv", "volume_room"],
+	"UI_PAGE_CONTROLS": ["mouse_sensitivity"],
 }
 
-const REPEATABLE: Array[String] = ["brightness", "volume", "volume_tv", "volume_room"]
+const REPEATABLE: Array[String] = ["brightness", "volume", "volume_tv", "volume_room", "mouse_sensitivity"]
 
 var _main: VBoxContainer
 var _options: VBoxContainer  # lista de apartados
@@ -178,6 +179,11 @@ func _change(key: String, step: int, wrap := false) -> void:
 			s.film_grain = not s.film_grain
 		"volume", "volume_tv", "volume_room":
 			s.set(key, _step(s.get(key), step, 0.0, 1.0, wrap))
+		"mouse_sensitivity":
+			var next := s.mouse_sensitivity + step * UserSettings.SENSITIVITY_STEP
+			if wrap and next > UserSettings.SENSITIVITY_MAX + 0.00001:
+				next = UserSettings.SENSITIVITY_MIN
+			s.mouse_sensitivity = clampf(next, UserSettings.SENSITIVITY_MIN, UserSettings.SENSITIVITY_MAX)
 		"crt":
 			var i := CRT_LEVELS.find(_nearest_crt(s.crt))
 			s.crt = CRT_LEVELS[posmod(i + step, CRT_LEVELS.size())]
@@ -215,6 +221,7 @@ func _refresh() -> void:
 	(_rows["volume_room"] as Button).text = tr("UI_VOLUME_ROOM") % percent.call(s.volume_room)
 	var crt_name: String = ["UI_CRT_OFF", "UI_CRT_SOFT", "UI_CRT_FULL"][CRT_LEVELS.find(_nearest_crt(s.crt))]
 	(_rows["crt"] as Button).text = tr("UI_CRT") % tr(crt_name)
+	(_rows["mouse_sensitivity"] as Button).text = tr("UI_SENSITIVITY") % s.sensitivity_level()
 
 
 func _nearest_crt(v: float) -> float:
