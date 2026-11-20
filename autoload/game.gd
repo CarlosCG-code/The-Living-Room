@@ -12,6 +12,7 @@ var running := false
 var _saves := SaveSystem.new()
 var _holding := false
 var _since_save := 0.0
+var _window_applied := []  # [pantalla completa, resolución] aplicados por última vez
 # TLR_NO_SAVE=1 (tests y verify.sh): no se toca la partida real. Va en una variable de entorno porque GUT rechaza argumentos que no conoce.
 var _no_save := OS.get_environment("TLR_NO_SAVE") == "1"
 
@@ -29,13 +30,44 @@ func _ready() -> void:
 	apply_settings()
 
 
-## Aplica lo global (pantalla, volumen) y avisa a las escenas (calidad, filtro de la tele).
+## Aplica lo global (pantalla, fps, volumen) y avisa a las escenas (calidad, brillo, filtro de la tele).
 func apply_settings() -> void:
-	var mode := DisplayServer.WINDOW_MODE_FULLSCREEN if settings.fullscreen else DisplayServer.WINDOW_MODE_WINDOWED
-	if DisplayServer.get_name() != "headless" and DisplayServer.window_get_mode() != mode:
-		DisplayServer.window_set_mode(mode)
+	if DisplayServer.get_name() != "headless":
+		_apply_window()
+		var vsync := DisplayServer.VSYNC_ENABLED if settings.vsync else DisplayServer.VSYNC_DISABLED
+		if DisplayServer.window_get_vsync_mode() != vsync:  # cambiarlo rehace la cadena de imágenes: un tirón
+			DisplayServer.window_set_vsync_mode(vsync)
+	Engine.max_fps = settings.max_fps
 	AudioServer.set_bus_volume_db(0, linear_to_db(settings.volume))
+	AudioServer.set_bus_volume_db(AudioServer.get_bus_index(&"TV"), linear_to_db(settings.volume_tv))
+	AudioServer.set_bus_volume_db(AudioServer.get_bus_index(&"Room"), linear_to_db(settings.volume_room))
 	EventBus.settings_changed.emit()
+
+
+# En ventana, la resolución es el tamaño de la ventana (centrada; «la de la pantalla» = maximizada); en
+# pantalla completa la ventana ocupa la pantalla y la resolución solo limita el 3D (main.gd). Solo se toca
+# si cambió el modo o la resolución: así subir el volumen no deshace la ventana que el jugador arrastró.
+func _apply_window() -> void:
+	var wanted := [settings.fullscreen, settings.resolution]
+	if wanted == _window_applied:
+		return
+	_window_applied = wanted
+	if settings.fullscreen:
+		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
+		return
+	if settings.resolution == Vector2i.ZERO:
+		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_MAXIMIZED)
+		return
+	DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
+	var screen := DisplayServer.screen_get_usable_rect(DisplayServer.window_get_current_screen())
+	# Tamaño y posición son del área de dibujo; el marco y la barra de título van aparte y deben caber.
+	var border := DisplayServer.window_get_size_with_decorations() - DisplayServer.window_get_size()
+	var room := Vector2(screen.size - border)
+	var fit := minf(1.0, minf(room.x / settings.resolution.x, room.y / settings.resolution.y))
+	var size := Vector2i(Vector2(settings.resolution) * fit)  # si no cabe, se encoge sin deformarse
+	DisplayServer.window_set_size(size)
+	var corner := screen.position + (screen.size - size - border) / 2
+	DisplayServer.window_set_position(corner + Vector2i(border.x / 2, border.y - border.x / 2))
 
 
 func save_settings() -> void:

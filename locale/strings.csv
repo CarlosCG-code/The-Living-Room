@@ -49,14 +49,30 @@ QUALITY_LOW,baja
 QUALITY_MEDIUM,media
 QUALITY_HIGH,alta
 QUALITY_ULTRA,ultra
-UI_FULLSCREEN,Pantalla: %s
-UI_VOLUME,Volumen: %d %%
+UI_FULLSCREEN,Modo: %s
+UI_VOLUME,General: %d %%
 UI_CRT,Filtro: %s
 UI_CRT_OFF,no
 UI_CRT_SOFT,suave
 UI_CRT_FULL,fuerte
-UI_SCREEN_FULL,completa
+UI_SCREEN_FULL,pantalla completa
 UI_SCREEN_WINDOW,ventana
+UI_PAGE_DISPLAY,Pantalla
+UI_PAGE_GRAPHICS,Gráficos
+UI_PAGE_AUDIO,Sonido
+UI_RESOLUTION,Resolución: %s
+UI_NATIVE,la de la pantalla
+UI_VSYNC,VSync: %s
+UI_MAX_FPS,Límite de FPS: %s
+UI_UNLIMITED,sin límite
+UI_BRIGHTNESS,Brillo: %d %%
+UI_RENDER_SCALE,Escala 3D: %s
+UI_AUTO,auto
+UI_FILM_GRAIN,Grano y viñeta: %s
+UI_VOLUME_TV,Tele: %d %%
+UI_VOLUME_ROOM,Casa: %d %%
+UI_ON,sí
+UI_OFF,no
 UI_PAUSED,Pausa
 UI_RESUME,Reanudar
 UI_MAIN_MENU,Menú principal

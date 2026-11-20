@@ -74,9 +74,10 @@ func test_low_then_ultra_is_full_ultra() -> void:
 	assert_eq(settings.current["shadow_filter"], RenderingServer.SHADOW_QUALITY_SOFT_HIGH)
 
 
-func test_set_gi_only_touches_gi() -> void:
+func test_override_only_touches_its_key_and_survives_reapply() -> void:
+	settings.overrides = {"gi": false}
 	settings.apply_preset(&"high")
-	settings.set_gi(false)
+	settings.apply_preset(&"high")
 	assert_false(gi.visible)
 	assert_true(env.volumetric_fog_enabled)
 	assert_almost_eq(env.ambient_light_energy, 1.0, 0.001)
@@ -88,3 +89,18 @@ func test_render_scale_caps_internal_height() -> void:
 	assert_almost_eq(GraphicsSettings.render_scale(0.85, 1080, 1080), 0.85, 0.0001, "manda la escala del preset si es menor")
 	assert_almost_eq(GraphicsSettings.render_scale(1.0, 720, 0), 1.0, 0.0001, "sin tamaño de ventana, sin cambios")
 	assert_almost_eq(GraphicsSettings.render_scale(1.0, 100, 4320), 0.25, 0.0001, "nunca por debajo de 0,25")
+
+
+func test_final_scale_user_choices() -> void:
+	var high: Dictionary = GraphicsSettings.PRESETS[&"high"]
+	assert_almost_eq(GraphicsSettings.final_scale(high, 0.0, 0, 2160), 1080.0 / 2160.0, 0.0001, "auto: manda el preset")
+	assert_almost_eq(GraphicsSettings.final_scale(high, 1.0, 0, 2160), 1.0, 0.0001, "escala elegida: sin el tope del preset")
+	assert_almost_eq(GraphicsSettings.final_scale(high, 1.0, 1440, 2160), 1440.0 / 2160.0, 0.0001, "la resolución elegida limita")
+	assert_almost_eq(GraphicsSettings.final_scale(high, 0.0, 720, 1080), 720.0 / 1080.0, 0.0001)
+
+
+func test_brightness_survives_preset_change() -> void:
+	settings.brightness = 1.3
+	settings.apply_preset(&"low")
+	settings.apply_preset(&"ultra")
+	assert_almost_eq(env.tonemap_exposure, 1.3, 0.0001)

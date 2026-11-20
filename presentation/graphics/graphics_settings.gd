@@ -10,33 +10,40 @@ const PRESETS := {
 		"shadow_atlas": 1024, "shadow_filter": RenderingServer.SHADOW_QUALITY_HARD, "flashlight_shadow": false, "soft_shadows": false,
 		"ssao": false, "ssao_quality": RenderingServer.ENV_SSAO_QUALITY_LOW,
 		"ssil": false, "ssil_quality": RenderingServer.ENV_SSIL_QUALITY_LOW,
-		"probe": true, "taa": false, "fxaa": true, "scale": 0.67, "max_height": 720, "glow": false,
+		"probe": true, "taa": false, "fxaa": true, "scale": 0.67, "max_height": 720, "glow": false, "half": true,
 	},
 	&"medium": {
 		"gi": false, "gi_quality": RenderingServer.VOXEL_GI_QUALITY_LOW, "fog": false,
 		"shadow_atlas": 2048, "shadow_filter": RenderingServer.SHADOW_QUALITY_SOFT_LOW, "flashlight_shadow": true, "soft_shadows": true,
 		"ssao": true, "ssao_quality": RenderingServer.ENV_SSAO_QUALITY_LOW,
 		"ssil": false, "ssil_quality": RenderingServer.ENV_SSIL_QUALITY_LOW,
-		"probe": true, "taa": true, "fxaa": false, "scale": 0.85, "max_height": 900, "glow": true,
+		"probe": true, "taa": true, "fxaa": false, "scale": 0.85, "max_height": 900, "glow": true, "half": true,
 	},
 	&"high": {
 		"gi": true, "gi_quality": RenderingServer.VOXEL_GI_QUALITY_LOW, "fog": true,
 		"shadow_atlas": 4096, "shadow_filter": RenderingServer.SHADOW_QUALITY_SOFT_MEDIUM, "flashlight_shadow": true, "soft_shadows": true,
 		"ssao": true, "ssao_quality": RenderingServer.ENV_SSAO_QUALITY_MEDIUM,
 		"ssil": true, "ssil_quality": RenderingServer.ENV_SSIL_QUALITY_MEDIUM,
-		"probe": true, "taa": true, "fxaa": false, "scale": 1.0, "max_height": 1080, "glow": true,
+		"probe": true, "taa": true, "fxaa": false, "scale": 1.0, "max_height": 1080, "glow": true, "half": true,
 	},
 	&"ultra": {
 		"gi": true, "gi_quality": RenderingServer.VOXEL_GI_QUALITY_HIGH, "fog": true,
 		"shadow_atlas": 8192, "shadow_filter": RenderingServer.SHADOW_QUALITY_SOFT_HIGH, "flashlight_shadow": true, "soft_shadows": true,
 		"ssao": true, "ssao_quality": RenderingServer.ENV_SSAO_QUALITY_HIGH,
 		"ssil": true, "ssil_quality": RenderingServer.ENV_SSIL_QUALITY_HIGH,
-		"probe": true, "taa": true, "fxaa": false, "scale": 1.0, "max_height": 1440, "glow": true,
+		"probe": true, "taa": true, "fxaa": false, "scale": 1.0, "max_height": 1440, "glow": true, "half": false,
 	},
 }
 const AMBIENT_GI_SCALE := 0.4  # con iluminación global, la luz ambiente base se baja (D9)
 
 var current: Dictionary = {}
+## Claves del preset forzadas (p. ej. TLR_OFF en depuración); sobreviven a cada apply_preset.
+var overrides: Dictionary = {}
+## Del jugador (UserSettings): multiplicador de exposición, escala 3D (0 = la del preset) y filas a las
+## que se dibuja el 3D en pantalla completa (0 = las de la pantalla).
+var brightness := 1.0
+var user_scale := 0.0
+var max_rows := 0
 
 var _viewport: Viewport
 var _environment: Environment
@@ -69,18 +76,17 @@ static func render_scale(scale: float, max_height: float, viewport_height: float
 func apply_preset(preset: StringName) -> void:
 	current = (PRESETS[preset] as Dictionary).duplicate()
 	current["preset"] = preset
-	current["brightness"] = 1.0
+	current.merge(overrides, true)
 	_apply()
 
 
-func set_gi(enabled: bool) -> void:
-	current["gi"] = enabled
-	_apply()
-
-
-func set_brightness(v: float) -> void:
-	current["brightness"] = v
-	_apply()
+## Escala 3D final: la del preset, limitada por sus filas máximas; si el jugador eligió una escala, esa,
+## limitada solo por la resolución que eligió.
+static func final_scale(preset: Dictionary, user_scale: float, max_rows: int, viewport_height: float) -> float:
+	var rows: float = float(max_rows) if max_rows > 0 else INF
+	if user_scale > 0.0:
+		return render_scale(user_scale, rows, viewport_height)
+	return render_scale(preset["scale"], minf(preset["max_height"], rows), viewport_height)
 
 
 func _apply() -> void:
@@ -98,9 +104,13 @@ func _apply() -> void:
 		_environment.ssil_enabled = current["ssil"]
 		# Halo de la pantalla sobre el marco y la pared (niveles en living_room.tscn); barato, fuera en bajo.
 		_environment.glow_enabled = current["glow"]
-		_environment.tonemap_exposure = _base_exposure * float(current["brightness"])
-	RenderingServer.environment_set_ssao_quality(current["ssao_quality"], current["ssao_quality"] == RenderingServer.ENV_SSAO_QUALITY_LOW, 0.5, 2, 50.0, 300.0)
-	RenderingServer.environment_set_ssil_quality(current["ssil_quality"], current["ssil_quality"] == RenderingServer.ENV_SSIL_QUALITY_LOW, 0.5, 4, 50.0, 300.0)
+		_environment.tonemap_exposure = _base_exposure * brightness
+	# «half»: SSAO, SSIL y la GI a media resolución (como Godot por defecto); con TAA casi no se nota y es de lo
+	# que más GPU ahorra. Solo el ultra los calcula a resolución completa.
+	var half: bool = current["half"]
+	RenderingServer.environment_set_ssao_quality(current["ssao_quality"], half, 0.5, 2, 50.0, 300.0)
+	RenderingServer.environment_set_ssil_quality(current["ssil_quality"], half, 0.5, 4, 50.0, 300.0)
+	RenderingServer.gi_set_use_half_resolution(half)
 	RenderingServer.positional_soft_shadow_filter_set_quality(current["shadow_filter"])
 	if _flashlight:
 		_flashlight.shadow_enabled = current["flashlight_shadow"]
@@ -110,6 +120,6 @@ func _apply() -> void:
 		_viewport.positional_shadow_atlas_size = current["shadow_atlas"]
 		_viewport.use_taa = current["taa"]
 		_viewport.screen_space_aa = Viewport.SCREEN_SPACE_AA_FXAA if current["fxaa"] else Viewport.SCREEN_SPACE_AA_DISABLED
-		var scale := render_scale(current["scale"], current["max_height"], _viewport.get_visible_rect().size.y)
+		var scale := final_scale(current, user_scale, max_rows, _viewport.get_visible_rect().size.y)
 		_viewport.scaling_3d_mode = Viewport.SCALING_3D_MODE_FSR if scale < 1.0 else Viewport.SCALING_3D_MODE_BILINEAR
 		_viewport.scaling_3d_scale = scale

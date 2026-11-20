@@ -13,6 +13,7 @@ var mixer: LightMixer
 var settings: GraphicsSettings
 
 var _room: Node3D
+var _film_grain: CanvasLayer
 
 
 func _ready() -> void:
@@ -31,15 +32,23 @@ func _ready() -> void:
 	mixer = LightMixer.new(room.get_lights(), tv.get_screen_light(), camera.get_flashlight(), environment, room.get_ambient())
 	settings = GraphicsSettings.new(get_viewport(), environment, room.get_voxel_gi(), room.get_reflection_probe(),
 			camera.get_flashlight(), mixer)
-	var preset := _dev("TLR_PRESET")
-	settings.apply_preset(StringName(preset) if preset in ["low", "medium", "high", "ultra"] else Game.settings.quality)
-	EventBus.settings_changed.connect(func() -> void: settings.apply_preset(Game.settings.quality))
+	var dev_preset := StringName(_dev("TLR_PRESET"))
+	if _dev("TLR_GI") == "0":
+		settings.overrides["gi"] = false
+	# TLR_OFF=ssil,fog,…: apaga esas claves (solo las de sí/no) del preset para medir cuánto cuesta cada efecto.
+	for key in _dev("TLR_OFF").split(",", false):
+		if GraphicsSettings.PRESETS[&"high"].get(key) is bool:
+			settings.overrides[key] = false
+	_add_film_grain()
+	_apply_user_settings()
+	var preset_now := func() -> StringName: return dev_preset if dev_preset in GraphicsSettings.PRESETS else Game.settings.quality
+	settings.apply_preset(preset_now.call())
+	EventBus.settings_changed.connect(func() -> void:
+		_apply_user_settings()
+		settings.apply_preset(preset_now.call()))
 	# Al pasar a pantalla completa (o cambiar la ventana) se recalcula la resolución interna del 3D.
 	get_viewport().size_changed.connect(func() -> void: settings.apply_preset(settings.current["preset"]))
-	if _dev("TLR_GI") == "0":
-		settings.set_gi(false)
 	tv.screen_state_changed.connect(mixer.set_tv_state)
-	_add_film_grain()
 	# El menú tiene la misma luz que la partida (usuario, 2026-11-19).
 	if _dev("TLR_DARK") == "1":
 		set_lighting_state(&"dark")
@@ -58,18 +67,32 @@ func _ready() -> void:
 			capture.make_current()
 	if _dev("TLR_BENCHMARK") == "1":
 		var bench := Benchmark.new()
-		bench.label = "preset=%s mirror=%s dark=%s gi=%s" % [settings.current["preset"], room.mirrored,
-				_dev("TLR_DARK") == "1", settings.current["gi"]]
+		bench.label = "preset=%s mirror=%s dark=%s gi=%s off=%s" % [settings.current["preset"], room.mirrored,
+				_dev("TLR_DARK") == "1", settings.current["gi"], _dev("TLR_OFF")]
 		bench.cameras.append(camera)
 		for v in VIEWS.slice(1):
 			bench.cameras.append(room.get_capture_camera(v))
 		add_child(bench)
 	tree_exiting.connect(func() -> void: Game.running = false)
 	print("BOOT_OK")
+	# TLR_SHOT=ruta.png: guarda lo que se ve a los 6 s (la GI y el TAA ya asentados) y cierra.
+	if _dev("TLR_SHOT") != "":
+		await get_tree().create_timer(6.0).timeout
+		get_viewport().get_texture().get_image().save_png(_dev("TLR_SHOT"))
+		get_tree().quit()
+
+
+func _apply_user_settings() -> void:
+	var s := Game.settings
+	settings.brightness = s.brightness
+	settings.user_scale = s.render_scale
+	settings.max_rows = s.resolution.y if s.fullscreen else 0
+	_film_grain.visible = s.film_grain
 
 
 func _add_film_grain() -> void:
 	var layer := CanvasLayer.new()
+	_film_grain = layer
 	layer.name = "FilmGrain"
 	var rect := ColorRect.new()
 	rect.set_anchors_preset(Control.PRESET_FULL_RECT)

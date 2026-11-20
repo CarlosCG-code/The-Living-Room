@@ -29,10 +29,52 @@ func test_a_button_has_focus_on_open() -> void:
 
 func test_options_take_and_give_back_focus() -> void:
 	menu.show_options()
+	assert_not_null(_focus())
+	assert_true(_focus().is_visible_in_tree())
+	menu.show_page("UI_PAGE_GRAPHICS")
 	assert_eq(_focus(), menu.get_option_button("quality"))
+	menu.show_options()
+	assert_eq((_focus() as Button).text, tr("UI_PAGE_GRAPHICS"), "al volver, el foco queda en el apartado")
 	menu.show_main()
 	assert_not_null(_focus())
 	assert_true(_focus().is_visible_in_tree())
+
+
+func test_every_page_focuses_a_visible_row() -> void:
+	for page: String in MainMenuUI.PAGES:
+		menu.show_page(page)
+		assert_not_null(_focus(), page)
+		assert_true(_focus().is_visible_in_tree(), page)
+		await wait_process_frames(1)
+		var column := _focus().get_parent() as Control
+		assert_lte(column.get_global_rect().end.y, 240.0, page + ": cabe en la tele")
+		for row: Control in column.get_children():
+			assert_lte(row.get_global_rect().size.x, 320.0, page + ": " + (row as Button).text)
+
+
+func test_cancel_goes_back_one_level() -> void:
+	menu.show_page("UI_PAGE_AUDIO")
+	var esc := InputEventAction.new()
+	esc.action = &"ui_cancel"
+	esc.pressed = true
+	menu._unhandled_input(esc)
+	assert_eq((_focus() as Button).text, tr("UI_PAGE_AUDIO"), "de un apartado a la lista")
+	menu._unhandled_input(esc)
+	assert_eq(_focus(), menu._play, "de la lista al menú")
+
+
+func test_new_rows_cycle() -> void:
+	menu.get_option_button("max_fps").pressed.emit()
+	assert_eq(Game.settings.max_fps, 30)
+	menu.get_option_button("render_scale").pressed.emit()
+	assert_almost_eq(Game.settings.render_scale, 0.5, 0.0001)
+	Game.settings.brightness = 1.5
+	menu.get_option_button("brightness").pressed.emit()
+	assert_almost_eq(Game.settings.brightness, 0.5, 0.0001, "del máximo da la vuelta al mínimo")
+	menu.get_option_button("vsync").pressed.emit()
+	assert_false(Game.settings.vsync)
+	menu.get_option_button("volume_tv").pressed.emit()
+	assert_almost_eq(Game.settings.volume_tv, 0.0, 0.0001)
 
 
 func test_pressing_an_option_changes_the_setting() -> void:

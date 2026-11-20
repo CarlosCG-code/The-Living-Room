@@ -29,6 +29,66 @@ func test_round_trip() -> void:
 	assert_almost_eq(back.crt, 0.0, 0.0001)
 
 
+func test_round_trip_new_keys() -> void:
+	var s := UserSettings.new()
+	s.resolution = Vector2i(1600, 900)
+	s.vsync = false
+	s.max_fps = 60
+	s.brightness = 1.2
+	s.render_scale = 0.75
+	s.film_grain = false
+	s.volume_tv = 0.4
+	s.volume_room = 0.6
+	assert_true(s.save_to(PATH))
+	var back := UserSettings.load_from(PATH)
+	assert_eq(back.resolution, Vector2i(1600, 900))
+	assert_false(back.vsync)
+	assert_eq(back.max_fps, 60)
+	assert_almost_eq(back.brightness, 1.2, 0.0001)
+	assert_almost_eq(back.render_scale, 0.75, 0.0001)
+	assert_false(back.film_grain)
+	assert_almost_eq(back.volume_tv, 0.4, 0.0001)
+	assert_almost_eq(back.volume_room, 0.6, 0.0001)
+
+
+func test_old_file_without_new_keys_keeps_defaults() -> void:
+	var cfg := ConfigFile.new()
+	cfg.set_value("settings", "version", 1)
+	cfg.set_value("settings", "quality", "high")
+	cfg.save(PATH)
+	var s := UserSettings.load_from(PATH)
+	assert_eq(s.quality, &"high")
+	assert_eq(s.resolution, Vector2i.ZERO)
+	assert_true(s.vsync)
+	assert_eq(s.max_fps, 0)
+	assert_almost_eq(s.brightness, 1.0, 0.0001)
+	assert_true(s.film_grain)
+
+
+func test_bad_new_values_are_corrected() -> void:
+	var cfg := ConfigFile.new()
+	cfg.set_value("settings", "version", 1)
+	cfg.set_value("settings", "resolution", Vector2i(10, 10))
+	cfg.set_value("settings", "max_fps", 59)
+	cfg.set_value("settings", "brightness", 9.0)
+	cfg.set_value("settings", "render_scale", 0.3)
+	cfg.save(PATH)
+	var s := UserSettings.load_from(PATH)
+	assert_eq(s.resolution, Vector2i.ZERO)
+	assert_eq(s.max_fps, 0)
+	assert_almost_eq(s.brightness, 1.5, 0.0001)
+	assert_almost_eq(s.render_scale, 0.0, 0.0001)
+
+
+func test_resolution_options_fit_the_screen() -> void:
+	var opts := UserSettings.resolution_options(Vector2i(1920, 1080))
+	assert_eq(opts[0], Vector2i.ZERO, "primero, la de la pantalla")
+	assert_false(Vector2i(1920, 1080) in opts, "la de la pantalla no se repite")
+	assert_false(Vector2i(2560, 1440) in opts, "ninguna mayor que la pantalla")
+	assert_true(Vector2i(1280, 720) in opts)
+	assert_eq(UserSettings.cycle(opts, Vector2i(777, 777), 1), Vector2i.ZERO, "si no está, vuelve al principio")
+
+
 func test_bad_values_are_corrected() -> void:
 	var cfg := ConfigFile.new()
 	cfg.set_value("settings", "version", 1)

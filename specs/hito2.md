@@ -133,7 +133,7 @@ specs/hito2.md                              modificar (línea de estado y valore
 
 Archivos que genera Godot y que se versionan, como en los hitos anteriores: el `.uid` de cada script y el `.import` de cada modelo, textura e imagen.
 
-**Variables de desarrollo** (solo en la build de depuración; la exportada las ignora, como ya hace con `TLR_NO_SAVE`): `TLR_PRESET` (`low`, `medium`, `high`, `ultra`), `TLR_MIRROR=1`, `TLR_DARK=1`, `TLR_GI=0` (quita la iluminación global sin cambiar el resto del preset), `TLR_VIEW` (`game`, `sofa`, `window`, `door`, `corner`: activa esa cámara) y `TLR_BENCHMARK=1`. Se usan variables de entorno porque GUT rechaza argumentos que no conoce.
+**Variables de desarrollo** (solo en la build de depuración; la exportada las ignora, como ya hace con `TLR_NO_SAVE`): `TLR_PRESET` (`low`, `medium`, `high`, `ultra`), `TLR_MIRROR=1`, `TLR_DARK=1`, `TLR_GI=0` (quita la iluminación global sin cambiar el resto del preset), `TLR_OFF=ssil,fog,…` (apaga esas claves del preset para medir su coste), `TLR_VIEW` (`game`, `sofa`, `window`, `door`, `corner`: activa esa cámara) y `TLR_BENCHMARK=1`. Se usan variables de entorno porque GUT rechaza argumentos que no conoce.
 
 ## 5. Interfaces
 
@@ -175,7 +175,7 @@ Archivos que genera Godot y que se versionan, como en los hitos anteriores: el `
 
 **`GraphicsSettings`** (`RefCounted`)
 - `_init(viewport: Viewport, environment: Environment, voxel_gi: VoxelGI, probe: ReflectionProbe, flashlight: SpotLight3D, mixer: LightMixer)`. Sin `lights`: las luces solo las escribe `LightMixer`.
-- `apply_preset(name: StringName)` (`low`, `medium`, `high`, `ultra`), `set_gi(enabled: bool)` y `set_brightness(v: float)` (multiplicador de exposición; 1 hasta el hito 7).
+- `apply_preset(name: StringName)` (`low`, `medium`, `high`, `ultra`); `overrides` (claves del preset forzadas, p. ej. `TLR_GI=0` o `TLR_OFF`) y los ajustes del jugador `brightness` (multiplicador de exposición), `user_scale` (escala 3D, 0 = la del preset) y `max_rows` (filas del 3D en pantalla completa) sobreviven a cada `apply_preset` (2026-11-20).
 - `current: Dictionary`: los valores aplicados. Escribe propiedades de nodos y recursos (que los tests leen sin gráficos) y, para lo que solo existe en el servidor de render (calidad de VoxelGI, de SSAO, de SSIL y del filtro de sombras), llama a `RenderingServer` y lo guarda en `current`.
 
 **`Benchmark`** (`Node`, lo añade `main.gd` con `TLR_BENCHMARK=1`)
@@ -251,7 +251,7 @@ Archivos que genera Godot y que se versionan, como en los hitos anteriores: el `
 | `test_tv_screen_math.gd` | El centro del plano da el centro del viewport; las cuatro esquinas dan (0, 0), (960, 0), (0, 720) y (960, 720); un punto en el borde superior (+Y) da y = 0; fuera del plano, `is_inside` es falso; con otro `viewport_size` siguen cuadrando; `ray_plane` corta un plano conocido y da `null` si el rayo es paralelo |
 | `test_mirror_math.gd` | Reflejar dos veces devuelve el original; el determinante es +1; un punto en x pasa a -x; un nodo que mira a +X pasa a mirar a -X; con una rotación cualquiera la base sigue siendo ortonormal |
 | `test_light_mixer.gd` | Con luces creadas en el test: en `dark` solo quedan la luz de calle y la linterna; el factor multiplica la base; la pantalla se apaga con `off` y sube con `interference`; la luz ambiente cambia con el estado y con `ambient_gi_scale` |
-| `test_graphics_settings.gd` | Cada preset deja en el entorno, el viewport y las luces los valores de la tabla de D15 (o en `current` lo que solo existe en el servidor de render); aplicar el bajo y luego el ultra deja el ultra entero; `set_gi(false)` quita solo la iluminación global. Se actualiza con los valores finales de 2c |
+| `test_graphics_settings.gd` | Cada preset deja en el entorno, el viewport y las luces los valores de la tabla de D15 (o en `current` lo que solo existe en el servidor de render); aplicar el bajo y luego el ultra deja el ultra entero; una clave de `overrides` cambia solo esa clave y sobrevive a otro `apply_preset`; `final_scale` y el brillo del jugador. Se actualiza con los valores finales de 2c |
 | `test_factory_view.gd` | Cada hueco aparece al llegar a su umbral y el cable tiene corriente con al menos una unidad; tras reiniciar no queda ninguna máquina; cada generador del `.tres` tiene su grupo; las chispas salen del cable con corriente y pulsarlas avisa |
 | `test_upgrade_tree.gd` | Hay un nodo por mejora y generador; los estados (bloqueado, disponible, asequible, comprado) siguen a la economía; pulsar un nodo pide comprarlo |
 | `test_tv_input.gd` | Con un `SubViewport` y un botón en el árbol: pulsar dentro y soltar fuera hace `button_up` sin `pressed`; perder el foco suelta el botón; un clic dentro hace `pressed`; la rueda desplaza un `ScrollContainer` solo dentro de la pantalla (GoPeak no simula la rueda, así que esta comprobación del paso 4 la cubre el test) |

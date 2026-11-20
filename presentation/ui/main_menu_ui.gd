@@ -14,12 +14,20 @@ signal menu_requested
 const CRT_LEVELS: Array[float] = [0.0, 0.5, 1.0]
 const VOLUME_STEP := 0.1
 const DIM := Color("5a6480")
+## Apartados de Ajustes (clave de su título → filas). En la tele de 320 × 240 no caben todas a la vez.
+const PAGES := {
+	"UI_PAGE_DISPLAY": ["fullscreen", "resolution", "vsync", "max_fps", "brightness"],
+	"UI_PAGE_GRAPHICS": ["quality", "render_scale", "film_grain", "crt"],
+	"UI_PAGE_AUDIO": ["volume", "volume_tv", "volume_room"],
+}
 
 var _main: VBoxContainer
-var _options: VBoxContainer
+var _options: VBoxContainer  # lista de apartados
+var _pages := {}  # clave del apartado -> VBoxContainer
+var _page := ""  # apartado abierto ("" = ninguno)
 var _title: Label
 var _play: Button
-var _rows := {}  # "quality" | "fullscreen" | "volume" | "crt" -> Button
+var _rows := {}  # clave del ajuste -> Button
 var _glitch_left := 0.0
 ## Menú de pausa (se fija antes de añadirlo al árbol).
 var pause_menu := false
@@ -57,10 +65,16 @@ func _ready() -> void:
 
 	_options = _column()
 	_options.hide()
-	for key: String in ["quality", "fullscreen", "volume", "crt"]:
-		var b := _button(_options, "", _change.bind(key, 1))
-		b.gui_input.connect(_on_option_input.bind(key))
-		_rows[key] = b
+	for page: String in PAGES:
+		_button(_options, tr(page), show_page.bind(page))
+		var column := _column(84, 0)
+		column.hide()
+		_pages[page] = column
+		for key: String in PAGES[page]:
+			var b := _button(column, "", _change.bind(key, 1), 14)
+			b.gui_input.connect(_on_option_input.bind(key))
+			_rows[key] = b
+		_button(column, tr("UI_BACK"), show_options, 14)
 	_button(_options, tr("UI_BACK"), show_main)
 	# El menú principal y el de pausa son dos instancias vivas a la vez: las dos repintan con cualquier cambio.
 	EventBus.settings_changed.connect(_refresh)
@@ -81,7 +95,9 @@ func _process(delta: float) -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if not is_visible_in_tree() or not event.is_action_pressed("ui_cancel"):
 		return
-	if _options.visible:
+	if _page != "":
+		show_options()
+	elif _options.visible:
 		show_main()
 	elif pause_menu:
 		resume_requested.emit()
@@ -90,22 +106,39 @@ func _unhandled_input(event: InputEvent) -> void:
 	get_viewport().set_input_as_handled()
 
 
+## Lista de apartados. Al volver de uno, el foco queda en ese apartado.
 func show_options() -> void:
-	_main.hide()
+	var back_from := _page
+	_hide_all()
 	_options.show()
-	if pause_menu:
-		_title.text = tr("UI_SETTINGS")
-	(_rows["quality"] as Button).grab_focus()
+	_title.text = tr("UI_SETTINGS")
+	var i := PAGES.keys().find(back_from)
+	(_options.get_child(maxi(i, 0)) as Button).grab_focus()
+
+
+func show_page(page: String) -> void:
+	_hide_all()
+	_page = page
+	(_pages[page] as Control).show()
+	_title.text = tr(page)
+	(_rows[PAGES[page][0]] as Button).grab_focus()
 
 
 func show_main() -> void:
+	_hide_all()
+	_title.text = tr("UI_PAUSED") if pause_menu else tr("TITLE")
 	if not pause_menu:
 		_play.text = tr("UI_CONTINUE") if Game.has_progress() else tr("UI_PLAY")
-	else:
-		_title.text = tr("UI_PAUSED")
-	_options.hide()
 	_main.show()
 	_play.grab_focus()
+
+
+func _hide_all() -> void:
+	_page = ""
+	_main.hide()
+	_options.hide()
+	for c: Control in _pages.values():
+		c.hide()
 
 
 func get_option_button(key: String) -> Button:
@@ -125,10 +158,20 @@ func _change(key: String, step: int) -> void:
 			s.next_quality(step)
 		"fullscreen":
 			s.fullscreen = not s.fullscreen
-		"volume":
-			# Con clic da la vuelta: de 100 % pasa a 0 %.
-			var v := snappedf(s.volume + step * VOLUME_STEP, VOLUME_STEP)
-			s.volume = 0.0 if v > 1.0 + 0.001 else clampf(v, 0.0, 1.0)
+		"resolution":
+			s.resolution = UserSettings.cycle(UserSettings.resolution_options(_screen_size()), s.resolution, step)
+		"vsync":
+			s.vsync = not s.vsync
+		"max_fps":
+			s.max_fps = UserSettings.cycle(UserSettings.FPS_LIMITS, s.max_fps, step)
+		"brightness":
+			s.brightness = _step(s.brightness, step, UserSettings.BRIGHTNESS_MIN, UserSettings.BRIGHTNESS_MAX)
+		"render_scale":
+			s.render_scale = UserSettings.cycle(UserSettings.RENDER_SCALES, s.render_scale, step)
+		"film_grain":
+			s.film_grain = not s.film_grain
+		"volume", "volume_tv", "volume_room":
+			s.set(key, _step(s.get(key), step, 0.0, 1.0))
 		"crt":
 			var i := CRT_LEVELS.find(_nearest_crt(s.crt))
 			s.crt = CRT_LEVELS[posmod(i + step, CRT_LEVELS.size())]
@@ -137,11 +180,33 @@ func _change(key: String, step: int) -> void:
 	_refresh()
 
 
+# Un paso de 10 %; con clic (hacia arriba) da la vuelta: del máximo pasa al mínimo.
+static func _step(v: float, step: int, lo: float, hi: float) -> float:
+	var next := snappedf(v + step * VOLUME_STEP, VOLUME_STEP)
+	return lo if next > hi + 0.001 else clampf(next, lo, hi)
+
+
+func _screen_size() -> Vector2i:
+	return DisplayServer.screen_get_size(DisplayServer.window_get_current_screen())
+
+
 func _refresh() -> void:
 	var s := Game.settings
+	var yes_no := func(on: bool) -> String: return tr("UI_ON") if on else tr("UI_OFF")
+	var percent := func(v: float) -> int: return roundi(v * 100.0)
 	(_rows["quality"] as Button).text = tr("UI_QUALITY") % tr("QUALITY_" + String(s.quality).to_upper())
 	(_rows["fullscreen"] as Button).text = tr("UI_FULLSCREEN") % tr("UI_SCREEN_FULL" if s.fullscreen else "UI_SCREEN_WINDOW")
-	(_rows["volume"] as Button).text = tr("UI_VOLUME") % roundi(s.volume * 100.0)
+	var res := tr("UI_NATIVE") if s.resolution == Vector2i.ZERO else "%dx%d" %[s.resolution.x, s.resolution.y]
+	(_rows["resolution"] as Button).text = tr("UI_RESOLUTION") % res
+	(_rows["vsync"] as Button).text = tr("UI_VSYNC") % yes_no.call(s.vsync)
+	(_rows["max_fps"] as Button).text = tr("UI_MAX_FPS") % (tr("UI_UNLIMITED") if s.max_fps == 0 else str(s.max_fps))
+	(_rows["brightness"] as Button).text = tr("UI_BRIGHTNESS") % percent.call(s.brightness)
+	(_rows["render_scale"] as Button).text = tr("UI_RENDER_SCALE") % (tr("UI_AUTO") if s.render_scale == 0.0
+			else "%d %%" % percent.call(s.render_scale))
+	(_rows["film_grain"] as Button).text = tr("UI_FILM_GRAIN") % yes_no.call(s.film_grain)
+	(_rows["volume"] as Button).text = tr("UI_VOLUME") % percent.call(s.volume)
+	(_rows["volume_tv"] as Button).text = tr("UI_VOLUME_TV") % percent.call(s.volume_tv)
+	(_rows["volume_room"] as Button).text = tr("UI_VOLUME_ROOM") % percent.call(s.volume_room)
 	var crt_name: String = ["UI_CRT_OFF", "UI_CRT_SOFT", "UI_CRT_FULL"][CRT_LEVELS.find(_nearest_crt(s.crt))]
 	(_rows["crt"] as Button).text = tr("UI_CRT") % tr(crt_name)
 
@@ -154,23 +219,23 @@ func _nearest_crt(v: float) -> float:
 	return best
 
 
-func _column() -> VBoxContainer:
+func _column(y: float = 104, separation: int = 4) -> VBoxContainer:
 	var c := VBoxContainer.new()
-	c.add_theme_constant_override(&"separation", 4)
-	c.position = Vector2(0, 104)
+	c.add_theme_constant_override(&"separation", separation)
+	c.position = Vector2(0, y)
 	c.size = Vector2(320, 0)
 	add_child(c)
 	return c
 
 
-func _button(parent: Container, text: String, action: Callable) -> Button:
+func _button(parent: Container, text: String, action: Callable, font_size: int = 16) -> Button:
 	var b := Button.new()
 	b.text = text
 	b.focus_mode = FOCUS_ALL
 	# Texto sin caja: el filtro de la tele llenaba de colores los marcos finos. El foco se ve en dorado.
 	b.flat = true
 	b.add_theme_stylebox_override(&"focus", StyleBoxEmpty.new())
-	b.add_theme_font_size_override(&"font_size", 16)
+	b.add_theme_font_size_override(&"font_size", font_size)
 	b.add_theme_color_override(&"font_color", DIM)
 	b.size_flags_horizontal = SIZE_SHRINK_CENTER
 	b.pressed.connect(action)
