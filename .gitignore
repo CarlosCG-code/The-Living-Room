@@ -24,3 +24,4 @@ desktop.ini
 /art_source/living_room.blend
 /world/player_flat/voxel_gi_data*.res
 /reviews/lookdev/
+__pycache__/
