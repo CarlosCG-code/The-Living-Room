@@ -26,6 +26,13 @@ var _silence_left := 0.0
 var _screen_sounds: Array[AudioStreamPlayer3D] = []
 const SPEAKER_UNIT_SIZE := 4.0  # ~0 dB desde el sofá (a unos 4 m)
 const HUM_DB := -17.0
+## Oclusión de la tele por muros y puertas entre la cámara y la pantalla (usuario, 2026-11-20: se oía en toda la
+## casa). Por número de obstáculos: corte del paso bajo (Hz) y ganancia (dB) de los efectos 2 y 3 del bus TV.
+const OCCLUSION: Array[Vector2] = [Vector2(20000.0, 0.0), Vector2(1000.0, -9.0), Vector2(500.0, -16.0),
+		Vector2(300.0, -24.0)]
+const OCCLUSION_SPEED := 4.0  # 1/s: al cruzar una puerta el sonido se abre en un cuarto de segundo, no de golpe
+var _occlusion_lp: AudioEffectLowPassFilter
+var _occlusion_gain: AudioEffectAmplify
 
 @onready var _subviewport: SubViewport = $SubViewport
 @onready var _screen: MeshInstance3D = $Model/Screen
@@ -54,6 +61,9 @@ func _ready() -> void:
 	_input.setup(_subviewport, _screen, SCREEN_SIZE)
 	_hum = _loop_player("res://assets/audio/tv/tv_hum.wav", HUM_DB)
 	_drone = _loop_player("res://assets/audio/tv/drone.wav", -80.0)
+	var bus := AudioServer.get_bus_index(&"TV")
+	_occlusion_lp = AudioServer.get_bus_effect(bus, 2) as AudioEffectLowPassFilter
+	_occlusion_gain = AudioServer.get_bus_effect(bus, 3) as AudioEffectAmplify
 	EventBus.settings_changed.connect(_apply_settings)
 	_apply_settings()
 	_update_power()
@@ -61,6 +71,7 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	_ambience(delta)
+	_occlusion(delta)
 	# Un Node3D bajo un Control no hereda transformada: se coloca a mano en la pantalla (la tele se mueve tras _ready).
 	for i in range(_screen_sounds.size() - 1, -1, -1):
 		var p: Variant = _screen_sounds[i]
@@ -135,3 +146,34 @@ func _ambience(delta: float) -> void:
 		_silence_left = randf_range(2.0, 2.0 + 2.0 * f)
 	var target := -80.0 if (_silence_left > 0.0 or not power) else HUM_DB
 	_hum.volume_db = move_toward(_hum.volume_db, target, delta * 120.0)
+
+
+# Cuenta muros y puertas en la recta cámara → pantalla y apaga y amortigua el bus TV en consecuencia. Los muebles
+# (Solid_*, SeatSofa) no cuentan: un sofá no tapa el sonido de una habitación.
+func _occlusion(delta: float) -> void:
+	var cam := get_viewport().get_camera_3d()
+	if cam == null or _occlusion_lp == null or _occlusion_gain == null:
+		return
+	var target := _screen.global_position
+	var to_screen := target - cam.global_position
+	var dir := to_screen.normalized()
+	var end := target - dir * 0.35  # sin llegar a la propia tele
+	var q := PhysicsRayQueryParameters3D.create(cam.global_position, end)
+	var space := get_world_3d().direct_space_state
+	var hits := 0
+	while hits < OCCLUSION.size() - 1 and to_screen.length() > 0.5:
+		var hit := space.intersect_ray(q)
+		if hit.is_empty():
+			break
+		var c: Object = hit["collider"]
+		var name_ := String((c as Node).name) if c is Node else ""
+		if not (c is CharacterBody3D or name_.begins_with("Solid_") or name_.begins_with("SeatSofa")):
+			hits += 1
+		# Sigue desde dentro del obstáculo: un rayo que empieza dentro de una forma no la vuelve a tocar.
+		q.from = (hit["position"] as Vector3) + dir * 0.02
+		if (end - q.from).dot(dir) <= 0.0:
+			break
+	var goal := OCCLUSION[hits]
+	var k := 1.0 - exp(-OCCLUSION_SPEED * delta)
+	_occlusion_lp.cutoff_hz = exp(lerpf(log(_occlusion_lp.cutoff_hz), log(goal.x), k))
+	_occlusion_gain.volume_db = lerpf(_occlusion_gain.volume_db, goal.y, k)

@@ -84,7 +84,11 @@ CONNECTIONS = [
 FUSE_BOX_ZONE = "storage"
 PASSAGE_W = 1.4  # vano del recibidor
 
-LAMP = {"color": (1.0, 0.82, 0.64), "energy": 0.8, "base_dark": 0.0}  # más que los apliques del salón: aquí aún no hay GI que rebote
+LAMP = {"color": (1.0, 0.82, 0.64), "base_dark": 0.0}
+# Luz como en Visage (usuario, 2026-11-20): islas de luz tenue y el resto casi a oscuras; la luz de una zona
+# encendida se cuela por las puertas a las vecinas. Energía por zona; las que no salen aquí no tienen lámpara.
+LIT_ZONES = {"corridor_main_m": 0.3, "entrance_hall": 0.25, "kitchen": 0.2, "bedroom_main": 0.18,
+             "bathroom": 0.15, "corridor_service_e": 0.12}
 
 
 def zone(zid):
@@ -189,10 +193,10 @@ def write_tres(path):
     for zid, key, rect, floor in ZONES:
         x, z, w, d = godot_rect(zid)
         cx, cz = x + w / 2, z + d / 2
-        light = '{"pos": Vector3(%s, 2.3, %s), "color": Color(%s, %s, %s, 1), "energy": %s, "range": %s, "base_normal": %s, "base_dark": %s}' % (
-            _num(cx), _num(cz), *(_num(c) for c in LAMP["color"]), _num(LAMP["energy"]),
-            _num(max(w, d) * 0.75 + 1.0), _num(LAMP["energy"]), _num(LAMP["base_dark"]))
-        lights = "" if zid == "living_room" else light  # el salón ya tiene las suyas
+        energy = LIT_ZONES.get(zid, 0.0)  # el salón no está: ya tiene las suyas
+        lights = "" if energy == 0.0 else '{"pos": Vector3(%s, 2.3, %s), "color": Color(%s, %s, %s, 1), "energy": %s, "range": %s, "base_normal": %s, "base_dark": %s}' % (
+            _num(cx), _num(cz), *(_num(c) for c in LAMP["color"]), _num(energy),
+            _num(max(w, d) * 0.75 + 1.0), _num(energy), _num(LAMP["base_dark"]))
         lines += ['[sub_resource type="Resource" id="z_%s"]' % zid, 'script = ExtResource("zone_script")',
                   'id = &"%s"' % zid, 'name_key = "%s"' % key,
                   "rect = Rect2(%s, %s, %s, %s)" % tuple(_num(v) for v in (x, z, w, d)),

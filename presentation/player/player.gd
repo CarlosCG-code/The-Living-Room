@@ -93,7 +93,8 @@ func _physics_process(delta: float) -> void:
 	if not camera.current or Engine.time_scale > 1.01:  # cámara libre o tiempo acelerado: atravesaría muros
 		velocity = Vector3.ZERO
 		return
-	var input := Input.get_vector("move_left", "move_right", "move_forward", "move_back")
+	# Con la hoja agarrada no se anda (usuario, 2026-11-20): toda la atención en la puerta.
+	var input := Vector2.ZERO if _grabbed else Input.get_vector("move_left", "move_right", "move_forward", "move_back")
 	var wish := global_transform.basis * Vector3(input.x, 0.0, input.y) * SPEED
 	velocity.x = move_toward(velocity.x, wish.x, ACCEL * delta)
 	velocity.z = move_toward(velocity.z, wish.z, ACCEL * delta)

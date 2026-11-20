@@ -56,7 +56,8 @@ func get_lights() -> Array[Light3D]:
 	return living_room.get_lights() + _lights
 
 
-# Lámparas de techo tenues, como los apliques del salón, sin sombras; se apagan con la distancia.
+# Lámparas de techo tenues, como los apliques del salón; se apagan con la distancia. Con sombra: sin ella la luz
+# atraviesa los muros (usuario, 2026-11-20). Son pocas (LIT_ZONES de flat_layout.py) y la sombra se apaga antes.
 func _add_lamps() -> void:
 	for zone in LAYOUT.zones:
 		for l: Dictionary in zone.lights:
@@ -72,6 +73,9 @@ func _add_lamps() -> void:
 			lamp.distance_fade_enabled = true
 			lamp.distance_fade_begin = 12.0
 			lamp.distance_fade_length = 4.0
+			lamp.shadow_enabled = true
+			lamp.distance_fade_shadow = 10.0
+			lamp.light_size = 0.05  # como los apliques: LightMixer la usa para las sombras suaves
 			lamp.set_meta(&"base_normal", l["base_normal"])
 			lamp.set_meta(&"base_dark", l["base_dark"])
 			add_child(lamp)

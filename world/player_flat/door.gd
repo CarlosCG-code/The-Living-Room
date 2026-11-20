@@ -18,6 +18,10 @@ const SOUNDS := {
 	&"slam": preload("res://assets/audio/flat/door_slam.ogg"),
 	&"locked": preload("res://assets/audio/flat/door_locked.ogg"),
 }
+## Tramos (s) de door_creak.ogg con crujido limpio: el resto de la grabación trae golpes de picaporte y de
+## cierre que, sonando a mitad de un giro, parecían la puerta cerrándose (usuario, 2026-11-20).
+const CREAK_SEGMENTS: Array[Vector2] = [Vector2(3.2, 5.05), Vector2(8.5, 12.0), Vector2(18.5, 20.65),
+		Vector2(23.4, 24.95), Vector2(36.1, 37.45)]
 
 var id: StringName
 var locked := false
@@ -32,6 +36,7 @@ var _pending_dy := 0.0
 var _leaf: AnimatableBody3D
 var _shape: BoxShape3D
 var _players := {}
+var _creak_end := 0.0
 
 
 ## Coloca la puerta según el plano. La bisagra queda en el origen y la hoja cerrada a lo largo de +X local.
@@ -170,8 +175,10 @@ func _blocked(a: float) -> bool:
 func _update_creak() -> void:
 	var p: AudioStreamPlayer3D = _players[&"creak"]
 	var speed := absf(velocity)
-	if speed > 0.35 and not p.playing:
-		p.play(randf_range(0.0, maxf(p.stream.get_length() - 2.0, 0.0)))
+	if speed > 0.35 and (not p.playing or p.get_playback_position() >= _creak_end):
+		var seg: Vector2 = CREAK_SEGMENTS.pick_random()
+		_creak_end = seg.y
+		p.play(seg.x)
 	elif speed < 0.1 and p.playing:
 		p.stop()
 	p.volume_db = linear_to_db(clampf(speed / 2.0, 0.15, 1.0))

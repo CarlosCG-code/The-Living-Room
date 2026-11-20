@@ -21,6 +21,7 @@ const BOUNCE_MAX := 0.3
 
 ## drag: velocidad que pide el ratón (rad/s) mientras held. Devuelve Vector3(ángulo, velocidad, Event).
 static func step(angle: float, velocity: float, drag: float, held: bool, delta: float) -> Vector3:
+	var was_open := angle > 0.0  # ya cerrada y empujada hacia el marco: sin sonido (antes, pestillo a cada paso)
 	if held:
 		velocity = lerpf(velocity, drag, 1.0 - exp(-GRIP * delta))
 	else:
@@ -30,7 +31,9 @@ static func step(angle: float, velocity: float, drag: float, held: bool, delta: 
 	angle += velocity * delta
 	var event := Event.NONE
 	if angle <= 0.0 and velocity < 0.0:
-		if -velocity > LATCH_SPEED:
+		if not was_open:
+			velocity = 0.0
+		elif -velocity > LATCH_SPEED:
 			event = Event.SLAM
 			velocity = minf(-velocity * BOUNCE, BOUNCE_MAX)
 		else:

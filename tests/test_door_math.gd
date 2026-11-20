@@ -49,3 +49,10 @@ func test_same_result_with_different_frame_rates() -> void:
 	a = _run(a.x, a.y, 0, false, 0.5, 1.0 / 30.0)
 	b = _run(b.x, b.y, 0, false, 0.5, 1.0 / 144.0)
 	assert_almost_eq(a.x, b.x, deg_to_rad(1.0), "menos de 1° tras 1 s")
+
+
+func test_pushing_a_closed_door_makes_no_sound() -> void:
+	var r := DoorMath.step(0.0, -0.9, -3.0, true, DT)
+	assert_eq(int(r.z), DoorMath.Event.NONE, "ya cerrada: no repite el pestillo a cada paso")
+	assert_eq(r.x, 0.0)
+	assert_eq(r.y, 0.0)

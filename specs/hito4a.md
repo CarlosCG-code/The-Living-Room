@@ -168,7 +168,7 @@ Lo que lo hace difícil de memorizar (GDD §8, run 2):
 - Las luces y las sondas no se tocan aquí:
   - **Luces:** todas pasan por el único `LightMixer` (hito2 D10), con desvanecimiento por distancia (empieza a 12 m y se apaga a 16 m †).
   - **Sondas:** siempre visibles; al cambiar el estado de la luz se recapturan todas, repartidas en varios fotogramas.
-- Sombras: solo las que ya existen (luz de la calle, pantalla de la tele, linterna); ninguna luz nueva del piso las hace.
+- Sombras: las que ya existían (luz de la calle, pantalla de la tele, linterna) y las lámparas del piso, que sin sombra atravesaban los muros (usuario, 2026-11-20); su sombra se apaga a 10 m.
 - Descartado:
   - un `Area3D` por zona: más nodos y señales, para lo mismo que hace `zone_at`;
   - activar según las puertas abiertas: una señal más para ahorrar poco;
@@ -183,7 +183,7 @@ Lo que lo hace difícil de memorizar (GDD §8, run 2):
 
 **D11 — Retícula.** Un punto en el centro de la pantalla, solo de pie; crece sobre una hoja o sobre el sofá. `presentation/ui/crosshair.gd`.
 
-**D12 — Luces de las zonas nuevas.** 1 o 2 lámparas por habitación, encendidas y tenues como las del salón (§10, P4), con sus metadatos `base_normal` y `base_dark` para `LightMixer`. Siguen a la Energía y al apagón como las del salón. Sin interruptores en 4a.
+**D12 — Luces de las zonas nuevas.** Como en *Visage* (usuario, 2026-11-20, sustituye a P4): solo algunas zonas tienen una lámpara tenue (`LIT_ZONES` de `flat_layout.py`) y el resto queda casi a oscuras, iluminado solo por lo que entra por las puertas. Cada lámpara lleva sus metadatos `base_normal` y `base_dark` para `LightMixer`. Siguen a la Energía y al apagón como las del salón. Sin interruptores en 4a.
 
 **D13 — La tele mientras andas.** En 4a la partida sigue produciendo de pie (`Game.running` no cambia). La regla definitiva va a GDD §12 (§10, P6).
 
