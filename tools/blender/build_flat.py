@@ -39,7 +39,10 @@ FINISH = {"bedroom_main": ("damask", "wainscot"), "dining_room": ("damask", "wai
           "workshop": ("paint", "skirt"), "pantry_hall": ("paint", "skirt"), "gallery": ("paint", "skirt"),
           "storage": ("paint", "skirt"), "larder": ("paint", "skirt"),
           "kitchen": ("paint", "tiles"), "bathroom": ("paint", "tiles"), "service_toilet": ("paint", "tiles")}
-WAINSCOT_H, TILE_H, SKIRT_H = 0.9, 1.4, 0.08
+WAINSCOT_H, TILE_H, SKIRT_H = 0.9, 1.37, 0.08  # el azulejo acaba justo encima de la cenefa (fila de 1,2-1,35 m)
+# Suelo de baldosa por zona (make_wallpapers.py); el taller y el trastero siguen con la de Poly Haven.
+FLOOR_TILE = {"kitchen": "floor_hydraulic", "bathroom": "floor_hydraulic", "service_toilet": "floor_hydraulic",
+              "gallery": "floor_hydraulic", "pantry_hall": "floor_checker", "larder": "floor_checker"}
 FINISH.update({z[0]: ("stripes", "wainscot") for z in L.ZONES if z[1] == "ZONE_CORRIDOR"})  # pasillos: rayas
 
 
@@ -129,7 +132,8 @@ def build():
         (bx0, by0), (bx1, by1) = to_b(px0, py0), to_b(px1, py1)
         cx, cy, sx, sy = (bx0 + bx1) / 2, (by0 + by1) / 2, abs(bx1 - bx0), abs(by1 - by0)
         f = box("Floor_%s-col" % zid, (sx, sy, T), (cx, cy, -T / 2))
-        give(f, tiles if floor == "tile" else parquet)
+        tile = tex_mat("Floor_" + FLOOR_TILE[zid], FLOOR_TILE[zid], "2k", root=GEN) if zid in FLOOR_TILE else tiles
+        give(f, tile if floor == "tile" else parquet)
         uv_world(f, 2.0 if floor == "tile" else 3.4)
         c = give(box("Ceiling_%s" % zid, (sx, sy, T), (cx, cy, H + T / 2)), ceiling)
         uv_world(c, 2.0)
@@ -244,6 +248,7 @@ def finish_zones():
     wood = mat("DarkWood", (0.05, 0.028, 0.016), 0.45)
     panel = tex_mat("Wainscot", "dark_wood", "1k", tint=(0.75, 0.62, 0.5))
     tile = tex_mat("WallTiles", "wall_tiles", "2k", root=GEN)
+    cap = mat("TileCap", (0.6, 0.55, 0.42), 0.18)  # moldura vidriada que remata el azulejo
     for zid, (paper, low) in FINISH.items():
         papers, lows = [], []
         for key, face, inward, a, b in faces(zid):
@@ -263,7 +268,7 @@ def finish_zones():
                     lows.append(give(skin("Skirt", axis, face, inward, a0, a1, z0, z1, 0.015), wood))
                 elif low == "tiles":
                     lows.append(give(skin("WallTile", axis, face, inward, a0, a1, z0, z1, 0.006), tile))
-                    lows.append(give(skin("WallTileCap", axis, face, inward, a0, a1, z1 - 0.02, z1 + 0.005, 0.012), tile))
+                    lows.append(give(skin("WallTileCap", axis, face, inward, a0, a1, z1 - 0.02, z1 + 0.005, 0.012), cap))
                 else:  # zócalo de madera como el del salón: tablero, montantes cada ~0,5 m y moldura arriba
                     lows.append(give(skin("WainscotPanel", axis, face, inward, a0, a1, z0, z1, 0.012), panel))
                     n = max(1, round((a1 - a0) / 0.5))

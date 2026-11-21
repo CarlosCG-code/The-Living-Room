@@ -264,9 +264,9 @@ def import_model(asset_id, res, loc, rot_z_deg=0.0, scale=1.0, drop=(), tint=Non
         o.select_set(o.type == "MESH")
     bpy.context.view_layer.objects.active = next(o for o in new if o.type == "MESH")
     bpy.ops.object.parent_clear(type="CLEAR_KEEP_TRANSFORM")
+    meshes = [o for o in new if o.type == "MESH"]  # antes de borrar: un objeto borrado no se puede ni consultar
     for o in [o for o in new if o.type != "MESH"]:
         bpy.data.objects.remove(o, do_unlink=True)
-    meshes = [o for o in new if o.name in bpy.context.scene.objects and o.type == "MESH"]
     for o in [o for o in meshes if any(d in o.name.lower() for d in drop)]:
         meshes.remove(o)
         bpy.data.objects.remove(o, do_unlink=True)

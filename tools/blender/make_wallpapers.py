@@ -110,15 +110,74 @@ def paint():
     return rgb, brush * 0.5, 0.88 + 0.0 * brush
 
 
+def hash01(i):
+    return (np.sin(i * 12.9898 + 4.1414) * 43758.5453) % 1.0
+
+
 def tiles():
-    """Azulejo blanco de 15 × 15 cm con su junta, para el zócalo de cocina y baños."""
-    n = 16  # 16 azulejos por textura: la textura cubre 2,4 m (uv_world(o, 2.4))
+    """Zócalo de baño y cocina de los años 30-40 (usuario, 2026-11-21: el blanco liso parecía de 2026): azulejo
+    crema de 15 × 15 cm biselado y cuarteado, rodapié verde botella, cenefa azul de cobalto a 1,2 m y junta sucia.
+    La textura cubre 2,4 m (uv_world(o, 2.4)) y v = 0 es el suelo: fila 0 = rodapié, fila 8 = cenefa."""
+    n = 16
     p, q = (u * n) % 1, (v * n) % 1
-    joint = np.maximum(smooth(0.03, 0.015, np.minimum(p, 1 - p)), smooth(0.03, 0.015, np.minimum(q, 1 - q)))
-    tile_id = np.floor(u * n) * 31 + np.floor(v * n) * 17
-    shade = 0.93 + 0.07 * np.sin(tile_id * 12.9898) ** 2  # cada azulejo con su tono
-    rgb = mix(np.ones((N, N, 3)) * np.array((0.78, 0.77, 0.72)) * shade[..., None], (0.36, 0.34, 0.3), joint)
-    return rgb, 1 - joint, 0.25 + 0.6 * joint
+    row, tid = np.floor(v * n), np.floor(u * n) * 31 + np.floor(v * n) * 17
+    edge = np.minimum(np.minimum(p, 1 - p), np.minimum(q, 1 - q))
+    joint = smooth(0.022, 0.012, edge)
+    bevel = smooth(0.012, 0.09, edge)  # el canto redondeado del azulejo de entonces
+    tone = 0.9 + 0.1 * hash01(tid)
+    rgb = np.ones((N, N, 3)) * np.array((0.7, 0.64, 0.5)) * tone[..., None]
+    rgb = np.where((row == 0)[..., None], np.array((0.03, 0.09, 0.055)) * (0.85 + 0.3 * hash01(tid))[..., None], rgb)
+    # Cenefa: rombo con flor en el centro y cuartos de círculo en las esquinas, que se enlazan de un azulejo a otro.
+    x, y = p - 0.5, q - 0.5
+    d, c = np.abs(x) + np.abs(y), np.minimum(np.hypot(p, q), np.minimum(np.hypot(1 - p, q), np.minimum(np.hypot(p, 1 - q), np.hypot(1 - p, 1 - q))))
+    ink = np.maximum.reduce([smooth(0.04, 0.02, np.abs(d - 0.36)), smooth(0.13, 0.1, np.hypot(x, y)), smooth(0.04, 0.02, np.abs(c - 0.2))])
+    band = (row == 8) * ink
+    rgb = mix(rgb, (0.025, 0.07, 0.2), band * 0.92)
+    # Cuarteado del vidriado: los cruces por cero de un ruido son líneas finas como las grietas del esmalte.
+    craze = smooth(0.06, 0.0, np.abs(blur(rng.standard_normal((N, N)), 7)) / 0.02) * (hash01(tid + 7) > 0.35)
+    rgb *= (1 - 0.22 * craze)[..., None]
+    chip = (hash01(tid + 3) > 0.93) * smooth(0.16, 0.12, np.minimum.reduce([np.hypot(p, q), np.hypot(1 - p, 1 - q)]))
+    rgb = mix(rgb, (0.38, 0.3, 0.22), chip)  # algún azulejo desconchado en la esquina, el bizcocho al aire
+    dirt = smooth(0.18, 0.0, v) * 0.35 + 0.25 * STAINS
+    rgb = mix(rgb, (0.12, 0.1, 0.07), joint * 0.85 + 0.0) * (1 - dirt * 0.4)[..., None]
+    return rgb, bevel * (1 - 0.4 * chip) - 0.05 * craze, 0.12 + 0.75 * joint + 0.6 * chip + 0.15 * dirt
+
+
+def floor_hydraulic():
+    """Baldosa hidráulica de 20 × 20 cm (cocina, baños, galería): rosetón rojo y ocre que se cierra entre cuatro
+    baldosas, rombo negro en el centro y cenefa crema, gastada por el paso. La textura cubre 2 m (uv_world(f, 2.0))."""
+    n = 10
+    p, q = (u * n) % 1, (v * n) % 1
+    x, y = p - 0.5, q - 0.5
+    tid = np.floor(u * n) * 13 + np.floor(v * n) * 7
+    r_corner = np.minimum(np.minimum(np.hypot(p, q), np.hypot(1 - p, q)), np.minimum(np.hypot(p, 1 - q), np.hypot(1 - p, 1 - q)))
+    ang = np.arctan2(q - np.round(q), p - np.round(p))
+    petal = r_corner < 0.36 + 0.06 * np.cos(ang * 8)
+    rgb = np.ones((N, N, 3)) * np.array((0.42, 0.36, 0.27))  # fondo crema
+    rgb = np.where(petal[..., None], np.array((0.28, 0.06, 0.04)), rgb)
+    rgb = np.where((r_corner < 0.17)[..., None], np.array((0.45, 0.28, 0.08)), rgb)
+    rgb = np.where(((np.abs(x) + np.abs(y)) < 0.16)[..., None], np.array((0.03, 0.03, 0.03)), rgb)
+    ring = np.abs(np.maximum(np.abs(x), np.abs(y)) - 0.43) < 0.012
+    rgb = np.where(ring[..., None], np.array((0.08, 0.1, 0.1)), rgb)
+    edge = np.minimum(np.minimum(p, 1 - p), np.minimum(q, 1 - q))
+    joint = smooth(0.012, 0.004, edge)
+    wear = smooth(0.3, 0.9, STAINS) * 0.5 + 0.08 * hash01(tid)
+    rgb = mix(rgb, (0.35, 0.32, 0.28), wear) * (0.92 + 0.08 * hash01(tid + 1))[..., None]
+    rgb = mix(rgb, (0.08, 0.07, 0.06), joint)
+    return rgb, 1 - joint, 0.6 + 0.3 * joint - 0.1 * (1 - wear)
+
+
+def floor_checker():
+    """Despensa y fresquera: baldosa de barro rojo y negra al tresbolillo (20 cm), más basta que la hidráulica."""
+    n = 10
+    tid = np.floor(u * n) + np.floor(v * n)
+    p, q = (u * n) % 1, (v * n) % 1
+    dark = (tid % 2 == 1)[..., None]
+    k = (0.85 + 0.15 * hash01(np.floor(u * n) * 13 + np.floor(v * n) * 7))[..., None]
+    rgb = np.where(dark, np.array((0.04, 0.035, 0.03)), np.array((0.3, 0.1, 0.05))) * k
+    joint = smooth(0.015, 0.005, np.minimum(np.minimum(p, 1 - p), np.minimum(q, 1 - q)))
+    rgb = mix(rgb, (0.12, 0.1, 0.08), joint) * (1 - 0.3 * smooth(0.4, 0.95, STAINS))[..., None]
+    return rgb, 1 - joint, 0.75 + 0.2 * joint
 
 
 def save(img_id, kind, arr):
@@ -151,6 +210,7 @@ def write(img_id, fn, aging):
 
 
 for img_id, fn, aging in (("wallpaper_damask", damask, 0.22), ("wallpaper_stripes", stripes, 0.22),
-                          ("wallpaper_sprig", sprig, 0.2), ("wall_paint", paint, 0.3), ("wall_tiles", tiles, 0.15)):
+                          ("wallpaper_sprig", sprig, 0.2), ("wall_paint", paint, 0.3), ("wall_tiles", tiles, 0.15),
+                          ("floor_hydraulic", floor_hydraulic, 0.1), ("floor_checker", floor_checker, 0.1)):
     write(img_id, fn, aging)
     print("WALLPAPER_OK", img_id)

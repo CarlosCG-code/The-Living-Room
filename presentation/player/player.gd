@@ -44,7 +44,7 @@ func setup(layout: FlatLayout, mirrored: bool) -> void:
 func stand_at(t: Transform3D) -> void:
 	var forward := -t.basis.z
 	global_transform = Transform3D(Basis(Vector3.UP, atan2(-forward.x, -forward.z)), t.origin)
-	_head.rotation.x = 0.0
+	_head.rotation.x = clampf(asin(clampf(forward.normalized().y, -1.0, 1.0)), -PITCH_LIMIT, PITCH_LIMIT)  # 0 salvo TLR_PITCH
 	velocity = Vector3.ZERO
 	reset_physics_interpolation()
 	_set_active(true)
