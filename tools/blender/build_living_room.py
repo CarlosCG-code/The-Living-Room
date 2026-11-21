@@ -692,19 +692,21 @@ def decorate_1940s(wood, brass, shade):
     # Pared del sofá: galería de cuadros a los lados del grande.
     to_wall(import_model("fancy_picture_frame_01", "1k", (-1.0, y1 - 0.2, 1.42), drop=("glass",)), "y", y1)
     # Platos de madera: dos en la pared del sofá, encima de la puerta y sobre el cuadro entre la librería y la ventana.
-    wall_plate((1.0, y1 - 0.05, 1.5), 180, "y", y1)
-    wall_plate((1.0, y1 - 0.05, 1.82), 180, "y", y1)
+    # Un solo plato, sobre la puerta (usuario, 2026-11-21: nada repetido); en la pared del sofá, una Virgen.
+    to_wall(painting(436262, (1.0, y1 - 0.2, 1.62), 0, 0.5, "gilt"), "y", y1)
     wall_plate((-W / 2 + 0.05, 1.6, 2.36), 90, "x", -W / 2)
-    wall_plate((W / 2 - 0.05, -0.45, 2.12), -90, "x", W / 2)
 
     # Ronda 5: más objetos de casa vivida. Cuadros pequeños sobre el de la tele (antes, modelos repetidos a otra
     # escala; usuario, 2026-11-21: ningún cuadro repetido).
-    to_wall(painting(437914, (0.75, y0 + 0.2, 1.86), 180, 0.26, "ebony"), "y", y0)
-    to_wall(painting(435757, (1.15, y0 + 0.2, 1.88), 180, 0.22, "gilt"), "y", y0)
+    to_wall(painting(437841, (0.85, y0 + 0.2, 1.86), 180, 0.3, "ebony"), "y", y0)
     # Lo que se ve desde el suelo alrededor de la tele (la cámara de juego solo encuadra esa franja de pared):
     # dos cuadros pequeños a los lados, justo encima del zócalo.
-    to_wall(painting(436961, (0.6, y0 + 0.2, 0.97), 180, 0.26, "walnut"), "y", y0)
-    to_wall(painting(436545, (-0.62, y0 + 0.2, 1.0), 180, 0.3, "gilt"), "y", y0)
+    # Repisa con un jarrón de latón y una brújula de bolsillo (antes, dos cuadros repetidos).
+    give(box("TvShelf", (0.42, 0.16, 0.025), (0.62, y0 + 0.08, 0.9)), wood, bevel=0.003)
+    for x in (0.47, 0.77):
+        give(box("TvShelfBracket", (0.02, 0.12, 0.1), (x, y0 + 0.06, 0.84)), wood)
+    import_model("brass_vase_03", "1k", (0.55, y0 + 0.08, 0.9125))
+    import_model("seadogs_compass", "1k", (0.72, y0 + 0.09, 0.9125), rot_z_deg=200)
     # Mecedora vacía junto a la tele, girada hacia el salón.
     import_model("Rockingchair_01", "1k", (0.95, y0 + 0.55, 0), rot_z_deg=200)
     # Mesilla junto al sofá con una lamparita (su luz en Godot es TableLamp, muy tenue) y una foto.
@@ -712,7 +714,7 @@ def decorate_1940s(wood, brass, shade):
     give(cylinder("TableLampBase", 0.06, 0.02, (1.78, y1 - 0.25, 0.71)), brass, bevel=0.003)
     give(cylinder("TableLampStem", 0.008, 0.3, (1.78, y1 - 0.25, 0.87), verts=10), brass)
     give(cone("TableLampShade", 0.12, 0.07, 0.16, (1.78, y1 - 0.25, 1.06)), shade)
-    painting(437374, (1.56, y1 - 0.3, 0.7), -20, 0.16, "silver", standing=True)
+    import_model("brass_vase_04", "1k", (1.58, y1 - 0.3, 0.7))
     # Libros apilados en el suelo, al lado de la librería.
     import random
     books_stack(1.75, -0.72, 0, 5, random.Random(11))
