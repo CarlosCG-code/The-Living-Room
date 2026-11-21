@@ -25,11 +25,9 @@ func _ready() -> void:
 	var geometry := (load(GEOMETRY_MIRROR if mirrored else GEOMETRY) as PackedScene).instantiate()
 	geometry.name = "FlatGeometry"
 	add_child(geometry)
-	# La hoja horneada en el glTF del salón la sustituye su Door (specs/hito4a.md D3).
-	for leaf_name in ["DoorLeaf", "DoorHandle"]:
-		var leaf := living_room.find_child(leaf_name, true, false)
-		if leaf:
-			leaf.free()
+	# Las lámparas (Fixture_*, furnish_flat.py) no dan sombra: su luz va dentro y si no quedaría tapada.
+	for m: MeshInstance3D in geometry.find_children("Fixture_*", "MeshInstance3D", true, false):
+		m.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	for conn in LAYOUT.connections:
 		if conn.kind == &"leaf":
 			var door := Door.new()

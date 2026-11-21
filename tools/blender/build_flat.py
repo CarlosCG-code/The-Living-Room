@@ -21,7 +21,8 @@ import flat_layout as L  # noqa: E402
 _helpers = {"ROOT": ROOT, "MODE": "final", "RUN_MAIN": False, "__file__": os.path.join(ROOT, "tools", "blender", "build_living_room.py")}
 exec(open(_helpers["__file__"], encoding="utf-8").read(), _helpers)
 box, give, tex_mat, uv_world, mat = _helpers["box"], _helpers["give"], _helpers["tex_mat"], _helpers["uv_world"], _helpers["mat"]
-reset, mirror_all, export_final = _helpers["reset"], _helpers["mirror_all"], _helpers["export_final"]
+reset, mirror_all, export_final, join = _helpers["reset"], _helpers["mirror_all"], _helpers["export_final"], _helpers["join"]
+GEN = _helpers["GEN"]
 
 T, H = L.T, L.H
 DOOR_TOP = 2.1
@@ -30,6 +31,16 @@ WIN_W, WIN_BOT, WIN_TOP = 1.2, 0.9, 2.1
 WINDOWS = {"bedroom_main": ("h", L.Y0, 2.2), "dining_room": ("h", L.Y0, 11.8), "workshop": ("h", L.Y0, 15.8),
            "gallery": ("h", L.Y5, 1.5), "kitchen": ("h", L.Y5, 12.3)}
 OUT = os.path.join(ROOT, "assets", "models", "living_room")  # misma carpeta que el salón: comparten texturas
+# Acabado de cada habitación como el salón (usuario, 2026-11-21): papel (make_wallpapers.py) y zócalo de madera,
+# rodapié o azulejo hasta 1,4 m. El salón ya tiene el suyo.
+PAPER = {"damask": "wallpaper_damask", "stripes": "wallpaper_stripes", "sprig": "wallpaper_sprig", "paint": "wall_paint"}
+FINISH = {"bedroom_main": ("damask", "wainscot"), "dining_room": ("damask", "wainscot"), "entrance_hall": ("damask", "wainscot"),
+          "bedroom_2": ("sprig", "skirt"), "bedroom_3": ("sprig", "skirt"),
+          "workshop": ("paint", "skirt"), "pantry_hall": ("paint", "skirt"), "gallery": ("paint", "skirt"),
+          "storage": ("paint", "skirt"), "larder": ("paint", "skirt"),
+          "kitchen": ("paint", "tiles"), "bathroom": ("paint", "tiles"), "service_toilet": ("paint", "tiles")}
+WAINSCOT_H, TILE_H, SKIRT_H = 0.9, 1.4, 0.08
+FINISH.update({z[0]: ("stripes", "wainscot") for z in L.ZONES if z[1] == "ZONE_CORRIDOR"})  # pasillos: rayas
 
 
 def to_b(px, py):
@@ -71,8 +82,9 @@ def wall_box(name, axis, coord, a, b, z0, z1):
     return box(name, (b - a, T, z1 - z0), (bx, by, (z0 + z1) / 2))
 
 
-def lines():
-    """Todos los tramos de muro: línea -> lista de intervalos, sin los del salón (ya existen) ni las juntas abiertas."""
+def lines(skip_living=True):
+    """Todos los tramos de muro: línea -> lista de intervalos, sin los del salón (ya existen; skip_living=False los
+    deja, para forrar su cara de fuera) ni las juntas abiertas."""
     walls = {}
     for zid, _, rect, _ in L.ZONES:
         px0, py0, px1, py1 = rect
@@ -84,7 +96,7 @@ def lines():
         walls[(axis, c)] = [(x - T / 2, y + T / 2) if axis == "h" else (x + T / 2, y - T / 2) for x, y in spans]
     # El salón ya tiene sus muros (del interior de cada lado).
     lr = L.zone("living_room")[2]
-    for key, span in ((("h", lr[1]), (lr[0] + T / 2, lr[2] - T / 2)), (("h", lr[3]), (lr[0] + T / 2, lr[2] - T / 2)),
+    for key, span in [] if not skip_living else ((("h", lr[1]), (lr[0] + T / 2, lr[2] - T / 2)), (("h", lr[3]), (lr[0] + T / 2, lr[2] - T / 2)),
                       (("v", lr[0]), (lr[1] + T / 2, lr[3] - T / 2)), (("v", lr[2]), (lr[1] + T / 2, lr[3] - T / 2))):
         walls[key] = subtract(walls[key], span)
     # Juntas entre tramos de pasillo: abiertas a lo ancho del interior del vecino.
@@ -98,11 +110,11 @@ def lines():
 
 
 def build():
-    wallpaper = tex_mat("Wallpaper", "decrepit_wallpaper", "2k")
+    wallpaper = tex_mat("WallPaint", "wall_paint", "2k", root=GEN)  # solo se ve en los cantos: cada cara lleva su papel
     parquet = tex_mat("Parquet", "herringbone_parquet", "2k")
     tiles = tex_mat("Tiles", "dirty_tiles", "2k")
     ceiling = tex_mat("Gotele", "white_stucco", "1k", tint=(0.6, 0.57, 0.52))
-    door_wood = mat("DoorWood", (0.16, 0.085, 0.04), 0.4)
+    door_wood = tex_mat("DoorWood", "dark_wood", "1k", tint=_helpers["DOOR_TINT"])
     white_frame = mat("WindowFrame", (0.5, 0.49, 0.46), 0.35, metallic=0.2)
     glass = mat("Glass", (0.6, 0.65, 0.7), 0.05)
     gb = next(n for n in glass.node_tree.nodes if n.type == "BSDF_PRINCIPLED")
@@ -141,7 +153,7 @@ def build():
             o = wall_box("%s_%s" % (name, cid), axis, coord, a0, a1, z0, z1)
             o.scale = (1.2, 1, 1) if axis == "h" else (1, 1.2, 1)  # sobresale 1,5 cm por cada lado del muro
             bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
-            give(o, door_wood, bevel=0.005)
+            uv_world(give(o, door_wood, bevel=0.005), 1.2)
     # Ventanas: hueco con antepecho y dintel, marco, cristal y un empty para el fondo de ciudad de Godot.
     for zid, (axis, coord, pos) in WINDOWS.items():
         span = (pos - WIN_W / 2, pos + WIN_W / 2)
@@ -175,9 +187,105 @@ def build():
             uv_world(o, 2.5)
 
 
+def openings(key):
+    """Huecos de un muro (a lo largo, desde, hasta, de z0 a z1): puertas, vanos (también la del salón) y ventanas."""
+    out = []
+    for conn in L.CONNECTIONS:
+        if conn[4] is None:
+            continue
+        axis, coord, _ = L.wall_of(conn)
+        if (axis, coord) == key:
+            w = L.DOOR_W if conn[3] == "leaf" else L.PASSAGE_W
+            out.append((conn[4] - w / 2, conn[4] + w / 2, 0.0, DOOR_TOP))
+    for axis, coord, pos in WINDOWS.values():
+        if (axis, coord) == key:
+            out.append((pos - WIN_W / 2, pos + WIN_W / 2, WIN_BOT, WIN_TOP))
+    return out
+
+
+def cut(rects, hole):
+    """Rectángulos (a0, a1, z0, z1) menos un hueco: lo que queda a los lados, debajo y encima."""
+    h0, h1, hz0, hz1 = hole
+    out = []
+    for a0, a1, z0, z1 in rects:
+        if h1 <= a0 or h0 >= a1 or hz1 <= z0 or hz0 >= z1:
+            out.append((a0, a1, z0, z1))
+            continue
+        out += [(a0, h0, z0, z1), (h1, a1, z0, z1), (max(a0, h0), min(a1, h1), z0, hz0), (max(a0, h0), min(a1, h1), hz1, z1)]
+    return [r for r in out if r[1] - r[0] > 0.01 and r[3] - r[2] > 0.01]
+
+
+def skin(name, axis, face, inward, a0, a1, z0, z1, thick):
+    """Lámina pegada a la cara de un muro, hacia dentro de la zona (inward = ±1 a lo largo del eje normal)."""
+    c = face + inward * thick / 2
+    if axis == "h":
+        (bx, by) = to_b((a0 + a1) / 2, c)
+        return box(name, (thick, a1 - a0, z1 - z0), (bx, by, (z0 + z1) / 2))
+    (bx, by) = to_b(c, (a0 + a1) / 2)
+    return box(name, (a1 - a0, thick, z1 - z0), (bx, by, (z0 + z1) / 2))
+
+
+def faces(zid):
+    """Las caras de muro de una zona: (línea, cara interior, hacia dentro, desde, hasta), sin las juntas abiertas."""
+    walls = lines(skip_living=False)
+    px0, py0, px1, py1 = L.zone(zid)[2]
+    lo_x, lo_y, hi_x, hi_y = L.interior(L.zone(zid)[2], zid)
+    out = []
+    for key, face, inward, span in ((("h", py0), lo_y, 1, (lo_x, hi_x)), (("h", py1), hi_y, -1, (lo_x, hi_x)),
+                                    (("v", px0), lo_x, 1, (lo_y, hi_y)), (("v", px1), hi_x, -1, (lo_y, hi_y))):
+        for a, b in walls.get(key, []):
+            a, b = max(a, span[0]), min(b, span[1])
+            if b - a > 0.01:
+                out.append((key, face, inward, a, b))
+    return out
+
+
+def finish_zones():
+    wood = mat("DarkWood", (0.05, 0.028, 0.016), 0.45)
+    panel = tex_mat("Wainscot", "dark_wood", "1k", tint=(0.75, 0.62, 0.5))
+    tile = tex_mat("WallTiles", "wall_tiles", "2k", root=GEN)
+    for zid, (paper, low) in FINISH.items():
+        papers, lows = [], []
+        for key, face, inward, a, b in faces(zid):
+            axis = key[0]
+            holes = openings(key)
+            rects = [(a, b, 0.0, H)]
+            for hole in holes:
+                rects = cut(rects, hole)
+            for r in rects:
+                papers.append(skin("Paper", axis, face, inward, *r, 0.002))
+            top = {"wainscot": WAINSCOT_H, "tiles": TILE_H, "skirt": SKIRT_H}[low]
+            low_rects = [(a, b, 0.0, top)]
+            for hole in holes:
+                low_rects = cut(low_rects, hole)
+            for a0, a1, z0, z1 in low_rects:
+                if low == "skirt":
+                    lows.append(give(skin("Skirt", axis, face, inward, a0, a1, z0, z1, 0.015), wood))
+                elif low == "tiles":
+                    lows.append(give(skin("WallTile", axis, face, inward, a0, a1, z0, z1, 0.006), tile))
+                    lows.append(give(skin("WallTileCap", axis, face, inward, a0, a1, z1 - 0.02, z1 + 0.005, 0.012), tile))
+                else:  # zócalo de madera como el del salón: tablero, montantes cada ~0,5 m y moldura arriba
+                    lows.append(give(skin("WainscotPanel", axis, face, inward, a0, a1, z0, z1, 0.012), panel))
+                    n = max(1, round((a1 - a0) / 0.5))
+                    for k in range(n + 1):
+                        s = a0 + (a1 - a0) * k / n
+                        s = min(max(s, a0 + 0.025), a1 - 0.025)
+                        lows.append(give(skin("WainscotStile", axis, face, inward, s - 0.025, s + 0.025, 0.08, z1 - 0.04, 0.02), panel))
+                    lows.append(give(skin("WainscotRail", axis, face, inward, a0, a1, z1 - 0.02, z1 + 0.02, 0.035), panel))
+                    lows.append(give(skin("Skirt", axis, face, inward, a0, a1, 0.0, SKIRT_H, 0.02), wood))
+        o = join(papers, "Paper_%s" % zid)
+        give(o, tex_mat("Paper_" + paper, PAPER[paper], "2k", root=GEN))
+        uv_world(o, 2.5)
+        if lows:
+            w = join(lows, "%s_%s" % ("Wainscot" if low == "wainscot" else "WallTile" if low == "tiles" else "Skirt", zid))
+            uv_world(w, 2.4 if low == "tiles" else 1.2)
+
+
 def main():
     reset()
     build()
+    finish_zones()
+    exec(open(os.path.join(ROOT, "tools", "blender", "furnish_flat.py"), encoding="utf-8").read(), globals())
     os.makedirs(os.path.join(ROOT, "art_source"), exist_ok=True)
     bpy.ops.wm.save_as_mainfile(filepath=os.path.join(ROOT, "art_source", "flat.blend"))
     export_final(os.path.join(OUT, "flat.gltf"))

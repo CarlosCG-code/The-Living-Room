@@ -30,9 +30,42 @@ func test_mirrored_leaf_is_reflection_of_normal_leaf() -> void:
 			b.angle = deg_to_rad(deg)
 			a._apply_angle()
 			b._apply_angle()
-			var expected := MirrorMath.mirror_transform(a.get_node("Leaf").global_transform)
-			var got: Transform3D = b.get_node("Leaf").global_transform
-			assert_true(got.is_equal_approx(expected), "%s a %d°" % [a.id, deg])
+			# Lo que se ve: el centro de la hoja y su canto del pestillo, reflejados en x.
+			for p in [_leaf_center(a), a._latch_at(a.angle)]:
+				var i_b: Vector3 = _leaf_center(b) if p == _leaf_center(a) else b._latch_at(b.angle)
+				assert_almost_eq(i_b, Vector3(-p.x, p.y, p.z), Vector3.ONE * 0.001, "%s a %d°" % [a.id, deg])
+
+
+func _leaf_center(d: Door) -> Vector3:
+	var col := d.get_node("Leaf").find_children("*", "CollisionShape3D", true, false)[0] as CollisionShape3D
+	return col.global_position
+
+
+## La hoja cerrada queda enrasada con la cara del marco del lado hacia el que abre, dentro del hueco.
+func test_closed_leaf_sits_flush_in_the_opening() -> void:
+	var f: Node3D = _flat(false)
+	for d: Door in f.doors:
+		var conn: ConnectionDef = f.get_layout().connections.filter(func(c: ConnectionDef) -> bool: return c.id == d.id)[0]
+		var into_a := (d._latch_at(0.001) - d._latch_at(0.0)).normalized()  # hacia donde abre: zona_a
+		var c := _leaf_center(d) - conn.hinge
+		var mid := conn.direction.normalized() * conn.width / 2.0
+		assert_almost_eq(c.dot(conn.direction.normalized()), mid.length(), 0.01, "%s: centrada en el hueco" % d.id)
+		assert_almost_eq(c.dot(into_a), Door.FACE - Door.THICKNESS / 2.0, 0.01, "%s: hacia zona_a" % d.id)
+
+
+## Ningún mueble (furnish_flat.py) queda en el giro de una hoja: todas abren hasta 90°, también en espejo.
+func test_doors_open_without_hitting_furniture() -> void:
+	for mirrored in [false, true]:
+		var f: Node3D = _flat(mirrored)
+		await get_tree().physics_frame
+		await get_tree().physics_frame
+		for d: Door in f.doors:
+			if d.locked:
+				continue
+			for deg in [30.0, 60.0, 90.0]:
+				assert_false(d._blocked(deg_to_rad(deg)), "%s a %d° (espejo: %s)" % [d.id, deg, mirrored])
+		remove_child(f)  # los dos pisos se solapan en el espacio: el siguiente se prueba solo
+		await get_tree().physics_frame
 
 
 func test_locked_front_door_does_not_grab() -> void:

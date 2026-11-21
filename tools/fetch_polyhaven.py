@@ -10,6 +10,7 @@ import hashlib
 import json
 import os
 import sys
+import time
 import urllib.request
 
 API = "https://api.polyhaven.com"
@@ -18,8 +19,14 @@ UA = {"User-Agent": "TheLivingRoom-assets/1.0"}  # Poly Haven pide un User-Agent
 
 
 def get(url: str) -> bytes:
-    with urllib.request.urlopen(urllib.request.Request(url, headers=UA), timeout=60) as r:
-        return r.read()
+    for attempt in range(4):  # el CDN corta alguna conexión en descargas largas (2026-11-21)
+        try:
+            with urllib.request.urlopen(urllib.request.Request(url, headers=UA), timeout=60) as r:
+                return r.read()
+        except OSError:
+            if attempt == 3:
+                raise
+            time.sleep(2 * (attempt + 1))
 
 
 def save(url: str, path: str, size: int) -> bytes:

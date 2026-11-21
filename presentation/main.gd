@@ -88,7 +88,12 @@ func _ready() -> void:
 			push_warning("TLR_SPAWN: zona desconocida %s" % spawn)
 		else:
 			var c := zone.rect.get_center()
-			_stand(Transform3D(Basis.IDENTITY, Vector3(-c.x if flat.mirrored else c.x, 0.0, c.y)))
+			# TLR_YAW=grados (hacia dónde mira) y TLR_FLASH=1 (linterna encendida), para capturar las habitaciones a oscuras.
+			var yaw := deg_to_rad(float(_dev("TLR_YAW")))
+			_stand(Transform3D(Basis(Vector3.UP, yaw), Vector3(-c.x if flat.mirrored else c.x, 0.0, c.y)))
+			if _dev("TLR_FLASH") == "1":
+				_flashlight_on = true
+				mixer.set_flashlight_on(true)
 
 	var view := _dev("TLR_VIEW")
 	if view != "" and view != "game":

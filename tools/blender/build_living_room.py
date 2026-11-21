@@ -19,6 +19,7 @@ OUT = os.path.join(ROOT, "assets", "models")
 SRC = os.path.join(ROOT, "art_source")
 
 W, D, H, T = 4.0, 5.0, 2.6, 0.15  # ancho (X), fondo (Y), alto, grosor de pared
+DOOR_TINT = (0.42, 0.35, 0.3)  # nogal oscuro sobre dark_wood: puertas y marcos de toda la casa (build_door.py)
 
 
 def reset():
@@ -187,6 +188,8 @@ def build_tv():
 # --- Modo final (fase 2b): materiales con texturas CC0 de Poly Haven y muebles CC0 (specs/hito2.md D13, D18) ---
 
 PH = os.path.join(ROOT, "art_source", "polyhaven")  # lo descarga tools/fetch_polyhaven.py
+GEN = os.path.join(ROOT, "art_source", "generated")  # papeles pintados y azulejo: make_wallpapers.py
+MET = os.path.join(ROOT, "art_source", "met")  # pinturas CC0 del Met (Open Access), copia de Wikimedia Commons
 
 
 def uv_world(o, tile):
@@ -220,17 +223,23 @@ def tint_base(m, tint):
     nt.links.new(mix.outputs["Result"], b.inputs["Base Color"])
 
 
-def tex_mat(name, tex_id, res, tint=None):
-    """Material PBR con las texturas de Poly Haven: color, normal (OpenGL) y rugosidad (+ oclusión si hay arm)."""
-    m = bpy.data.materials.get(name) or bpy.data.materials.new(name)
+def tex_mat(name, tex_id, res, tint=None, root=None):
+    """Material PBR con las texturas de Poly Haven (o de make_wallpapers.py, root=GEN): color, normal (OpenGL) y
+    rugosidad. Si ya existe, se reutiliza tal cual."""
+    if name in bpy.data.materials:
+        return bpy.data.materials[name]
+    m = bpy.data.materials.new(name)
     m.use_nodes = True
     nt = m.node_tree
     b = next(n for n in nt.nodes if n.type == "BSDF_PRINCIPLED")
-    folder = os.path.join(PH, tex_id)
+    folder = os.path.join(root or PH, tex_id)
 
     def img(kind, colour):
         node = nt.nodes.new("ShaderNodeTexImage")
-        node.image = bpy.data.images.load(os.path.join(folder, "%s_%s_%s.jpg" % (tex_id, kind, res)), check_existing=True)
+        path = os.path.join(folder, "%s_%s_%s.jpg" % (tex_id, kind, res))
+        if not os.path.exists(path):  # las de make_wallpapers.py son PNG
+            path = path[:-4] + ".png"
+        node.image = bpy.data.images.load(path, check_existing=True)
         node.image.colorspace_settings.name = "sRGB" if colour else "Non-Color"
         return node
 
@@ -306,7 +315,8 @@ def build_final():
     build_room()
     for name in ("TvStand-col", "Sofa-col", "SofaBack-col", "CoffeeTable-col", "Shelf-col"):
         bpy.data.objects.remove(bpy.data.objects[name], do_unlink=True)  # los bloques del graybox
-    wall = tex_mat("Wallpaper", "decrepit_wallpaper", "2k")
+    # Papel de damasco de los años 40 (usuario, 2026-11-21: el decrepit_wallpaper parecía una obra).
+    wall = tex_mat("Wallpaper", "wallpaper_damask", "2k", root=GEN)
     floor = tex_mat("Parquet", "herringbone_parquet", "2k")
     ceiling = tex_mat("Gotele", "white_stucco", "1k", tint=(0.6, 0.57, 0.52))  # techo amarillento, no blanco
     for o in list(bpy.context.scene.objects):
@@ -321,7 +331,7 @@ def build_final():
             uv_world(o, 2.0)
 
     wood = mat("DarkWood", (0.05, 0.028, 0.016), 0.45)
-    door_wood = mat("DoorWood", (0.16, 0.085, 0.04), 0.4)
+    door_wood = tex_mat("DoorWood", "dark_wood", "1k", tint=DOOR_TINT)
     white_frame = mat("WindowFrame", (0.5, 0.49, 0.46), 0.35, metallic=0.2)
     marble = mat("Marble", (0.62, 0.6, 0.57), 0.2)
     blind = mat("Blind", (0.42, 0.38, 0.3), 0.6)
@@ -380,11 +390,8 @@ def build_final():
         ("DoorJambL", (T + 0.03, j, door_top), (dx, door_y - door_w / 2 - j / 2, door_top / 2)),
         ("DoorJambR", (T + 0.03, j, door_top), (dx, door_y + door_w / 2 + j / 2, door_top / 2)),
     ]:
-        give(box(name, size, loc), door_wood, bevel=0.005)
-    # Rendija de 2 cm bajo la hoja, para la luz del pasillo cuando exista (hito 4).
-    give(box("DoorLeaf", (0.04, door_w - 0.006, door_top - 0.026), (dx, door_y, 0.02 + (door_top - 0.026) / 2)), door_wood, bevel=0.004)
-    give(cylinder("DoorHandle", 0.009, 0.12, (-W / 2 + 0.01, door_y + door_w / 2 - 0.08, 1.0),
-                  rot=(math.radians(90), 0, 0), verts=12), brass)
+        uv_world(give(box(name, size, loc), door_wood, bevel=0.005), 1.2)
+    # La hoja la pone Godot (door.gd, con door_leaf.gltf de build_door.py).
 
     # Sin lámpara de pie (usuario, 2026-11-20): esa esquina queda en penumbra hasta que haya luz en el pasillo.
 
@@ -404,7 +411,8 @@ def build_final():
     floor_colliders()
 
 
-SKIP_COLLIDE = ("Wall", "Floor", "Ceiling", "Skirt", "Win", "Door", "Blind", "Jamb", "Lintel", "Sill", "Wainscot")
+SKIP_COLLIDE = ("Wall", "Floor", "Ceiling", "Skirt", "Win", "Door", "Blind", "Jamb", "Lintel", "Sill", "Wainscot", "Paper",
+                "Painting", "Fixture", "Rug")
 
 
 def floor_colliders():
@@ -585,6 +593,59 @@ def wall_plate(loc, rot_z_deg, axis, coord):
     to_wall(objs, axis, coord)
 
 
+FRAME_STYLES = {"gilt": ((0.42, 0.3, 0.12), 0.38, 1.0), "ebony": ((0.025, 0.02, 0.017), 0.45, 0.0),
+                "walnut": ((0.09, 0.05, 0.03), 0.5, 0.0), "silver": ((0.45, 0.44, 0.42), 0.4, 1.0)}
+
+
+def painting(met_id, loc, rot_z_deg, height, style="gilt", standing=False):
+    """Cuadro hecho aquí: lienzo con una pintura CC0 del Met, marco moldurado con filete y trasera. loc es el centro
+    del lienzo (de pie: la base); de cara a -Y antes de girar, como los modelos de Poly Haven (usuario, 2026-11-21:
+    ningún cuadro repetido en la casa)."""
+    img = bpy.data.images.load(os.path.join(MET, "%s.jpg" % met_id), check_existing=True)
+    h = height
+    w = h * img.size[0] / img.size[1]
+    fw, fd = max(0.03, 0.09 * h), 0.035  # ancho y fondo del marco
+    canvas = bpy.data.materials.get("Painting_%s" % met_id)
+    if not canvas:
+        canvas = bpy.data.materials.new("Painting_%s" % met_id)
+        canvas.use_nodes = True
+        nt = canvas.node_tree
+        b = next(n for n in nt.nodes if n.type == "BSDF_PRINCIPLED")
+        t = nt.nodes.new("ShaderNodeTexImage")
+        t.image = img
+        nt.links.new(t.outputs["Color"], b.inputs["Base Color"])
+        b.inputs["Roughness"].default_value = 0.55
+    color, rough, metal = FRAME_STYLES[style]
+    frame = mat("Frame_" + style, color, rough, metallic=metal)
+    liner = mat("FrameLiner", (0.36, 0.31, 0.22), 0.6)
+    parts = []
+    bpy.ops.mesh.primitive_plane_add(size=1.0, location=(0, -0.006, 0), rotation=(math.radians(90), 0, 0))
+    c = bpy.context.active_object
+    c.scale = (w, h, 1)
+    bpy.ops.object.transform_apply(location=False, rotation=True, scale=True)
+    parts.append(give(c, canvas))
+    sl = 0.012  # filete interior
+    for name, size, at in (("FrameTop", (w + 2 * fw, fd, fw), (0, 0, h / 2 + fw / 2)), ("FrameBottom", (w + 2 * fw, fd, fw), (0, 0, -h / 2 - fw / 2)),
+                           ("FrameL", (fw, fd, h), (-w / 2 - fw / 2, 0, 0)), ("FrameR", (fw, fd, h), (w / 2 + fw / 2, 0, 0))):
+        parts.append(give(box(name, size, at), frame, bevel=min(0.01, fw / 4)))
+    for name, size, at in (("LinerTop", (w, 0.01, sl), (0, -0.002, h / 2 - sl / 2)), ("LinerBottom", (w, 0.01, sl), (0, -0.002, -h / 2 + sl / 2)),
+                           ("LinerL", (sl, 0.01, h), (-w / 2 + sl / 2, -0.002, 0)), ("LinerR", (sl, 0.01, h), (w / 2 - sl / 2, -0.002, 0))):
+        parts.append(give(box(name, size, at), liner))
+    parts.append(give(box("FrameBack", (w, 0.004, h), (0, 0.012, 0)), frame))
+    o = join(parts, "Painting_%s" % met_id)
+    if standing:  # en un mueble: inclinado hacia atrás, apoyado en su pata
+        o.rotation_euler = (math.radians(-12), 0, 0)
+        bpy.ops.object.transform_apply(location=False, rotation=True, scale=False)
+        strut = give(box("FrameStrut", (0.02, 0.01, h * 0.8), (0, 0.06 + h * 0.08, -h * 0.08)), frame)
+        strut.rotation_euler = (math.radians(20), 0, 0)
+        o = join([o, strut], "Painting_%s" % met_id)
+        o.data.transform(Matrix.Translation((0, 0, h / 2 + fw)))  # de pie: el origen en la base
+    o.rotation_euler = (0, 0, math.radians(rot_z_deg))
+    o.location = loc
+    bpy.ops.object.transform_apply(location=True, rotation=True, scale=False)
+    return [o]
+
+
 def decorate_1940s(wood, brass, shade):
     """Ronda 3 (usuario, 2026-11-19): un salón de Visage llevado a los años 40. Zócalo de madera, reloj de pie,
     crucifijo y apliques de tela sobre la tele, y paredes llenas de cuadros y platos."""
@@ -636,13 +697,14 @@ def decorate_1940s(wood, brass, shade):
     wall_plate((-W / 2 + 0.05, 1.6, 2.36), 90, "x", -W / 2)
     wall_plate((W / 2 - 0.05, -0.45, 2.12), -90, "x", W / 2)
 
-    # Ronda 5: más objetos de casa vivida. Fotos pequeñas sobre el cuadro de la tele (modelos repetidos a otra escala).
-    to_wall(import_model("hanging_picture_frame_03", "1k", (0.75, y0 + 0.2, 1.86), rot_z_deg=180, scale=0.55, drop=("glass",)), "y", y0)
-    to_wall(import_model("fancy_picture_frame_02", "1k", (1.12, y0 + 0.2, 1.88), rot_z_deg=180, scale=0.3, drop=("glass",)), "y", y0)
+    # Ronda 5: más objetos de casa vivida. Cuadros pequeños sobre el de la tele (antes, modelos repetidos a otra
+    # escala; usuario, 2026-11-21: ningún cuadro repetido).
+    to_wall(painting(437914, (0.75, y0 + 0.2, 1.86), 180, 0.26, "ebony"), "y", y0)
+    to_wall(painting(435757, (1.15, y0 + 0.2, 1.88), 180, 0.22, "gilt"), "y", y0)
     # Lo que se ve desde el suelo alrededor de la tele (la cámara de juego solo encuadra esa franja de pared):
     # dos cuadros pequeños a los lados, justo encima del zócalo.
-    to_wall(import_model("hanging_picture_frame_03", "1k", (0.6, y0 + 0.2, 0.95), rot_z_deg=180, scale=0.45, drop=("glass",)), "y", y0)
-    to_wall(import_model("fancy_picture_frame_01", "1k", (-0.62, y0 + 0.2, 0.98), rot_z_deg=180, scale=0.42, drop=("glass",)), "y", y0)
+    to_wall(painting(436961, (0.6, y0 + 0.2, 0.97), 180, 0.26, "walnut"), "y", y0)
+    to_wall(painting(436545, (-0.62, y0 + 0.2, 1.0), 180, 0.3, "gilt"), "y", y0)
     # Mecedora vacía junto a la tele, girada hacia el salón.
     import_model("Rockingchair_01", "1k", (0.95, y0 + 0.55, 0), rot_z_deg=200)
     # Mesilla junto al sofá con una lamparita (su luz en Godot es TableLamp, muy tenue) y una foto.
@@ -650,7 +712,7 @@ def decorate_1940s(wood, brass, shade):
     give(cylinder("TableLampBase", 0.06, 0.02, (1.78, y1 - 0.25, 0.71)), brass, bevel=0.003)
     give(cylinder("TableLampStem", 0.008, 0.3, (1.78, y1 - 0.25, 0.87), verts=10), brass)
     give(cone("TableLampShade", 0.12, 0.07, 0.16, (1.78, y1 - 0.25, 1.06)), shade)
-    import_model("standing_picture_frame_01", "1k", (1.56, y1 - 0.3, 0.7), rot_z_deg=-20)
+    painting(437374, (1.56, y1 - 0.3, 0.7), -20, 0.16, "silver", standing=True)
     # Libros apilados en el suelo, al lado de la librería.
     import random
     books_stack(1.75, -0.72, 0, 5, random.Random(11))

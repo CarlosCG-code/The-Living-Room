@@ -10,12 +10,14 @@ const PX_TO_RAD := 0.004  # giro por píxel de ratón con la sensibilidad por de
 const DEFAULT_SENSITIVITY := 0.0012
 const HEIGHT := 2.074
 const THICKNESS := 0.04
-## El eje de giro va al borde interior del marco, no al eje del muro: girando en el eje, la hoja abierta se
-## cruzaba en ángulo muy cerrado con la cara del marco y parpadeaba (usuario, 2026-11-20). La hoja se acorta igual.
-const HINGE_INSET := 0.026
-const LATCH_GAP := 0.006
-const WOOD := Color(0.16, 0.085, 0.04)
-const BRASS := Color(0.6, 0.45, 0.22)
+## Como una puerta de verdad (usuario, 2026-11-21): la hoja va enrasada con la cara del marco del lado hacia el
+## que abre (medio muro + 1,5 cm que sobresale el marco), no en medio del muro, y gira en esa esquina: así
+## abierta no se cruza con el marco. Holguras de 3 mm a cada jamba (las del piso entran 3 mm en el hueco).
+const FACE := 0.09
+const HINGE_INSET := 0.006
+const LATCH_GAP := 0.009
+## Hoja de época modelada en Blender (tools/blender/build_door.py) a este tamaño: 0,885 × 2,074 × 0,04 m.
+const LEAF_SCENE := preload("res://assets/models/living_room/door_leaf.gltf")
 const SOUNDS := {
 	&"creak": preload("res://assets/audio/flat/door_creak.ogg"),
 	&"latch": preload("res://assets/audio/flat/door_latch.ogg"),
@@ -51,8 +53,11 @@ func setup(conn: ConnectionDef, mirrored: bool) -> void:
 	locked = conn.start == &"locked"
 	angle = DoorMath.AJAR_ANGLE if conn.start == &"ajar" else 0.0
 	var x := conn.direction.normalized()
-	var t := Transform3D(Basis(x, Vector3.UP, x.cross(Vector3.UP)), conn.hinge + x * HINGE_INSET)
-	transform = MirrorMath.mirror_transform(t) if mirrored else t
+	var origin := conn.hinge + x * HINGE_INSET
+	if mirrored:  # se reflejan los puntos, no la base: M·t·M ponía la hoja al otro lado de la bisagra
+		x.x = -x.x
+		origin.x = -origin.x
+	transform = Transform3D(Basis(x, Vector3.UP, x.cross(Vector3.UP)), origin)
 	_sign = conn.swing * (-1.0 if mirrored else 1.0)
 	_build()
 	_apply_angle()
@@ -63,35 +68,21 @@ func _build() -> void:
 	_leaf = AnimatableBody3D.new()
 	_leaf.name = "Leaf"
 	_leaf.physics_interpolation_mode = Node.PHYSICS_INTERPOLATION_MODE_ON  # gira en _physics_process
+	_leaf.position = _pivot()
 	add_child(_leaf)
-	var size := Vector3(_width, HEIGHT, THICKNESS)
-	var center := Vector3(_width / 2.0, 0.02 + HEIGHT / 2.0, 0.0)  # rendija de 2 cm bajo la hoja, como en el salón
 	_shape = BoxShape3D.new()
-	_shape.size = size
+	_shape.size = Vector3(_width, HEIGHT, THICKNESS)
 	var col := CollisionShape3D.new()
 	col.shape = _shape
-	col.position = center
+	col.position = _leaf_center()
 	_leaf.add_child(col)
-	var mesh := MeshInstance3D.new()
-	var box := BoxMesh.new()
-	box.size = size
-	box.material = _material(WOOD, 0.4, 0.0)
-	mesh.mesh = box
-	mesh.position = center
-	mesh.gi_mode = GeometryInstance3D.GI_MODE_DYNAMIC  # no deja su sombra horneada al abrirse
-	_leaf.add_child(mesh)
-	for side in [-1.0, 1.0]:  # manilla a cada lado, cerca del pestillo
-		var handle := MeshInstance3D.new()
-		var cyl := CylinderMesh.new()
-		cyl.top_radius = 0.009
-		cyl.bottom_radius = 0.009
-		cyl.height = 0.12
-		cyl.material = _material(BRASS, 0.3, 1.0)
-		handle.mesh = cyl
-		handle.rotation.z = PI / 2.0
-		handle.position = Vector3(_width - 0.12, 1.0, side * (THICKNESS / 2.0 + 0.03))
-		handle.gi_mode = GeometryInstance3D.GI_MODE_DYNAMIC
-		_leaf.add_child(handle)
+	# El modelo va con la cara de los pernios en su -Z; del otro lado de la puerta se refleja.
+	var model := LEAF_SCENE.instantiate() as Node3D
+	model.position = Vector3(0.0, 0.02, _sign * THICKNESS / 2.0)  # rendija de 2 cm bajo la hoja, como en el salón
+	model.scale.z = _sign
+	_leaf.add_child(model)
+	for m: MeshInstance3D in model.find_children("*", "MeshInstance3D", true, false):
+		m.gi_mode = GeometryInstance3D.GI_MODE_DYNAMIC  # no deja su sombra horneada al abrirse
 	for key: StringName in SOUNDS:
 		var p := AudioStreamPlayer3D.new()
 		p.stream = SOUNDS[key]
@@ -103,12 +94,14 @@ func _build() -> void:
 		_players[key] = p
 
 
-static func _material(color: Color, roughness: float, metallic: float) -> StandardMaterial3D:
-	var m := StandardMaterial3D.new()
-	m.albedo_color = color
-	m.roughness = roughness
-	m.metallic = metallic
-	return m
+# Esquina de giro: en la cara del marco del lado hacia el que abre (ahí gira la hoja hacia -Z · _sign).
+func _pivot() -> Vector3:
+	return Vector3(0.0, 0.0, -_sign * FACE)
+
+
+# Centro de la hoja respecto a la esquina de giro: hacia dentro del muro.
+func _leaf_center() -> Vector3:
+	return Vector3(_width / 2.0, 0.02 + HEIGHT / 2.0, _sign * THICKNESS / 2.0)
 
 
 ## Agarrar la hoja desde eye. Con llave no se mueve: suena el traqueteo y devuelve false.
@@ -159,7 +152,7 @@ func _apply_angle() -> void:
 
 
 func _latch_at(a: float) -> Vector3:
-	return global_transform * (Basis(Vector3.UP, _sign * a) * Vector3(_width, 1.0, 0.0))
+	return global_transform * (_pivot() + Basis(Vector3.UP, _sign * a) * Vector3(_width, 1.0, 0.0))
 
 
 # ¿Chocaría la hoja en el ángulo a con el jugador o con un mueble? Los muros y marcos no cuentan: la hoja
@@ -167,8 +160,8 @@ func _latch_at(a: float) -> Vector3:
 func _blocked(a: float) -> bool:
 	var q := PhysicsShapeQueryParameters3D.new()
 	q.shape = _shape
-	q.transform = global_transform * Transform3D(Basis(Vector3.UP, _sign * a), Vector3.ZERO) \
-			* Transform3D(Basis.IDENTITY, Vector3(_width / 2.0, 0.02 + HEIGHT / 2.0, 0.0))
+	q.transform = global_transform * Transform3D(Basis(Vector3.UP, _sign * a), _pivot()) \
+			* Transform3D(Basis.IDENTITY, _leaf_center())
 	q.exclude = [_leaf.get_rid()]
 	for hit in get_world_3d().direct_space_state.intersect_shape(q, 8):
 		var c: Object = hit["collider"]
