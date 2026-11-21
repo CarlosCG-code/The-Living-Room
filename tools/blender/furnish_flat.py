@@ -425,6 +425,7 @@ def furnish():
     on("vintage_pocket_watch", commode, dpx=-0.3, rot=15)
     made(oval_mirror(M, 0.5, 0.7, 1.75), "OvalMirror", z, "py0", -1.0, gap=0.0)
     pic(437336, z, "px0", 2.0, 1.85, 0.5)
+    pic("cma:125247", z, "py1", 1.5, 1.6, 0.45, "ebony")
     fixture(z, M, "Chandelier_01")
 
     # Comedor: mesa con mantel y cuatro sillas, aparador con el toro de bronce, reloj encima, repisa con un puchero
@@ -440,8 +441,8 @@ def furnish():
     on("brass_goblets", console, dpy=-0.5, scale=0.7)
     on("wooden_candlestick", console, dpy=0.5)
     put("wall_clock", z, "px1", 2.0, gap=0.003, z=1.55)
-    shelf = made(wall_shelf(M, 0.6, 1.4), "DiningShelf", z, "px0", 2.0, gap=0.0)
-    on("brass_pot_01", shelf, top=1.4125)
+    pic("cma:151555", z, "px0", 2.0, 1.6, 0.55)  # bodegón con pescado y pan
+    pic("cma:150140", z, "py1", -1.2, 1.6, 0.4, "walnut")  # bodegón de dulces
     stand = put("side_table_tall_01", z, "py0", 0.45, gap=0.1)
     on("potted_plant_04", stand)
     fixture(z, M, "Chandelier_03")
@@ -478,24 +479,33 @@ def furnish():
     on("ceramic_vase_04", shelf, top=1.3125)
     shelf = made(wall_shelf(M, 0.5, 1.3), "ShelfMainW2", "corridor_main_w", "py1", -0.8, gap=0.0)
     on("lion_head", shelf, top=1.3125, rot=90)
+    pic("cma:160885", "corridor_main_w", "py0", 2.5, 1.55, 0.45, "ebony")
     fixture("corridor_main_w", M, kind="plafon")
     shelf = made(wall_shelf(M, 0.45, 1.35), "Altar", "corridor_main_m", "py0", 1.9, gap=0.0)
     on("gothic_statue", shelf, top=1.3625, rot=-90, scale=0.15)
+    pic("cma:109507", "corridor_main_m", "py0", 0.6, 1.6, 0.45)
+    pic("cma:148965", "corridor_main_m", "py1", 3.4, 1.55, 0.38, "walnut")
     fixture("corridor_main_m", M, kind="plafon")
     shelf = made(wall_shelf(M, 0.7, 1.3), "ShipShelf", "corridor_main_e", "py0", -1.0, gap=0.0)
     on("dutch_ship_medium", shelf, top=1.3125, rot=-90, scale=0.02)
+    pic("cma:151298", "corridor_main_e", "py1", 1.0, 1.55, 0.38, "silver")
     fixture("corridor_main_e", M, kind="plafon")
     # Pasillo lateral (tulipa): un Cristo muerto y una banqueta plegable.
     pic(441965, "corridor_side", "px0", 1.8, 1.55, 0.6)
     put("folding_wooden_stool", "corridor_side", "px1", 0.9, gap=0.05)
+    pic("cma:148758", "corridor_side", "px1", 2.5, 1.6, 0.5)
     fixture("corridor_side", M, kind="tulip")
     # Pasillo de servicio (campana de tela): farol de aceite para los apagones y colgador con un sombrero.
     shelf = made(wall_shelf(M, 0.4, 1.35), "LanternShelf", "corridor_service_w", "py0", 3.0, gap=0.0)
     on("Lantern_01", shelf, top=1.3625)
+    pic("cma:152006", "corridor_service_w", "py0", 4.5, 1.55, 0.4, "walnut")
+    pic("cma:97155", "corridor_service_w", "py1", 2.7, 1.6, 0.45)
     fixture("corridor_service_w", M, kind="bell")
     made(peg_rail(M), "PegRail", "corridor_service_m", "py0", 1.0, gap=0.0)
     put("fishermans_hat", "corridor_service_m", "py0", 0.85, gap=0.03, z=1.5, rot=10)
+    pic("cma:171296", "corridor_service_m", "py0", 4.6, 1.55, 0.4, "ebony")
     fixture("corridor_service_m", M, kind="bell")
+    pic("cma:145450", "corridor_service_e", "py1", 1.9, 1.55, 0.45, "ebony")
     fixture("corridor_service_e", M, kind="bell")
 
     # Dormitorio 2: cama de hierro con crucifijo, banqueta con jarra de noche, armario ropero, silla tallada y maletas.
@@ -507,6 +517,7 @@ def furnish():
     made(wardrobe(M), "Wardrobe", z, "px0", -1.0)
     put("gallinera_chair", z, "py1", 2.0, gap=0.05)
     put("vintage_suitcase", z, "py1", 0.9, gap=0.05, rot=8)
+    pic("cma:142472", z, "py0", -0.6, 1.55, 0.4)  # icono de la Virgen
     fixture(z, M, kind="fabric")
 
     # Baño: bañera de patas, inodoro de cisterna alta, lavabo de pie con espejo, cubo y globo de cristal.
@@ -529,6 +540,7 @@ def furnish():
     shelves = put("painted_wooden_shelves", z, "px0", 1.9)
     on("horse_head", shelves, rot=180, scale=0.7)
     put("standing_chalkboard_01", z, "py1", -0.6, gap=0.1)
+    pic("cma:149768", z, "py0", 1.3, 1.65, 0.55, "walnut")  # san Juan, sobre la cama
     fixture(z, M, kind="drum")
 
     # Paso de la despensa: estantería, escoba, recogedor, cesto y lechera; lámpara de esmalte verde.
@@ -543,6 +555,7 @@ def furnish():
     # Galería: rueca, canapé pintado, plantas con su regadera, botas de agua, cubo de la colada y farol colgado.
     z = "gallery"
     put("spinning_wheel_01", z, "px0", -1.5, gap=0.05)
+    pic("cma:136680", z, "px0", -1.5, 1.65, 0.5)  # san Jerónimo
     put("painted_wooden_sofa", z, "px1", 1.8)
     put("potted_plant_01", z, "py1", 0.5, gap=0.05)
     put("watering_can_metal_01", z, "py1", 1.1, gap=0.08, rot=30)
@@ -568,6 +581,7 @@ def furnish():
     z = "entrance_hall"
     put("painted_wooden_bench", z, "px0", 1.6)
     pic(436200, z, "px0", 1.6, 1.6, 0.7)
+    pic("cma:111435", z, "py0", 0.5, 1.6, 0.45)
     made(coat_rack(M), "CoatRack", z, None, (8.15, 13.2))
     made(mirror(M, 0.55, 0.85, 1.55), "HallMirror", z, "px1", 1.8, gap=0.0)
     chest = put("gallinera_table", z, "px1", 1.8)
@@ -586,6 +600,7 @@ def furnish():
         import_model(asset, "1k", ((sl.x + sh.x) / 2, (sl.y + sh.y) / 2 + dy, level + 0.0125))
     free("wine_barrel_01", 9.5, 13.05)
     free("mousetrap", 9.4, 10.7, rot=20)
+    pic("cma:128393", z, "py1", 0.7, 1.65, 0.4, "ebony")  # bodegón con raya
     fixture(z, M, "lightbulb_01", cord=0.5)
 
     # Cocina: cocina económica con olla, cazo y tetera, fregadero bajo la ventana, alacena, mesa con dos sillas,
@@ -605,6 +620,7 @@ def furnish():
     on("wooden_spoon", table, dpx=-0.15, rot=40)
     on("jug_01", table, dpx=0.3, scale=0.7)
     on("wooden_bowl_02", table, dpx=0.05, dpy=0.2)
+    pic("cma:147607", z, "px0", 0.6, 1.6, 0.38, "walnut")  # bodegón con arenques
     fixture(z, M, kind="enamel")
 
     # Aseo de servicio: inodoro de tanque bajo, lavabo pequeño, banqueta y desatascador; cúpula de latón.

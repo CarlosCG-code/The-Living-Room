@@ -601,7 +601,10 @@ def painting(met_id, loc, rot_z_deg, height, style="gilt", standing=False):
     """Cuadro hecho aquí: lienzo con una pintura CC0 del Met, marco moldurado con filete y trasera. loc es el centro
     del lienzo (de pie: la base); de cara a -Y antes de girar, como los modelos de Poly Haven (usuario, 2026-11-21:
     ningún cuadro repetido en la casa)."""
-    img = bpy.data.images.load(os.path.join(MET, "%s.jpg" % met_id), check_existing=True)
+    # "cma:<id>": Cleveland Museum of Art (tools/fetch_cma.py); un número: el Met (tools/fetch_met.py).
+    src = os.path.join(ROOT, "art_source", "cma", met_id[4:] + ".jpg") if str(met_id).startswith("cma:") else os.path.join(MET, "%s.jpg" % met_id)
+    met_id = str(met_id).replace(":", "_")
+    img = bpy.data.images.load(src, check_existing=True)
     h = height
     w = h * img.size[0] / img.size[1]
     fw, fd = max(0.03, 0.09 * h), 0.035  # ancho y fondo del marco

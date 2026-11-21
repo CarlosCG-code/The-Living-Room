@@ -30,3 +30,4 @@ __pycache__/
 # Regenerables: make_wallpapers.py; pinturas CC0 del Met (Commons), registradas en ASSETS.md
 /art_source/generated/
 /art_source/met/
+/art_source/cma/
