@@ -2,7 +2,7 @@
 con detalle, como el salón; ningún cuadro ni objeto repetido; una lámpara en cada habitación.
 
 Lo ejecuta build_flat.py con sus funciones (exec en su espacio de nombres). Todo es CC0 de Poly Haven, pinturas
-CC0 del Met o modelado aquí con formas simples (lo que Poly Haven no tiene: baño, cocina económica, fregadero…).
+CC0 del Met o modelado aquí con formas simples (lo que no hay en ninguna librería CC0: bañera, inodoro, lavabo, fregadero…).
 Coordenadas de plano (flat_layout.py): px a lo largo de la fachada, py hacia dentro. Blender: X = 2 - py, Y = px - 7.
 """
 import math
@@ -99,7 +99,6 @@ def materials():
         "porcelain": tex_mat("PorcelainOld", "porcelain_old", "2k", root=GEN),
         "iron": tex_mat("IronWorn", "rusty_metal_04", "1k"),
         "tub_paint": tex_mat("GreenPaintRust", "green_metal_rust", "1k"),
-        "terrazzo": tex_mat("TerrazzoOld", "terrazzo_tiles", "1k", tint=(0.8, 0.77, 0.72)),
         "bench": tex_mat("OldPlanks", "old_planks_02", "1k"),
         "shelf": tex_mat("WornWood", "wood_table_worn", "1k"),
         "walnut": tex_mat("WornWalnut", "wood_table_worn", "1k", tint=(0.55, 0.42, 0.34)),
@@ -266,26 +265,11 @@ def wall_slate(M):
     return parts
 
 
-def kitchen_range(M):
-    """Cocina económica de hierro con barra de latón, fogones, horno y tiro hasta el techo."""
-    parts = [give(box("RangeBody", (1.0, 0.6, 0.78), (0, 0, 0.39)), M["iron"], bevel=0.01),
-             give(box("RangeTop", (1.04, 0.64, 0.03), (0, 0, 0.795)), M["iron"], bevel=0.006)]
-    for x in (-0.25, 0.15):
-        bpy.ops.mesh.primitive_torus_add(major_radius=0.11, minor_radius=0.012, location=(x, -0.05, 0.815))
-        parts.append(give(bpy.context.active_object, M["iron"]))
-    parts.append(give(cylinder("RangeRail", 0.012, 1.08, (0, -0.36, 0.7), rot=(0, math.radians(90), 0), verts=10), M["brass"]))
-    for x, w in ((-0.25, 0.4), (0.25, 0.4)):
-        parts.append(give(box("RangeDoor", (w, 0.02, 0.32), (x, -0.31, 0.38)), M["iron"], bevel=0.008))
-        parts.append(give(box("RangeHandle", (0.08, 0.02, 0.015), (x, -0.33, 0.5)), M["brass"]))
-    parts.append(give(cylinder("RangeFlue", 0.07, H - 0.81, (0.35, 0.18, 0.81 + (H - 0.81) / 2), verts=16), M["iron"]))
-    return parts
-
-
 def kitchen_sink(M):
-    """Fregadero de terrazo sobre obra alicatada, con grifo de pared."""
+    """Fregadero de loza vieja sobre obra alicatada, con grifo de pared (no hay ninguno CC0 de librería)."""
     parts = [give(box("SinkBase", (1.0, 0.55, 0.8), (0, 0, 0.4)), M["tile"])]
-    outer = cast(give(box("Sink", (1.0, 0.58, 0.2), (0, -0.01, 0.9)), M["terrazzo"], bevel=0.02))
-    inner = cast(give(box("SinkIn", (0.7, 0.42, 0.2), (-0.1, -0.02, 0.98)), M["terrazzo"], bevel=0.02))
+    outer = cast(give(box("Sink", (1.0, 0.58, 0.2), (0, -0.01, 0.9)), M["porcelain"], bevel=0.02))
+    inner = cast(give(box("SinkIn", (0.7, 0.42, 0.2), (-0.1, -0.02, 0.98)), M["porcelain"], bevel=0.02))
     parts.append(hollow(outer, inner))
     parts.append(give(cylinder("SinkTap", 0.014, 0.2, (-0.1, 0.18, 1.12), rot=(math.radians(-70), 0, 0), verts=10), M["brass"]))
     return parts
@@ -637,12 +621,12 @@ def furnish():
     pic("cma:128393", z, "py1", 0.7, 1.65, 0.4, "ebony")  # bodegón con raya
     fixture(z)
 
-    # Cocina: cocina económica de hierro con olla y cazo, fregadero de terrazo bajo la ventana, alacena, mesa con dos
+    # Cocina: cocina esmaltada con olla y cazo, fregadero de loza bajo la ventana, alacena, mesa con dos
     # sillas, la radio sobre la alacena y una repisa con el puchero de latón.
     z = "kitchen"
-    rng = made(kitchen_range(M), "KitchenRange", z, "px1", 1.7, gap=0.01)
-    on("pot_enamel_01", rng, dpy=0.25, top=0.81)
-    on("brass_pan_01", rng, dpy=-0.3, rot=30, top=0.81)
+    stove = put("rusty_stove", z, "px1", 1.7, gap=0.03)  # cocina esmaltada y oxidada (BlenderKit)
+    on("pot_enamel_01", stove, dpy=0.13)
+    on("brass_pan_01", stove, dpy=-0.15, rot=30)
     made(kitchen_sink(M), "KitchenSink", z, "py1", 2.03, gap=0.01, uv=2.4)  # el azulejo, a su escala de pared
     cab = put("painted_wooden_cabinet", z, "py0", -0.8)
     on("philips_radio", cab, rot=-90)  # radio Philips de 1939 (Sketchfab, escaneo de museo)

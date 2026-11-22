@@ -118,8 +118,6 @@ def build():
     tiles = tex_mat("Tiles", "dirty_tiles", "2k")
     ceiling = tex_mat("Gotele", "white_stucco", "1k", tint=(0.6, 0.57, 0.52))
     door_wood = tex_mat("DoorWood", "dark_wood", "1k", tint=_helpers["DOOR_TINT"])
-    timber = tex_mat("WindowTimber", "weathered_peeling_timber", "1k", tint=(0.85, 0.82, 0.75))  # ventanas de madera vieja
-    brass = bpy.data.materials.get("Brass") or mat("Brass", (0.6, 0.45, 0.22), 0.3, metallic=1.0)
     glass = mat("Glass", (0.6, 0.65, 0.7), 0.05)
     gb = next(n for n in glass.node_tree.nodes if n.type == "BSDF_PRINCIPLED")
     gb.inputs["Alpha"].default_value = 0.12
@@ -166,12 +164,10 @@ def build():
         lintels.append(wall_box("Sill_%s-col" % zid, axis, coord, span[0], span[1], 0, WIN_BOT))
         lintels.append(wall_box("Lintel_win_%s-col" % zid, axis, coord, span[0], span[1], WIN_TOP, H))
         f = 0.07
-        for name, a0, a1, z0, z1, d in _helpers["window_parts"](span[0], span[1], WIN_BOT, WIN_TOP):
-            o = wall_box("%s_%s" % (name, zid), axis, coord, a0, a1, z0, z1)
-            k = (T + 0.02 if d is None else d) / T  # fondo: el cerco sobresale 1 cm, las hojas son más finas
-            o.scale = (k, 1, 1) if axis == "h" else (1, k, 1)
-            bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
-            uv_world(give(o, brass if name.startswith("WinHandle") else timber, bevel=0.004), 0.8)
+        # Ventana de madera de BlenderKit (usuario, 2026-11-22: las hechas aquí «parecían de la guerra»). Su exterior
+        # mira a -Y: hacia la calle (+X) en la fachada y hacia el patio (-X) en el patio de luces.
+        for o in _helpers["import_model"]("classic_window", "1k", (*to_b(pos, coord), WIN_BOT), rot_z_deg=90 if coord == L.Y0 else -90):
+            o.name = "WinFrame_%s" % zid
         g = wall_box("WindowGlass_%s" % zid, axis, coord, span[0] + f, span[1] - f, WIN_BOT + f, WIN_TOP - f)
         g.scale = (0.04, 1, 1) if axis == "h" else (1, 0.04, 1)
         bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)

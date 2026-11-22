@@ -154,10 +154,8 @@ Modelos CC0 de Poly Haven (descargados con `tools/fetch_polyhaven.py`, 1k):
 | Worn Plaster Wall (`art_source/polyhaven/worn_plaster_wall/`, 2k) | https://polyhaven.com/a/worn_plaster_wall (autor: Dimitrios Savva) | `0db7aef34bab54218e60fe3736fe588ee777fb577686fcb0307958bcd2594ab547b87f51d99acf5efa0156e6bcb4ddfd4d8c2ca7ad8c87bc7b96a6c2939f4a6e` | CC0 1.0 (polyhaven.com/license) |
 | Green Metal Rust (`art_source/polyhaven/green_metal_rust/`, 1k) | https://polyhaven.com/a/green_metal_rust (autor: Rob Tuytel) | `978b2fefb6695b61f4027e0ea4c3155e289ffbd2abdce4587c5e51d9fc37908e5895292cd8571695a26e9b9000d43c79ce297288900e1d9af5473fff3f53d00b` | CC0 1.0 (polyhaven.com/license) |
 | Rusty Metal 04 (`art_source/polyhaven/rusty_metal_04/`, 1k) | https://polyhaven.com/a/rusty_metal_04 (autor: Amal Kumar) | `4956c4cc4a0fcd07d20e497445f6786ede856114c4061fec0c0fba3ccc2e2667f4ed04abe436dd41c951330ab0cae9d8e9847ce0b5d2893250dfc27a52784ae0` | CC0 1.0 (polyhaven.com/license) |
-| Terrazzo Tiles (`art_source/polyhaven/terrazzo_tiles/`, 1k) | https://polyhaven.com/a/terrazzo_tiles (autor: Amal Kumar) | `1a9265fd2d127553ad9823c2d92409f123e9b4f85a0d09f3795485f232df4e9d23d9ada975f2cbfd817e1aa613e6c3bacd20135207dc35a61766bf13962f0cae` | CC0 1.0 (polyhaven.com/license) |
 | Old Planks 02 (`art_source/polyhaven/old_planks_02/`, 1k) | https://polyhaven.com/a/old_planks_02 (autor: Rob Tuytel) | `4f698ae027b2c33797873f6da31d673a6776c3347a7c8d73fd03a3ea1b7c19760122af090a93c948744a3699b2074738fbb29002db126db084fafad8e8e6ec7f` | CC0 1.0 (polyhaven.com/license) |
 | Wood Table Worn (`art_source/polyhaven/wood_table_worn/`, 1k) | https://polyhaven.com/a/wood_table_worn (autor: Dimitrios Savva, Rico Cilliers) | `7dd205985e3a7782d6fbbd7e9c6389e3e4f1c9aa366731d0ea6a62dfcc0f2de969b7ed3ebc2ab45d7b72f6e59dc9bdfe326069b84c873b8dccc8c26ff18691eb` | CC0 1.0 (polyhaven.com/license) |
-| Weathered Peeling Timber (`art_source/polyhaven/weathered_peeling_timber/`, 1k) | https://polyhaven.com/a/weathered_peeling_timber (autor: Dimitrios Savva) | `36341e433c9ef5686f90359fc88f65a90f5cfc947f3c73bf30b89b1bb97f79bc45b55dc60dfc7da886a99ac8d7887b4906e674bde5afe30a173a056a173daf54` | CC0 1.0 (polyhaven.com/license) |
 | Brass Diya Lantern (`art_source/polyhaven/brass_diya_lantern/`, 1k) | https://polyhaven.com/a/brass_diya_lantern (autor: Bhargav Kubal) | `c42c01cee73329f90f063e31ac0dd9de4de1803038f4b8f85bf8ba8ae9db71f60f714c523d237d699adc58d47d0800e3c0cd7e972e872a3bf10291999439c627` | CC0 1.0 (polyhaven.com/license) |
 | Brass Blowtorch (`art_source/polyhaven/brass_blowtorch/`, 1k) | https://polyhaven.com/a/brass_blowtorch (autor: Ulan Cabanilla) | `013f545db144b66703a0a437ab4a9812a04594711980001be921f0fb12bd96dc6f957b95bfb02dc5b085519feab8fe1698a5d0d2ee9704d7c0c2ccb6198cd074` | CC0 1.0 (polyhaven.com/license) |
 | Tongue & Groove Pliers (`art_source/polyhaven/tongue_groove_pliers/`, 1k) | https://polyhaven.com/a/tongue_groove_pliers (autor: BKS) | `2f6431877cecbc8757614248c56cc3a07c7bf38d47ff52921c2feb850885048a03b72ebf4d5c38a6cb58cdfe32531a37e8988508b0f31a7bce191b7f6ed12253` | CC0 1.0 (polyhaven.com/license) |
@@ -267,7 +265,7 @@ Pinturas CC0 del Cleveland Museum of Art, Open Access (`tools/fetch_cma.py`; la 
 | `art_source/cma/171296.jpg` | Vale of Kashmir (Robert S. Duncanson (American, 1821–1872), 1867) | https://clevelandart.org/art/2014.12 | `b73fc51b722d1980333be8d6bdc90b87f35ff59260cdbe35616d9de240c94ea822ba168bbde9197704ee3a4612078007c4404119a1fcd63c7daf2ddc9fe16a91` | CC0 1.0 | 2026-11-21 |
 | `art_source/cma/97155.jpg` | Portrait of a Couple (, c. 1580–88) | https://clevelandart.org/art/1916.793 | `ff30578d68ea87b4458c1bd3baae64aacfd79c002eea97c19e53defbb5949a90a4c7275a6ea83c0e671c306eef023ee0b24a5d50f3094bcb44661f9f23979536` | CC0 1.0 | 2026-11-21 |
 
-Modelos CC0 de Sketchfab (escaneos de museo de Wirtualne Muzea Małopolski), descargados con `tools/fetch_sketchfab.py` (comprueba la licencia en la API) y reducidos con `tools/blender/prep_sketchfab.py`, 2026-11-22:
+Modelos CC0 de Sketchfab (escaneos de museo de Wirtualne Muzea Małopolski), descargados con `tools/fetch_sketchfab.py` (comprueba la licencia en la API) y reducidos con `tools/blender/prep_downloads.py`, 2026-11-22:
 
 | Archivo | Fuente | SHA-512 del zip | Licencia |
 |---|---|---|---|
@@ -275,8 +273,15 @@ Modelos CC0 de Sketchfab (escaneos de museo de Wirtualne Muzea Małopolski), des
 | Orava clock (`art_source/sketchfab/orava_clock/`) | https://sketchfab.com/3d-models/orava-clock-fb4a138f8bed4086a57e928fda999889 (autor: Virtual Museums of Małopolska) | `a01ce9b6ae42d346aac9ba8f526e62aa045b8a65c4c34961967c217728c1e953837dd57cc33951f0815ea14423ed1c7a6abf785208fcbc9314077e783845c2e8` | CC0 1.0 |
 | Philips 7-39 radio (`art_source/sketchfab/philips_radio/`) | https://sketchfab.com/3d-models/philips-7-39-radio-a0f95588f0ed472b8e135474c7b2516d (autor: Virtual Museums of Małopolska) | `783e2d577b1d4f2f4d9550c3f556f4feb44b5ce707ef782736cffeb3cb5e609d3ff4220b9cbd29ff274d7e809fb795e6e9bda64088c4019cfeb62cd8176f152d` | CC0 1.0 |
 
+Modelos CC0 de BlenderKit (licencia cc_zero y gratuitos según su API), descargados con `tools/fetch_blenderkit.py` y preparados con `tools/blender/prep_downloads.py`, 2026-11-22:
+
+| Archivo | Fuente | SHA-512 de la descarga | Licencia |
+|---|---|---|---|
+| Classic Window (`art_source/blenderkit/classic_window/`) | https://www.blenderkit.com/asset-gallery-detail/472ea376-4654-4a4e-8753-a7737f23271b/ (autor: Davide Tirindelli) | `f928c400f51696025fb877e75e42c297834f88110d2fe0c7b0b265592fe7e12a123baff9488e7aca8a06ed10109a65674d090b4b7ea72d2c6529434e79eb20a2` | CC0 1.0 |
+| Old rusty stove (`art_source/blenderkit/rusty_stove/`) | https://www.blenderkit.com/asset-gallery-detail/d0b8ec34-c43c-4df5-9c81-0b644dcf6286/ (autor: Free poly) | `bac7322240d99692083e8c581be6a9bb9fc8ff6e325e3ad093c32ea8d04b0caf26f2e365f3618b64aeba9c675c070a47974f5c00000ca819ac238bd4e4215e1b` | CC0 1.0 |
+
 Hechos por Claude (sin IA generativa: geometría y matemáticas en scripts de Blender; propios del proyecto):
 
 - Papeles pintados (damasco, rayas, florecillas), pintura vieja, azulejo crema con cenefa, baldosa hidráulica, baldosa de barro y loza vieja: `tools/blender/make_wallpapers.py` → `art_source/generated/`.
 - Hoja de puerta de seis cuarterones con herrajes: `tools/blender/build_door.py` → `assets/models/living_room/door_leaf.gltf` (textura `dark_wood` de Poly Haven, ya registrada).
-- Bañera de patas, inodoros de cisterna alta, lavabo de pie, palangana con trípode, toallero, pizarra, ventanas de dos hojas (con texturas gastadas de Poly Haven), cocina económica, fregadero, banco de trabajo, baldas de la fresquera y perchero: `tools/blender/furnish_flat.py` y `window_parts()` de `build_living_room.py`. Los marcos de cuadros y espejos y las lámparas son modelos de Poly Haven ya registrados.
+- Bañera de patas, inodoros de cisterna alta, lavabo de pie, palangana con trípode, toallero, pizarra, fregadero, banco de trabajo, baldas de la fresquera y perchero: `tools/blender/furnish_flat.py`. Los marcos de cuadros y espejos y las lámparas son modelos de Poly Haven ya registrados.

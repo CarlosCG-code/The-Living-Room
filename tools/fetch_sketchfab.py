@@ -4,7 +4,7 @@ Uso: python tools/fetch_sketchfab.py <nombre>:<uid> ...
 La clave de API la guarda el usuario en ~/.sketchfab_token (fuera del repositorio; nunca en el chat ni en git).
 Antes de descargar comprueba en la API que la licencia del modelo sea CC0; si no, lo salta.
 Salida: art_source/sketchfab/<nombre>/ (el glTF tal cual) y una línea por modelo para ASSETS.md.
-Después: tools/blender/prep_sketchfab.py lo reduce a <nombre>_1k.gltf para import_model.
+Después: tools/blender/prep_downloads.py lo reduce a <nombre>_1k.gltf para import_model.
 """
 import hashlib
 import io

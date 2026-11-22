@@ -259,8 +259,9 @@ def import_model(asset_id, res, loc, rot_z_deg=0.0, scale=1.0, drop=(), tint=Non
     drop quita las mallas o los materiales (con sus caras) cuyo nombre contenga alguna de esas palabras.
     lay: lo tumba sobre su cara más ancha (martillos, llaves y sierras vienen de pie; usuario, 2026-11-22)."""
     before = set(bpy.context.scene.objects)
-    sk = os.path.join(ROOT, "art_source", "sketchfab", asset_id)  # los de Sketchfab, ya reducidos (prep_sketchfab.py)
-    bpy.ops.import_scene.gltf(filepath=os.path.join(sk if os.path.isdir(sk) else os.path.join(PH, asset_id), "%s_%s.gltf" % (asset_id, res)))
+    # Los de Sketchfab y BlenderKit, ya reducidos por prep_downloads.py; si no, Poly Haven.
+    folder = next((d for d in (os.path.join(ROOT, "art_source", o, asset_id) for o in ("sketchfab", "blenderkit")) if os.path.isdir(d)), os.path.join(PH, asset_id))
+    bpy.ops.import_scene.gltf(filepath=os.path.join(folder, "%s_%s.gltf" % (asset_id, res)))
     new = [o for o in bpy.context.scene.objects if o not in before]
     for o in new:
         o.select_set(o.type == "MESH")
@@ -368,10 +369,8 @@ def build_final():
 
     # Ventana (pared +X): marco, cristal, alféizar de mármol, persiana medio bajada por fuera y su cajón.
     wx, win_y, win_w, win_bot, win_top = W / 2 + T / 2, 0.5, 1.2, 0.9, 2.1
-    timber = tex_mat("WindowTimber", "weathered_peeling_timber", "1k", tint=(0.85, 0.82, 0.75))
-    for name, a0, a1, z0, z1, d in window_parts(win_y - win_w / 2, win_y + win_w / 2, win_bot, win_top):
-        o = box(name, ((T + 0.02) if d is None else d, a1 - a0, z1 - z0), (wx, (a0 + a1) / 2, (z0 + z1) / 2))
-        uv_world(give(o, brass if name.startswith("WinHandle") else timber, bevel=0.004), 0.8)
+    for o in import_model("classic_window", "1k", (wx, win_y, win_bot), rot_z_deg=90):  # de BlenderKit; el exterior, a +X
+        o.name = "WinFrame"
     give(box("WindowGlass", (0.006, win_w - 0.14, win_top - win_bot - 0.14), (wx, win_y, (win_top + win_bot) / 2)), glass)
     give(box("WindowSill", (0.2, win_w + 0.1, 0.03), (W / 2 - 0.02, win_y, win_bot - 0.015)), marble, bevel=0.005)
     slats, gap, slat_h = [], 0.006, 0.042
@@ -385,7 +384,7 @@ def build_final():
     bpy.context.view_layer.objects.active = slats[0]
     bpy.ops.object.join()
     give(bpy.context.active_object, blind).name = "Blind"
-    uv_world(give(box("BlindBox", (0.14, win_w + 0.2, 0.22), (W / 2 - 0.07, win_y, win_top + 0.13)), timber, bevel=0.004), 0.8)
+    uv_world(give(box("BlindBox", (0.14, win_w + 0.2, 0.22), (W / 2 - 0.07, win_y, win_top + 0.13)), door_wood, bevel=0.004), 0.8)
 
     # Puerta (pared -X), cerrada: marco, hoja y manilla. La hoja va aparte para poder abrirla en el hito 4.
     dx = -W / 2 - T / 2
@@ -670,27 +669,6 @@ def painting(met_id, loc, rot_z_deg, height, style="gilt", standing=False):
     bpy.context.view_layer.objects.active = o
     bpy.ops.object.transform_apply(location=True, rotation=True, scale=False)
     return [o]
-
-
-def window_parts(a0, a1, z0, z1):
-    """Ventana de los años 30 (usuario, 2026-11-22: las de antes «parecían de 2026»): cerco, dos hojas de madera
-    con tres cristales cada una y falleba de latón. Rectángulos en el plano del muro: (nombre, a0, a1, z0, z1,
-    fondo); fondo None = el del muro más 2 cm. Todo centrado en el grueso del muro."""
-    F, S, B = 0.07, 0.055, 0.022  # cerco, bastidor de la hoja, junquillo entre cristales
-    out = [("WinFrameTop", a0, a1, z1 - F, z1, None), ("WinFrameBottom", a0, a1, z0, z0 + F, None),
-           ("WinFrameL", a0, a0 + F, z0, z1, None), ("WinFrameR", a1 - F, a1, z0, z1, None)]
-    m = (a0 + a1) / 2
-    za, zb = z0 + F, z1 - F
-    for la, lb in ((a0 + F, m), (m, a1 - F)):
-        out += [("WinLeafTop", la, lb, zb - S, zb, 0.06), ("WinLeafBottom", la, lb, za, za + 1.6 * S, 0.06),
-                ("WinLeafL", la, la + S, za, zb, 0.06), ("WinLeafR", lb - S, lb, za, zb, 0.06)]
-        g0, g1 = za + 1.6 * S, zb - S
-        for k in (1, 2):
-            z = g0 + (g1 - g0) * k / 3
-            out.append(("WinBar", la + S, lb - S, z - B / 2, z + B / 2, 0.035))
-    zm = (z0 + z1) / 2
-    out += [("WinHandleRod", m - 0.008, m + 0.008, za + 0.1, zb - 0.1, 0.085), ("WinHandle", m - 0.012, m + 0.012, zm - 0.07, zm + 0.02, 0.1)]
-    return out
 
 
 def decorate_1940s(wood, brass, shade):
