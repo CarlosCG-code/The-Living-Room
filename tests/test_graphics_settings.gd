@@ -26,7 +26,7 @@ func before_each() -> void:
 
 func test_low() -> void:
 	settings.apply_preset(&"low")
-	assert_false(gi.visible)
+	assert_true(gi.visible, "GI en todos: sin ella el salón perdía un tercio de luz")
 	assert_false(env.volumetric_fog_enabled)
 	assert_false(env.ssao_enabled)
 	assert_false(env.ssil_enabled)
@@ -37,12 +37,13 @@ func test_low() -> void:
 	assert_false(viewport.use_taa)
 	assert_almost_eq(viewport.scaling_3d_scale, 0.67, 0.001)
 	assert_eq(viewport.scaling_3d_mode, Viewport.SCALING_3D_MODE_FSR)
-	assert_almost_eq(env.ambient_light_energy, 1.0, 0.001)
+	# Con GI el ambiente baja (0,4) y sin SSIL sube algo (×1,2) para no quedar más oscuro que el alto.
+	assert_almost_eq(env.ambient_light_energy, GraphicsSettings.AMBIENT_GI_SCALE * GraphicsSettings.NO_SSIL_AMBIENT, 0.001)
 
 
 func test_medium() -> void:
 	settings.apply_preset(&"medium")
-	assert_false(gi.visible)
+	assert_true(gi.visible)
 	assert_true(env.ssao_enabled)
 	assert_true(probe.visible)
 	assert_true(flashlight.shadow_enabled)

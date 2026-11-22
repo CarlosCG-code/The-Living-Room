@@ -6,20 +6,21 @@ extends RefCounted
 
 const PRESETS := {
 	&"low": {
-		"gi": false, "gi_quality": RenderingServer.VOXEL_GI_QUALITY_LOW, "fog": false,
+		# GI en todos (usuario, 2026-11-22: en bajo y medio «la iluminación baja»): sin ella el salón perdía un tercio de luz.
+		"gi": true, "gi_quality": RenderingServer.VOXEL_GI_QUALITY_LOW, "fog": false,
 		"shadow_atlas": 1024, "shadow_filter": RenderingServer.SHADOW_QUALITY_HARD, "flashlight_shadow": false, "soft_shadows": false,
 		"ssao": false, "ssao_quality": RenderingServer.ENV_SSAO_QUALITY_LOW,
 		"ssil": false, "ssil_quality": RenderingServer.ENV_SSIL_QUALITY_LOW,
 		"probe": true, "taa": false, "fxaa": true, "scale": 0.67, "max_height": 720, "glow": false, "half": true,
-		"mirror_rows": 0,
+		"mirror_rows": 192,  # espejos en todos los presets (usuario, 2026-11-22)
 	},
 	&"medium": {
-		"gi": false, "gi_quality": RenderingServer.VOXEL_GI_QUALITY_LOW, "fog": false,
+		"gi": true, "gi_quality": RenderingServer.VOXEL_GI_QUALITY_LOW, "fog": false,
 		"shadow_atlas": 2048, "shadow_filter": RenderingServer.SHADOW_QUALITY_SOFT_LOW, "flashlight_shadow": true, "soft_shadows": true,
 		"ssao": true, "ssao_quality": RenderingServer.ENV_SSAO_QUALITY_LOW,
 		"ssil": false, "ssil_quality": RenderingServer.ENV_SSIL_QUALITY_LOW,
 		"probe": true, "taa": true, "fxaa": false, "scale": 0.85, "max_height": 900, "glow": true, "half": true,
-		"mirror_rows": 256,
+		"mirror_rows": 320,
 	},
 	&"high": {
 		"gi": true, "gi_quality": RenderingServer.VOXEL_GI_QUALITY_LOW, "fog": true,
@@ -39,6 +40,7 @@ const PRESETS := {
 	},
 }
 const AMBIENT_GI_SCALE := 0.4  # con iluminación global, la luz ambiente base se baja (D9)
+const NO_SSIL_AMBIENT := 1.2
 
 var current: Dictionary = {}
 ## Claves del preset forzadas (p. ej. TLR_OFF en depuración); sobreviven a cada apply_preset.
@@ -100,7 +102,8 @@ func _apply() -> void:
 		_voxel_gi.visible = gi
 	RenderingServer.voxel_gi_set_quality(current["gi_quality"])
 	if _mixer:
-		_mixer.set_ambient_gi_scale(AMBIENT_GI_SCALE if gi else 1.0)
+		# Sin SSIL (bajo y medio) falta la luz que rebota de cerca: algo más de ambiente lo iguala con el alto.
+		_mixer.set_ambient_gi_scale((AMBIENT_GI_SCALE if gi else 1.0) * (1.0 if current["ssil"] else NO_SSIL_AMBIENT))
 		# Sin TAA (bajo), las sombras suaves (light_size) salen con ruido: se dibujan duras.
 		_mixer.set_soft_shadows(current["soft_shadows"])
 	if _environment:

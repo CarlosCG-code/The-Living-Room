@@ -48,6 +48,15 @@ def age(rgb, amount=0.22):
     return rgb * k[..., None] * yellow * (1 + 0.025 * GRAIN[..., None])
 
 
+def wall_dirt(rgb):
+    """Más vivida (usuario, 2026-11-22: el papel «parece nuevo»): chorretones verticales de humedad y roña en manchas
+    medianas, amarillo pardo. Todo periódico: sin bandas por altura, que se cortarían al repetirse cada 2,5 m."""
+    runs = smooth(0.62, 0.9, norm01(blur(np.repeat(rng.standard_normal((1, N)), N, axis=0), 3)))
+    runs = runs * norm01(blur(rng.standard_normal((N, N)), 60)) * 0.35
+    blotch = smooth(0.5, 0.9, norm01(blur(rng.standard_normal((N, N)), 35))) * 0.22
+    return mix(rgb, rgb * np.array((0.6, 0.5, 0.38)), np.clip(runs + blotch, 0, 0.6))
+
+
 def mix(a, b, t):
     return np.asarray(a) * (1 - t[..., None]) + np.asarray(b) * t[..., None]
 
@@ -295,6 +304,8 @@ def normal_from_height(h, strength):
 # es impreso: con mucho relieve parecía vinilo moderno.
 def write(img_id, fn, aging):
     rgb, height, rough = fn()
+    if img_id in ("wallpaper_damask", "wallpaper_stripes", "wallpaper_sprig", "wall_paint"):
+        rgb = wall_dirt(rgb)
     srgb = np.clip(age(rgb, aging), 0, 1) ** (1 / 2.2)  # los colores de arriba son lineales; el jpg es sRGB
     save(img_id, "diff", srgb)
     h = blur(height, 2.0) + 0.01 * blur(GRAIN, 2)  # relieve suave: con el grano fuerte la pared parecía gotelé
@@ -303,8 +314,8 @@ def write(img_id, fn, aging):
     save(img_id, "rough", np.repeat(r[..., None], 3, -1))
 
 
-for img_id, fn, aging in (("wallpaper_damask", damask, 0.34), ("wallpaper_stripes", stripes, 0.34),
-                          ("wallpaper_sprig", sprig, 0.34), ("wall_paint", paint, 0.34), ("wall_tiles", tiles, 0.35),
+for img_id, fn, aging in (("wallpaper_damask", damask, 0.45), ("wallpaper_stripes", stripes, 0.45),
+                          ("wallpaper_sprig", sprig, 0.45), ("wall_paint", paint, 0.45), ("wall_tiles", tiles, 0.35),
                           ("floor_hydraulic", floor_hydraulic, 0.1), ("floor_checker", floor_checker, 0.1),
                           ("porcelain_old", porcelain, 0.1),
                           ("rug_persian_red", lambda: rug((0.3, 0.06, 0.045), (0.05, 0.07, 0.16), (0.55, 0.4, 0.2), 1.4, 1), 0.2),

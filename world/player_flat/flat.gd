@@ -8,6 +8,7 @@ const GEOMETRY := "res://assets/models/living_room/flat.gltf"
 const GEOMETRY_MIRROR := "res://assets/models/living_room/flat_mirror.gltf"
 const LAYOUT: FlatLayout = preload("res://data/flat_layout.tres")
 ## Ventanas de fachada: llevan el fondo de ciudad del salón (las del patio de luces dan a la oscuridad).
+const LIVING_LAYER := 1 << 1
 const FACADE_WINDOWS: Array[StringName] = [&"bedroom_main", &"dining_room", &"workshop"]
 
 ## Se fija antes de añadir la escena al árbol.
@@ -36,6 +37,7 @@ func _ready() -> void:
 			door.setup(conn, mirrored)
 			doors.append(door)
 	_add_lamps()
+	_keep_living_light_inside()
 	_add_mirrors(geometry)
 	_add_acoustics()
 	var backdrop := living_room.get_node("WindowBackdrop") as Node3D
@@ -82,6 +84,21 @@ func _glass_box(m: MeshInstance3D) -> AABB:
 				box = box.expand(m.global_transform * v)
 			return box
 	return AABB()
+
+
+# Las lámparas sin sombra del salón (apliques y lámpara de mesa) solo alumbran lo del salón: sin sombra, su luz
+# cruzaba las paredes hasta el pasillo y los cuartos de al lado (usuario, 2026-11-22). Con sombra el salón quedaba
+# mucho más oscuro; con capas cuesta nada. El salón y la hoja de su puerta van también en la capa 2.
+func _keep_living_light_inside() -> void:
+	for g: GeometryInstance3D in living_room.find_children("*", "GeometryInstance3D", true, false):
+		g.layers |= LIVING_LAYER
+	for door in doors:
+		if door.name == "door_living":
+			for g: GeometryInstance3D in door.find_children("*", "GeometryInstance3D", true, false):
+				g.layers |= LIVING_LAYER
+	for light in living_room.get_lights():
+		if not light.shadow_enabled:
+			light.light_cull_mask = LIVING_LAYER
 
 
 ## Las del salón y las del resto del piso: todas pasan por el único LightMixer (specs/hito4a.md D8, D12).
@@ -131,7 +148,7 @@ func _add_lamps() -> void:
 			lamp.distance_fade_begin = 12.0
 			lamp.distance_fade_length = 4.0
 			lamp.shadow_enabled = true
-			lamp.distance_fade_shadow = 10.0
+			lamp.distance_fade_shadow = 16.0  # sombra mientras haya luz: a 10 m se apagaba antes y la luz cruzaba los muros
 			lamp.light_size = 0.05  # como los apliques: LightMixer la usa para las sombras suaves
 			lamp.set_meta(&"base_normal", l["base_normal"])
 			lamp.set_meta(&"base_dark", l["base_dark"])

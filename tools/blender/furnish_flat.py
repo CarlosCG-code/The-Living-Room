@@ -121,6 +121,7 @@ def materials():
         "tile": tex_mat("WallTiles", "wall_tiles", "2k", root=GEN),
         "brass": bpy.data.materials.get("Brass") or mat("Brass", (0.6, 0.45, 0.22), 0.3, metallic=1.0),
         "enamel_blue": mat("EnamelBlue", (0.02, 0.05, 0.16), 0.15),
+        "wool": tex_mat("CoatWool", "poly_wool_herringbone", "1k", tint=(0.2, 0.18, 0.17)),
         "linen": tex_mat("UsedLinen", "cloth_linen", "2k", root=GEN),  # la lisa parecía nueva (usuario, 2026-11-22)
         "soap": mat("Soap", (0.62, 0.58, 0.48), 0.6),
         "slate": mat("Slate", (0.03, 0.035, 0.035), 0.85),
@@ -307,6 +308,43 @@ def larder_shelves(M, length):
         parts.append(give(box("LarderShelf", (length, 0.35, 0.025), (0, 0, z)), M["shelf"], bevel=0.003))
     for x in (-length / 2 + 0.012, 0, length / 2 - 0.012):
         parts.append(give(box("LarderSide", (0.025, 0.35, 1.9), (x, 0, 0.95)), M["shelf"]))
+    return parts
+
+
+def hanging_coat(M, length=1.0):
+    """Abrigo de lana colgado por el cuello (usuario, 2026-11-22; no hay ninguno CC0): sección elíptica que baja del
+    colgador a los hombros caídos y al bajo algo abierto, con pliegues. Cuelga hacia -Z desde el origen; la espalda
+    en x = 0 y el cuerpo hacia +X; el ancho en Y."""
+    import bmesh
+    rings = ((0.0, 0.05, 0.03), (0.04, 0.13, 0.05), (0.09, 0.2, 0.07), (0.16, 0.21, 0.08), (0.45, 0.2, 0.085),
+             (0.75, 0.225, 0.08), (1.0, 0.26, 0.075))
+    seg = 32
+    bm = bmesh.new()
+    loops = []
+    for t, a, b in rings:
+        ring = []
+        for i in range(seg):
+            th = 2 * math.pi * i / seg
+            fold = 1 + (0.03 + 0.1 * t) * math.sin(7 * th + t * 4) * min(1.0, t * 8)  # pliegues que se abren hacia el bajo
+            ring.append(bm.verts.new((b * (1 + math.cos(th)) * fold, a * math.sin(th) * fold, -t * length)))
+        loops.append(ring)
+    for r0, r1 in zip(loops, loops[1:]):
+        for i in range(seg):
+            bm.faces.new((r0[i], r0[(i + 1) % seg], r1[(i + 1) % seg], r1[i]))
+    bm.faces.new(loops[0][::-1])
+    bm.faces.new(loops[-1])
+    me = bpy.data.meshes.new("Coat")
+    bm.to_mesh(me)
+    bm.free()
+    o = bpy.data.objects.new("Coat", me)
+    bpy.context.collection.objects.link(o)
+    for poly in me.polygons:
+        poly.use_smooth = True
+    parts = [give(o, M["wool"])]
+    for side in (-1, 1):  # mangas que cuelgan de los hombros, algo por delante
+        sleeve = cylinder("CoatSleeve", 0.05, 0.55 * length, (0.1, side * 0.19, -(0.12 + 0.275) * length), verts=16)
+        sleeve.rotation_euler = (math.radians(side * 4), math.radians(-6), 0)
+        parts.append(give(sleeve, M["wool"]))
     return parts
 
 
@@ -663,11 +701,18 @@ def furnish():
     pic(436200, z, "px0", 1.6, 1.6, 0.7, "ornate")
     pic("cma:111435", z, "py0", 0.5, 1.6, 0.45)
     made(coat_rack(M), "CoatRack", z, None, (8.15, 13.2))
-    free("black_hat", 8.15, 13.2, z=1.8)  # el sombrero, en lo alto del perchero
-    scarf = free("scarf", 8.15, 13.2 - 0.12)  # la bufanda, colgada de un gancho
-    a, b = bounds(scarf)
-    for o in scarf:
-        o.location.z += 1.66 - b.z
+    # Abrigo y sombrero colgados de los ganchos (usuario, 2026-11-22: la bufanda por un abrigo, el sombrero mejor
+    # colgado). Puntas de los ganchos (coat_rack): a 0,107 m del palo y 1,72 m de alto; el de +X da a la habitación.
+    rx, ry = to_b(8.15, 13.2)
+    coat = made(hanging_coat(M), "Coat", z, None, (8.15, 13.2), uv=0.4)
+    for o in coat:
+        o.location = (rx + 0.1, ry, 1.72)
+    hat = free("black_hat", 8.15, 13.2)
+    a, b = bounds(hat)
+    pivot = (a + b) / 2
+    turn = Matrix.Translation((rx, ry - 0.17, 1.66)) @ Matrix.Rotation(math.radians(80), 4, "X") @ Matrix.Translation(-pivot)
+    for o in hat:  # de lado, con la copa en el gancho de -Y (hacia el interior del recibidor)
+        o.matrix_world = turn @ o.matrix_world
     put("painted_wooden_shelves", z, "px1", 1.8)  # zapatero
     put("old_boots", z, "px1", 1.2, gap=0.06, rot=-15)  # botas de cuero viejas (Sketchfab, escaneo de museo)
     mirror(M, z, "px1", 1.8, 1.7, 0.45, 0.55, "walnut")

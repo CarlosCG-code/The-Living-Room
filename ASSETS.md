@@ -238,6 +238,7 @@ Modelos CC0 de Poly Haven (descargados con `tools/fetch_polyhaven.py`, 1k):
 | Sledgehammer 01 (`art_source/polyhaven/sledgehammer_01/`, 1k) | https://polyhaven.com/a/sledgehammer_01 (autor: Dylan Guzman) | `82034155b4b7448eede647d24b7dd1649717990ca2ae8872262a0da23138541b93ea5fe2a25e4b11f4b157d245b348c21be3d2d415ab46a470485a15bfd25ee2` | CC0 1.0 (polyhaven.com/license) |
 | Wooden Axe 02 (`art_source/polyhaven/wooden_axe_02/`, 1k) | https://polyhaven.com/a/wooden_axe_02 (autor: Ulan Cabanilla) | `58d6878b39225c59a151be2adafb34eb2d40f3d1d7c40b415b34d0b74a7aee49a48bd52b6905f7f0bd11856f31c7eef9af937642231ea120edd97eadd5448bb3` | CC0 1.0 (polyhaven.com/license) |
 | Barrel 03 (`art_source/polyhaven/barrel_03/`, 1k) | https://polyhaven.com/a/barrel_03 (autor: Serhii Khromov) | `b41ae44a0205fefc6ad8266f7f9aa394d14824a5bfabbec2062ca215c23e1ec9174e02dcac99a6cc70ec5f2baada6556607c836513d035dbef469828472c8766` | CC0 1.0 (polyhaven.com/license) |
+| Poly Wool Herringbone (`art_source/polyhaven/poly_wool_herringbone/`, 1k) | https://polyhaven.com/a/poly_wool_herringbone (autor: colormass, Rico Cilliers) | `42d5673e5b836eb2635a3726db365a74009b58c44276f581b56957f191554fb51223c3efd93d9f39fa929e02b8298a2a9d5fe278e6aebe746fcd1fc5b8b96f8c` | CC0 1.0 (polyhaven.com/license) |
 
 Pinturas CC0 del Met Open Access, copia oficial del Met en Wikimedia Commons (`tools/fetch_met.py`); la licencia CC0 se comprueba en cada archivo:
 
@@ -312,5 +313,6 @@ Hechos por Claude (sin IA generativa: geometría y matemáticas en scripts de Bl
 
 - Papeles pintados (damasco, rayas, florecillas), pintura vieja, azulejo crema con cenefa, baldosa hidráulica, baldosa de barro y loza vieja: `tools/blender/make_wallpapers.py` → `art_source/generated/`.
 - Alfombras persas y de trapo y camino de pasillo (texturas enteras dibujadas con numpy), hilo usado de las toallas y madera gastada de puertas, marcos y zócalos (la dark_wood de Poly Haven con polvo, arañazos y barniz apagado): `tools/blender/make_wallpapers.py` → `art_source/generated/`.
+- Abrigo colgado del perchero (malla hecha con bmesh, lana de espiga de Poly Haven): `hanging_coat()` en `tools/blender/furnish_flat.py`.
 - Hoja de puerta de seis cuarterones con herrajes: `tools/blender/build_door.py` → `assets/models/living_room/door_leaf.gltf` (textura `dark_wood` de Poly Haven, ya registrada).
 - Bañera de patas, inodoros de cisterna alta, lavabo de pie, palangana con trípode, toallero, pizarra, fregadero, banco de trabajo, baldas de la fresquera y perchero: `tools/blender/furnish_flat.py`. Los marcos de cuadros y espejos y las lámparas son modelos de Poly Haven ya registrados.

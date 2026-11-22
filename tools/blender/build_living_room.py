@@ -388,10 +388,11 @@ def build_final():
     # Puerta (pared -X), cerrada: marco, hoja y manilla. La hoja va aparte para poder abrirla en el hito 4.
     dx = -W / 2 - T / 2
     j = 0.07
+    e = 0.003  # el marco entra 3 mm en el hueco, como en el piso: a ras del canto parpadeaba en dientes de sierra
     for name, size, loc in [
-        ("DoorJambTop", (T + 0.03, door_w + 2 * j, j), (dx, door_y, door_top + j / 2)),
-        ("DoorJambL", (T + 0.03, j, door_top), (dx, door_y - door_w / 2 - j / 2, door_top / 2)),
-        ("DoorJambR", (T + 0.03, j, door_top), (dx, door_y + door_w / 2 + j / 2, door_top / 2)),
+        ("DoorJambTop", (T + 0.03, door_w + 2 * j, j + e), (dx, door_y, door_top + (j - e) / 2)),
+        ("DoorJambL", (T + 0.03, j + e, door_top), (dx, door_y - door_w / 2 - (j - e) / 2, door_top / 2)),
+        ("DoorJambR", (T + 0.03, j + e, door_top), (dx, door_y + door_w / 2 + (j - e) / 2, door_top / 2)),
     ]:
         uv_world(give(box(name, size, loc), door_wood, bevel=0.005), 1.2)
     # La hoja la pone Godot (door.gd, con door_leaf.gltf de build_door.py).
