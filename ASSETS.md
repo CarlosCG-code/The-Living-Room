@@ -325,6 +325,7 @@ Hechos por Claude (sin IA generativa: geometría y matemáticas en scripts de Bl
 
 - Papeles pintados (damasco, rayas, florecillas), pintura vieja, azulejo crema con cenefa, baldosa hidráulica, baldosa de barro y loza vieja: `tools/blender/make_wallpapers.py` → `art_source/generated/`.
 - Alfombras persas y de trapo y camino de pasillo (texturas enteras dibujadas con numpy), hilo usado de las toallas y madera gastada de puertas, marcos y zócalos (la dark_wood de Poly Haven con polvo, arañazos y barniz apagado): `tools/blender/make_wallpapers.py` → `art_source/generated/`.
+- Lámpara de pie del recibidor (pie torneado, pantalla de tela Quatrefoil Jacquard de Poly Haven y flecos): `floor_lamp()` en `tools/blender/furnish_flat.py`.
 - Abrigo colgado del perchero (malla hecha con bmesh, lana de espiga de Poly Haven): `hanging_coat()` en `tools/blender/furnish_flat.py`.
 - Hoja de puerta de seis cuarterones con herrajes: `tools/blender/build_door.py` → `assets/models/living_room/door_leaf.gltf` (textura `dark_wood` de Poly Haven, ya registrada).
 - Bañera de patas, inodoros de cisterna alta, lavabo de pie, palangana con trípode, toallero, pizarra, fregadero, banco de trabajo, baldas de la fresquera y perchero: `tools/blender/furnish_flat.py`. Los marcos de cuadros y espejos y las lámparas son modelos de Poly Haven ya registrados.

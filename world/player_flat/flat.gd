@@ -10,6 +10,8 @@ const LAYOUT: FlatLayout = preload("res://data/flat_layout.tres")
 ## Ventanas de fachada: llevan el fondo de ciudad del salón (las del patio de luces dan a la oscuridad).
 const LIVING_LAYER := 1 << 1
 const FACADE_WINDOWS: Array[StringName] = [&"bedroom_main", &"dining_room", &"workshop"]
+## La farola por las ventanas que no son la del salón: más tenue, para que esos cuartos sigan casi a oscuras.
+const STREET_COPY := 0.6
 
 ## Se fija antes de añadir la escena al árbol.
 @export var mirrored := false
@@ -29,6 +31,9 @@ func _ready() -> void:
 	# Las lámparas (Fixture_*, furnish_flat.py) no dan sombra: su luz va dentro y si no quedaría tapada.
 	for m: MeshInstance3D in geometry.find_children("Fixture_*", "MeshInstance3D", true, false):
 		m.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	# El cristal tampoco: tapaba la luz de la farola en los cuartos de la fachada.
+	for m: MeshInstance3D in geometry.find_children("WindowGlass_*", "MeshInstance3D", true, false):
+		m.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	for conn in LAYOUT.connections:
 		if conn.kind == &"leaf":
 			var door := Door.new()
@@ -36,7 +41,7 @@ func _ready() -> void:
 			add_child(door)
 			door.setup(conn, mirrored)
 			doors.append(door)
-	_add_lamps()
+	_add_lamps(geometry)
 	_keep_living_light_inside()
 	_add_mirrors(geometry)
 	_add_acoustics()
@@ -47,6 +52,7 @@ func _ready() -> void:
 			var copy := backdrop.duplicate() as Node3D
 			add_child(copy)
 			copy.position.z = marker.position.z  # misma fachada que la ventana del salón: solo cambia a lo largo
+			_add_street_light(marker.position.z)
 
 
 func get_layout() -> FlatLayout:
@@ -130,15 +136,36 @@ func _add_acoustics() -> void:
 	add_child(area)
 
 
-# Lámparas de techo tenues, como los apliques del salón; se apagan con la distancia. Con sombra: sin ella la luz
-# atraviesa los muros (usuario, 2026-11-20). Son pocas (LIT_ZONES de flat_layout.py) y la sombra se apaga antes.
-func _add_lamps() -> void:
+# La farola de la calle entra también por las otras ventanas de la fachada: luz fría que deja ver siluetas en los
+# cuartos a oscuras sin alumbrarlos (usuario, 2026-11-22: luces que den miedo). Más tenue que en el salón.
+func _add_street_light(z: float) -> void:
+	var street := living_room.get_node("StreetLight") as SpotLight3D
+	var copy := street.duplicate() as SpotLight3D
+	copy.name = "StreetLight_%d" % _lights.size()
+	copy.remove_from_group(&"room_lights")
+	add_child(copy)
+	copy.position.z = z
+	copy.distance_fade_enabled = true
+	copy.distance_fade_begin = 12.0
+	copy.distance_fade_length = 4.0
+	for key: StringName in [&"base_normal", &"base_dark"]:
+		copy.set_meta(key, float(street.get_meta(key)) * STREET_COPY)
+	_lights.append(copy)
+
+
+# Lámparas tenues, como los apliques del salón; se apagan con la distancia. Con sombra: sin ella la luz atraviesa
+# los muros (usuario, 2026-11-20). Son pocas (LIT_ZONES de flat_layout.py) y la sombra se apaga antes. Si la zona
+# tiene una lámpara propia (vacío LampAt_<zona> del glTF), la luz sale de ella; si no, del techo.
+func _add_lamps(geometry: Node) -> void:
 	for zone in LAYOUT.zones:
 		for l: Dictionary in zone.lights:
 			var lamp := OmniLight3D.new()
 			lamp.name = "Lamp_%s" % zone.id
 			var p: Vector3 = l["pos"]
 			lamp.position = Vector3(-p.x if mirrored else p.x, p.y, p.z)
+			var at := geometry.find_child("LampAt_" + String(zone.id), true, false) as Node3D
+			if at:
+				lamp.position = to_local(at.global_position)
 			lamp.light_color = l["color"]
 			lamp.light_energy = l["energy"]
 			lamp.omni_range = l["range"]

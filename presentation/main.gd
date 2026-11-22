@@ -105,9 +105,12 @@ func _ready() -> void:
 		var bench := Benchmark.new()
 		bench.label = "preset=%s mirror=%s dark=%s gi=%s off=%s" % [settings.current["preset"], room.mirrored,
 				_dev("TLR_DARK") == "1", settings.current["gi"], _dev("TLR_OFF")]
-		bench.cameras.append(camera)
-		for v in VIEWS.slice(1):
-			bench.cameras.append(room.get_capture_camera(v))
+		if spawn != &"":  # con TLR_SPAWN mide desde ese sitio del piso
+			bench.cameras.append(_player.camera)
+		else:
+			bench.cameras.append(camera)
+			for v in VIEWS.slice(1):
+				bench.cameras.append(room.get_capture_camera(v))
 		add_child(bench)
 	tree_exiting.connect(func() -> void: Game.running = false)
 	print("BOOT_OK")

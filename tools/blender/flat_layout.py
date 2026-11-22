@@ -85,10 +85,16 @@ FUSE_BOX_ZONE = "storage"
 PASSAGE_W = 1.4  # vano del recibidor
 
 LAMP = {"color": (1.0, 0.74, 0.48), "base_dark": 0.0}
-# Luz como en Visage (usuario, 2026-11-20): islas de luz tenue y el resto casi a oscuras; la luz de una zona
-# encendida se cuela por las puertas a las vecinas. Energía por zona; las que no salen aquí no tienen lámpara.
-LIT_ZONES = {"corridor_main_m": 0.3, "entrance_hall": 0.25, "kitchen": 0.2, "bedroom_main": 0.18,
-             "bathroom": 0.15, "corridor_service_e": 0.12}
+FLAME = (1.0, 0.6, 0.3)  # quinqué
+# Luz para el miedo (usuario, 2026-11-20 y 2026-11-22): islas de luz baja y cálida con tramos a oscuras entre ellas,
+# como en Visage; la luz de una zona encendida se cuela por las puertas a las vecinas. Lejos del salón, más oscuro:
+# taller, trastero, despensa, galería, cuarto 2 y los extremos de los pasillos se pierden en negro. Algunas luces
+# salen de una lámpara de la habitación (marcador LampAt_<zona> de furnish_flat.py): el quinqué de la mesilla, la
+# lámpara de pie del recibidor y el flexo del cuarto del niño, encendido sin nadie. Las demás, del techo.
+# zona: (energía, alcance en m o None = según la habitación, color o None = LAMP).
+LIT_ZONES = {"corridor_main_m": (0.3, None, None), "entrance_hall": (0.3, 4.0, None), "kitchen": (0.2, None, None),
+             "bedroom_main": (0.3, 3.4, FLAME), "bathroom": (0.15, None, None), "bedroom_3": (0.3, 4.5, None),
+             "corridor_service_e": (0.25, None, None)}
 
 
 def zone(zid):
@@ -193,10 +199,10 @@ def write_tres(path):
     for zid, key, rect, floor in ZONES:
         x, z, w, d = godot_rect(zid)
         cx, cz = x + w / 2, z + d / 2
-        energy = LIT_ZONES.get(zid, 0.0)  # el salón no está: ya tiene las suyas
+        energy, reach, color = LIT_ZONES.get(zid, (0.0, None, None))  # el salón no está: ya tiene las suyas
         lights = "" if energy == 0.0 else '{"pos": Vector3(%s, 2.3, %s), "color": Color(%s, %s, %s, 1), "energy": %s, "range": %s, "base_normal": %s, "base_dark": %s}' % (
-            _num(cx), _num(cz), *(_num(c) for c in LAMP["color"]), _num(energy),
-            _num(max(w, d) * 0.75 + 1.0), _num(energy), _num(LAMP["base_dark"]))
+            _num(cx), _num(cz), *(_num(c) for c in (color or LAMP["color"])), _num(energy),
+            _num(reach or max(w, d) * 0.75 + 1.0), _num(energy), _num(LAMP["base_dark"]))
         lines += ['[sub_resource type="Resource" id="z_%s"]' % zid, 'script = ExtResource("zone_script")',
                   'id = &"%s"' % zid, 'name_key = "%s"' % key,
                   "rect = Rect2(%s, %s, %s, %s)" % tuple(_num(v) for v in (x, z, w, d)),

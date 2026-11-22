@@ -164,7 +164,43 @@ def materials():
         "soap": mat("Soap", (0.62, 0.58, 0.48), 0.6),
         "slate": mat("Slate", (0.03, 0.035, 0.035), 0.85),
         "mirror": mat("Mirror", (0.5, 0.5, 0.47), 0.25, metallic=0.6),  # sin sonda de reflejo (paso 6) salía negro
+        "shade": glowing(tex_mat("LampShadeFabric", "quatrefoil_jacquard_fabric", "1k", tint=(0.5, 0.32, 0.18)), 0.3),
+        "fringe": mat("LampFringe", (0.42, 0.28, 0.14), 0.9),
+        "bulb": glowing(mat("LampBulb", (1.0, 0.85, 0.65), 0.3), 4.0),
     }
+
+
+def glowing(m, strength):
+    """Tela o cristal que se ve encendido (la luz va dentro); por las dos caras."""
+    b = next(n for n in m.node_tree.nodes if n.type == "BSDF_PRINCIPLED")
+    b.inputs["Emission Color"].default_value = (1.0, 0.6, 0.3, 1.0)
+    b.inputs["Emission Strength"].default_value = strength
+    m.use_backface_culling = False
+    return m
+
+
+def lamp_light(zid, objs, at=None):
+    """Dónde va la luz de la zona cuando sale de una lámpara de la habitación: un vacío LampAt_<zona> (flat.gd pone
+    ahí su OmniLight3D). La lámpara pasa a llamarse Fixture_*, sin sombra, para que no tape su propia luz."""
+    lo, hi = bounds(objs)
+    bpy.ops.object.empty_add(location=at or ((lo.x + hi.x) / 2, (lo.y + hi.y) / 2, lo.z + (hi.z - lo.z) * 0.6))
+    bpy.context.active_object.name = "LampAt_%s" % zid
+    for k, o in enumerate(objs):
+        o.name = "Fixture_%s_lamp%d" % (zid, k)
+    return objs
+
+
+def light_up(objs, keys, strength):
+    """Enciende las partes de una lámpara de librería cuyos materiales contengan alguna de esas palabras."""
+    for o in objs:
+        for i, m in enumerate(o.data.materials):
+            if m and any(k in m.name.lower() for k in keys):
+                on_m = m.copy()
+                on_m.name = m.name + "_Lit"
+                b = next(n for n in on_m.node_tree.nodes if n.type == "BSDF_PRINCIPLED")
+                b.inputs["Emission Color"].default_value = (1.0, 0.7, 0.4, 1.0)
+                b.inputs["Emission Strength"].default_value = strength
+                o.data.materials[i] = on_m
 
 
 # --- Modelos hechos aquí (de cara a -Y, la trasera en +Y, base en z = 0) ------------------------------------------
@@ -349,6 +385,19 @@ def larder_shelves(M, length):
     return parts
 
 
+def floor_lamp(M):
+    """Lámpara de pie de los años 40: pie torneado de madera y pantalla de tela con flecos (usuario, 2026-11-22: las de
+    sus fotos de referencia). La luz va en el centro de la pantalla, a 1,47 m."""
+    parts = [give(lathe("FloorLampBase", [(0.0, 0.0), (0.16, 0.0), (0.16, 0.02), (0.11, 0.05), (0.03, 0.075), (0.0, 0.075)], verts=32), M["walnut"]),
+             give(lathe("FloorLampStem", [(0.0, 0.075), (0.022, 0.075), (0.03, 0.12), (0.017, 0.2), (0.017, 0.98), (0.028, 1.03),
+                                          (0.015, 1.08), (0.015, 1.38), (0.0, 1.38)], verts=16), M["walnut"]),
+             give(lathe("FloorLampShade", [(0.26, 1.34), (0.2, 1.47), (0.15, 1.6)], verts=48), M["shade"])]
+    for i in range(96):  # flecos colgando del borde
+        a = 2 * math.pi * i / 96
+        parts.append(give(box("FloorLampFringe", (0.006, 0.003, 0.075), (0.262 * math.cos(a), 0.262 * math.sin(a), 1.3)), M["fringe"]))
+    return parts
+
+
 def wall_cupboard(M, w=0.8, h=0.75, d=0.26, z0=1.45):
     """Alacena colgada abierta, con una balda en medio y cornisa (usuario, 2026-11-22: «algún armario que cuelgue de
     la pared con cosas dentro»). Baldas a z0 + 0,02 y z0 + h / 2 + 0,01."""
@@ -452,6 +501,7 @@ def peg_rail(M, w=0.9, z=1.65):
 # --- Lámparas -----------------------------------------------------------------------------------------------------
 
 LIT = set(L.LIT_ZONES)
+LAMP_ZONES = {"bedroom_main", "entrance_hall", "bedroom_3"}  # su luz sale de una lámpara de la habitación
 CLEAR = 1.85  # ninguna lámpara de techo baja de aquí: el jugador mide 1,75 m
 
 
@@ -483,7 +533,7 @@ def fixture(zid, asset="pull_chain_light_socket", scale=1.0, drop=()):
             o.data.transform(Matrix.Rotation(math.pi, 4, "X"))
             o.location.z = H - 0.048
         objs += bulb
-    if zid in LIT:  # cristales y bombillas encendidos
+    if zid in LIT - LAMP_ZONES:  # cristales y bombillas encendidos
         for o in objs:
             for i, m in enumerate(o.data.materials):
                 if m and any(k in m.name.lower() for k in ("shade", "bulb", "glass", "lamps_")):
@@ -561,7 +611,10 @@ def furnish():
     bed = put("GothicBed_01", z, "px0", 2.0)
     free("treasure_chest", 2.5, 2.0, rot=180)
     stand = put("painted_wooden_nightstand", z, "px0", 0.55)
-    on("vintage_oil_lamp", stand, dpy=-0.06, scale=0.55)
+    oil = on("vintage_oil_lamp", stand, dpy=-0.06, scale=0.55)
+    light_up(oil, ("flame",), 6.0)  # el quinqué encendido es la luz del cuarto: sombras largas de la cama
+    light_up(oil, ("glass",), 0.4)
+    lamp_light(z, oil)
     on("alarm_clock_01", stand, dpy=0.13, rot=-60, scale=0.6)
     put("GreenChair_01", z, "px0", 3.45, gap=0.1, rot=-20)
     put("GothicCabinet_01", z, "px1", 2.0)
@@ -721,7 +774,10 @@ def furnish():
     daybed = put("vintage_day_bed", z, "py0", 1.3)
     desk = put("wooden_table_02", z, "px1", 0.9)
     on("chess_set", desk, dpy=-0.15, scale=0.6, rot=8)
-    on("bankers_lamp", desk, dpy=0.35, rot=ROT["px1"])
+    banker = on("bankers_lamp", desk, dpy=0.35, rot=ROT["px1"])
+    lo, hi = bounds(banker)  # el flexo encendido sin nadie en el cuarto: su luz, bajo la pantalla
+    bulb = give(cylinder("LampBulb", 0.018, 0.08, ((lo.x + hi.x) / 2, (lo.y + hi.y) / 2, hi.z - 0.07), rot=(0, math.radians(90), 0), verts=10), M["bulb"])
+    lamp_light(z, banker + [bulb], at=((lo.x + hi.x) / 2, (lo.y + hi.y) / 2, hi.z - 0.1))
     on("old_book_red", desk, dpy=0.05, dpx=0.15, rot=15)
     free("painted_wooden_stool", 9.85, 6.45, rot=180)  # la silla blanca parecía nueva
     made(wall_slate(M), "WallSlate", z, "py1", seg_mid(z, "py1", -0.6), gap=0.0)
@@ -778,6 +834,8 @@ def furnish():
     pic("cma:111435", z, "py0", seg_mid(z, "py0", 0.5), 1.6, 0.45)
     pic("cma:127571", z, "py0", seg_mid(z, "py0", 3.3), 1.6, 0.42, "ebony")  # retrato de un caballero
     made(coat_rack(M), "CoatRack", z, None, (8.15, 13.2))
+    lamp = made(floor_lamp(M), "FloorLamp", z, None, (4.98, 13.3), uv=0.5)  # en el rincón, junto a la puerta
+    lamp_light(z, lamp, at=(*to_b(4.98, 13.3), 1.47))
     # Abrigo y sombrero colgados de los ganchos (usuario, 2026-11-22: la bufanda por un abrigo, el sombrero mejor
     # colgado). Puntas de los ganchos (coat_rack): a 0,107 m del palo y 1,72 m de alto; el de +X da a la habitación.
     rx, ry = to_b(8.15, 13.2)

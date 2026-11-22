@@ -184,6 +184,7 @@ Lo que lo hace difícil de memorizar (GDD §8, run 2):
 **D11 — Retícula.** Un punto en el centro de la pantalla, solo de pie; crece sobre una hoja o sobre el sofá. `presentation/ui/crosshair.gd`.
 
 **D12 — Luces de las zonas nuevas.** Como en *Visage* (usuario, 2026-11-20, sustituye a P4): solo algunas zonas tienen una lámpara tenue (`LIT_ZONES` de `flat_layout.py`) y el resto queda casi a oscuras, iluminado solo por lo que entra por las puertas. Cada lámpara lleva sus metadatos `base_normal` y `base_dark` para `LightMixer`. Siguen a la Energía y al apagón como las del salón. Sin interruptores en 4a.
+- Reparto para el miedo (usuario, 2026-11-22): islas de luz baja y cálida con tramos a oscuras entre ellas; lejos del salón, más oscuro. Luz de una lámpara de la habitación (vacío `LampAt_<zona>` del glTF) en el dormitorio principal (quinqué), el recibidor (lámpara de pie con flecos) y el cuarto del niño (flexo encendido sin nadie); del techo en el pasillo principal, la cocina, el baño y el fondo del pasillo de servicio. La farola entra fría y tenue (0,6) por las demás ventanas de la fachada. Sin luz: taller, trastero, despensa, galería, cuarto 2, paso de la despensa, aseo y los extremos de los pasillos.
 
 **D13 — La tele mientras andas.** En 4a la partida sigue produciendo de pie (`Game.running` no cambia). La regla definitiva va a GDD §12 (§10, P6).
 
