@@ -124,18 +124,11 @@ func _build() -> void:
 	# ajustes o preset: GraphicsSettings los vuelve a aplicar.
 	_section("Diagnóstico de gráficos (alterna; se pierde al cambiar ajustes)")
 	var vp := get_viewport()
-	var env := func() -> Environment: return vp.find_world_3d().environment
-	_toggles([
-		["TAA", func() -> bool: return vp.use_taa, func(on: bool) -> void: vp.use_taa = on],
-		["Oclusión", func() -> bool: return vp.use_occlusion_culling, func(on: bool) -> void: vp.use_occlusion_culling = on],
-		["Niebla", func() -> bool: return env.call().volumetric_fog_enabled,
-			func(on: bool) -> void: env.call().volumetric_fog_enabled = on],
-		["Niebla temporal", func() -> bool: return env.call().volumetric_fog_temporal_reprojection_enabled,
-			func(on: bool) -> void: env.call().volumetric_fog_temporal_reprojection_enabled = on],
-		["SSIL", func() -> bool: return env.call().ssil_enabled, func(on: bool) -> void: env.call().ssil_enabled = on],
-		["SSAO", func() -> bool: return env.call().ssao_enabled, func(on: bool) -> void: env.call().ssao_enabled = on],
-		["Brillo (glow)", func() -> bool: return env.call().glow_enabled, func(on: bool) -> void: env.call().glow_enabled = on],
-	])
+	var env := func() -> Object: return vp.find_world_3d().environment if vp.find_world_3d() else null
+	var view := func() -> Object: return vp
+	_toggles([["TAA", view, "use_taa"], ["Oclusión", view, "use_occlusion_culling"],
+		["Niebla", env, "volumetric_fog_enabled"], ["Niebla temporal", env, "volumetric_fog_temporal_reprojection_enabled"],
+		["SSIL", env, "ssil_enabled"], ["SSAO", env, "ssao_enabled"], ["Brillo (glow)", env, "glow_enabled"]])
 
 
 func _section(title: String) -> void:
@@ -144,15 +137,20 @@ func _section(title: String) -> void:
 	_box.add_child(l)
 
 
-# Botones de sí/no: [nombre, leer: Callable -> bool, poner: Callable(bool)]; el texto dice el estado actual.
+# Botones de sí/no: [nombre, objeto: Callable -> Object, propiedad bool]; el texto dice el estado actual («?» si
+# el objeto aún no existe, p. ej. el entorno antes de cargar el salón).
 func _toggles(items: Array) -> void:
 	var row := HFlowContainer.new()
 	for it: Array in items:
 		var button := Button.new()
 		button.focus_mode = Control.FOCUS_NONE
-		var label := func() -> void: button.text = "%s: %s" % [it[0], "sí" if it[1].call() else "no"]
+		var label := func() -> void:
+			var o: Object = it[1].call()
+			button.text = "%s: %s" % [it[0], "?" if o == null else ("sí" if o.get(it[2]) else "no")]
 		button.pressed.connect(func() -> void:
-			it[2].call(not it[1].call())
+			var o: Object = it[1].call()
+			if o:
+				o.set(it[2], not o.get(it[2]))
 			label.call())
 		button.visibility_changed.connect(label)  # al abrir el menú, el estado real (los ajustes pueden haberlo cambiado)
 		label.call()
