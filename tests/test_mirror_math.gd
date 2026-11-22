@@ -49,3 +49,13 @@ func test_planar_mirror_camera() -> void:
 	assert_almost_eq(float(cam[3]), 2.51 / 2.5, 0.0001)
 	# El centro del cristal, visto desde la cámara (su derecha es +Z del mundo): 0,7 m a su izquierda y 0,2 m más bajo.
 	assert_true((cam[1] as Vector2).is_equal_approx(Vector2(-0.7, -0.2) * 2.51 / 2.5))
+
+
+# La cámara del reflejo se coloca cada fotograma: interpolada otra vez quedaba detrás de su plano cercano al
+# acercarse al espejo, y se veía la pared de atrás.
+func test_planar_mirror_camera_not_interpolated() -> void:
+	var mirror := PlanarMirror.new()
+	add_child_autofree(mirror)
+	mirror.setup(Vector3(0, 1.5, 0), Vector3.RIGHT, Vector2(0.5, 0.7))
+	var cam := mirror.find_children("*", "Camera3D", true, false)[0] as Camera3D
+	assert_eq(cam.physics_interpolation_mode, Node.PHYSICS_INTERPOLATION_MODE_OFF)

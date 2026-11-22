@@ -57,6 +57,10 @@ func setup(centre: Vector3, normal: Vector3, size: Vector2) -> void:
 	_viewport.use_hdr_2d = true  # luz lineal sin recortar: la curva y la exposición las pone la pantalla principal
 	add_child(_viewport)
 	_camera = Camera3D.new()
+	# Sin interpolación física: la cámara se coloca cada fotograma ya con la posición interpolada del ojo. Interpolada
+	# otra vez, iba por detrás de su plano cercano (que no se interpola) y, al acercarse al espejo, el plano quedaba
+	# detrás del muro y se veía la pared de la habitación de atrás (usuario, 2026-11-22).
+	_camera.physics_interpolation_mode = Node.PHYSICS_INTERPOLATION_MODE_OFF
 	_camera.projection = Camera3D.PROJECTION_FRUSTUM
 	_camera.cull_mask &= ~GLASS_LAYER
 	_viewport.add_child(_camera)
