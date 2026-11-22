@@ -31,7 +31,7 @@ func test_low() -> void:
 	assert_false(env.ssao_enabled)
 	assert_false(env.ssil_enabled)
 	assert_true(probe.visible, "la sonda es el reflejo del cristal: barata, en todos los presets")
-	assert_false(flashlight.shadow_enabled)
+	assert_true(flashlight.shadow_enabled, "sin sombra la linterna cruzaba paredes y salía muy fuerte o casi nada")
 	assert_eq(viewport.positional_shadow_atlas_size, 1024)
 	assert_eq(viewport.screen_space_aa, Viewport.SCREEN_SPACE_AA_FXAA)
 	assert_false(viewport.use_taa)

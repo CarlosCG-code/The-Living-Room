@@ -8,7 +8,7 @@ const PRESETS := {
 	&"low": {
 		# GI en todos (usuario, 2026-11-22: en bajo y medio «la iluminación baja»): sin ella el salón perdía un tercio de luz.
 		"gi": true, "gi_quality": RenderingServer.VOXEL_GI_QUALITY_LOW, "fog": false,
-		"shadow_atlas": 1024, "shadow_filter": RenderingServer.SHADOW_QUALITY_HARD, "flashlight_shadow": false, "soft_shadows": false,
+		"shadow_atlas": 1024, "shadow_filter": RenderingServer.SHADOW_QUALITY_HARD, "flashlight_shadow": true, "soft_shadows": false,
 		"ssao": false, "ssao_quality": RenderingServer.ENV_SSAO_QUALITY_LOW,
 		"ssil": false, "ssil_quality": RenderingServer.ENV_SSIL_QUALITY_LOW,
 		"probe": true, "taa": false, "fxaa": true, "scale": 0.67, "max_height": 720, "glow": false, "half": true,

@@ -87,7 +87,12 @@ func _update_room(delta: float) -> void:
 
 
 func _update_torch(delta: float) -> void:
-	if _torch == null or not _torch.visible:
+	if _torch == null:
+		return
+	if not _torch.visible:
+		if not _torch_burst.is_empty():  # apagada a mitad de un fallo: al encenderla salía tenue (usuario, 2026-11-22)
+			_torch_burst.clear()
+			_mixer.set_light_scale(_torch, 1.0)
 		return
 	if not _torch_burst.is_empty():
 		_torch_t += delta
