@@ -24,6 +24,14 @@ renderer/rendering_method="forward_plus"
 rendering_device/driver.windows="d3d12"
 occlusion_culling/use_occlusion_culling=true
 
+[importer_defaults]
+
+texture={
+"compress/high_quality": true,
+"compress/mode": 2,
+"mipmaps/generate": true
+}
+
 [input]
 
 ui_accept={

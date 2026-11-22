@@ -48,6 +48,12 @@ func _ready() -> void:
 	mixer = LightMixer.new(flat.get_lights(), tv.get_screen_light(), camera.get_flashlight(), environment, room.get_ambient())
 	settings = GraphicsSettings.new(get_viewport(), environment, room.get_voxel_gi(), room.get_reflection_probe(),
 			camera.get_flashlight(), mixer)
+	# TLR_RES=3840x2160: pantalla completa y el 3D a esa resolución (capturas y benchmark como los ve el jugador).
+	if _dev("TLR_RES") != "":
+		var wh := _dev("TLR_RES").split("x")
+		Game.settings.fullscreen = true
+		Game.settings.resolution = Vector2i(int(wh[0]), int(wh[1]))
+		Game.apply_settings()
 	var dev_preset := StringName(_dev("TLR_PRESET"))
 	if _dev("TLR_GI") == "0":
 		settings.overrides["gi"] = false
@@ -126,7 +132,6 @@ func _ready() -> void:
 func _apply_user_settings() -> void:
 	var s := Game.settings
 	settings.brightness = s.brightness
-	settings.user_scale = s.render_scale
 	settings.max_rows = s.resolution.y
 	_film_grain.visible = s.film_grain
 

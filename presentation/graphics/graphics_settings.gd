@@ -46,10 +46,8 @@ const AMBIENT_GI_SCALE := 0.4  # con iluminación global, la luz ambiente base s
 var current: Dictionary = {}
 ## Claves del preset forzadas (p. ej. TLR_OFF en depuración); sobreviven a cada apply_preset.
 var overrides: Dictionary = {}
-## Del jugador (UserSettings): multiplicador de exposición, escala 3D (0 = la del preset) y filas de la
-## resolución elegida (0 = auto).
+## Del jugador (UserSettings): multiplicador de exposición y filas de la resolución elegida (0 = auto).
 var brightness := 1.0
-var user_scale := 0.0
 var max_rows := 0
 
 var _viewport: Viewport
@@ -87,14 +85,12 @@ func apply_preset(preset: StringName) -> void:
 	_apply()
 
 
-## Escala 3D final. Con resolución elegida (rows > 0), el 3D se dibuja a esas filas por la escala (la del
-## jugador o, en auto, la del preset), aunque pasen del tope del preset: el jugador lo pidió. En auto, la
-## escala sin pasar del tope de filas del preset (salvo que el jugador fijara la escala).
-static func final_scale(preset: Dictionary, user_scale: float, rows: int, viewport_height: float) -> float:
-	var scale: float = user_scale if user_scale > 0.0 else preset["scale"]
+## Escala 3D final. Con resolución elegida (rows > 0), el 3D se dibuja justo a esas filas, aunque pasen del tope
+## del preset: es lo que pidió el jugador. En auto, la escala del preset sin pasar de su tope de filas.
+static func final_scale(preset: Dictionary, rows: int, viewport_height: float) -> float:
 	if rows > 0 and viewport_height > 0.0:
-		return clampf(scale * rows / viewport_height, 0.25, 1.0)
-	return render_scale(scale, INF if user_scale > 0.0 else float(preset["max_height"]), viewport_height)
+		return clampf(rows / viewport_height, 0.25, 1.0)
+	return render_scale(preset["scale"], preset["max_height"], viewport_height)
 
 
 func _apply() -> void:
@@ -132,6 +128,6 @@ func _apply() -> void:
 		_viewport.positional_shadow_atlas_size = current["shadow_atlas"]
 		_viewport.use_taa = current["taa"]
 		_viewport.screen_space_aa = Viewport.SCREEN_SPACE_AA_FXAA if current["fxaa"] else Viewport.SCREEN_SPACE_AA_DISABLED
-		var scale := final_scale(current, user_scale, max_rows, _viewport.get_visible_rect().size.y)
+		var scale := final_scale(current, max_rows, _viewport.get_visible_rect().size.y)
 		_viewport.scaling_3d_mode = Viewport.SCALING_3D_MODE_FSR if scale < 1.0 else Viewport.SCALING_3D_MODE_BILINEAR
 		_viewport.scaling_3d_scale = scale

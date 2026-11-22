@@ -175,7 +175,7 @@ Archivos que genera Godot y que se versionan, como en los hitos anteriores: el `
 
 **`GraphicsSettings`** (`RefCounted`)
 - `_init(viewport: Viewport, environment: Environment, voxel_gi: VoxelGI, probe: ReflectionProbe, flashlight: SpotLight3D, mixer: LightMixer)`. Sin `lights`: las luces solo las escribe `LightMixer`.
-- `apply_preset(name: StringName)` (`low`, `medium`, `high`, `ultra`); `overrides` (claves del preset forzadas, p. ej. `TLR_GI=0` o `TLR_OFF`) y los ajustes del jugador `brightness` (multiplicador de exposición), `user_scale` (escala 3D, 0 = la del preset) y `max_rows` (filas del 3D en pantalla completa) sobreviven a cada `apply_preset` (2026-11-20).
+- `apply_preset(name: StringName)` (`low`, `medium`, `high`, `ultra`); `overrides` (claves del preset forzadas, p. ej. `TLR_GI=0` o `TLR_OFF`) y los ajustes del jugador `brightness` (multiplicador de exposición) y `max_rows` (filas de la resolución elegida: el 3D se dibuja justo a esa resolución; 0 = auto, la escala del preset) sobreviven a cada `apply_preset` (2026-11-20; sin escala 3D aparte desde 2026-11-22, a petición del usuario).
 - `current: Dictionary`: los valores aplicados. Escribe propiedades de nodos y recursos (que los tests leen sin gráficos) y, para lo que solo existe en el servidor de render (calidad de VoxelGI, de SSAO, de SSIL y del filtro de sombras), llama a `RenderingServer` y lo guarda en `current`.
 
 **`Benchmark`** (`Node`, lo añade `main.gd` con `TLR_BENCHMARK=1`)

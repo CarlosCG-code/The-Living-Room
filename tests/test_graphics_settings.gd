@@ -94,13 +94,12 @@ func test_render_scale_caps_internal_height() -> void:
 
 func test_final_scale_user_choices() -> void:
 	var high: Dictionary = GraphicsSettings.PRESETS[&"high"]
-	assert_almost_eq(GraphicsSettings.final_scale(high, 0.0, 0, 2160), 1080.0 / 2160.0, 0.0001, "auto: manda el preset")
-	assert_almost_eq(GraphicsSettings.final_scale(high, 1.0, 0, 2160), 1.0, 0.0001, "escala elegida: sin el tope del preset")
-	assert_almost_eq(GraphicsSettings.final_scale(high, 0.0, 2160, 2160), 1.0, 0.0001, "4K elegido en 4K: 4K, aunque el alto tope en 1080")
-	assert_almost_eq(GraphicsSettings.final_scale(high, 0.0, 1440, 2160), 1440.0 / 2160.0, 0.0001, "2K elegido en 4K")
-	assert_almost_eq(GraphicsSettings.final_scale(high, 0.5, 1440, 2160), 720.0 / 2160.0, 0.0001, "con escala 50 %, la mitad")
+	assert_almost_eq(GraphicsSettings.final_scale(high, 0, 2160), 1080.0 / 2160.0, 0.0001, "auto: manda el preset")
+	assert_almost_eq(GraphicsSettings.final_scale(high, 2160, 2160), 1.0, 0.0001, "4K elegido en 4K: 4K, aunque el alto tope en 1080")
+	assert_almost_eq(GraphicsSettings.final_scale(high, 1440, 2160), 1440.0 / 2160.0, 0.0001, "2K elegido en 4K")
 	var low: Dictionary = GraphicsSettings.PRESETS[&"low"]
-	assert_almost_eq(GraphicsSettings.final_scale(low, 0.0, 1080, 1080), 0.67, 0.0001, "en auto, la escala del preset")
+	assert_almost_eq(GraphicsSettings.final_scale(low, 1080, 1080), 1.0, 0.0001, "1080 elegido: 1080, sin la escala del preset")
+	assert_almost_eq(GraphicsSettings.final_scale(low, 0, 900), 0.67, 0.0001, "en auto, la escala del preset (720 filas de tope)")
 
 
 func test_brightness_survives_preset_change() -> void:

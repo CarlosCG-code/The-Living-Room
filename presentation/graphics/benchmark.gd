@@ -57,7 +57,9 @@ func _finish_camera() -> void:
 	var all_p95: Array[float] = []
 	for r in _results:
 		all_p95.append(float(r.split(":")[1].split("/")[1]))
-	print("BENCH %s p95_ms_max=%.2f vram_mb=%.0f views=%s" % [label, all_p95.max(), _vram_max, " ".join(_results)])
+	print("BENCH %s p95_ms_max=%.2f vram_mb=%.0f tex_mb=%.0f buf_mb=%.0f views=%s" % [label, all_p95.max(), _vram_max,
+			Performance.get_monitor(Performance.RENDER_TEXTURE_MEM_USED) / 1048576.0,
+			Performance.get_monitor(Performance.RENDER_BUFFER_MEM_USED) / 1048576.0, " ".join(_results)])
 	get_tree().quit()
 
 

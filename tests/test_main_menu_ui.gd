@@ -94,8 +94,6 @@ func test_held_arrow_keeps_focus_and_only_repeats_percentages() -> void:
 func test_new_rows_cycle() -> void:
 	menu.get_option_button("max_fps").pressed.emit()
 	assert_eq(Game.settings.max_fps, 30)
-	menu.get_option_button("render_scale").pressed.emit()
-	assert_almost_eq(Game.settings.render_scale, 0.5, 0.0001)
 	Game.settings.brightness = 1.5
 	menu.get_option_button("brightness").pressed.emit()
 	assert_almost_eq(Game.settings.brightness, 0.5, 0.0001, "del máximo da la vuelta al mínimo")

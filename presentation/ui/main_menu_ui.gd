@@ -17,7 +17,7 @@ const DIM := Color("5a6480")
 ## Apartados de Ajustes (clave de su título → filas). En la tele de 320 × 240 no caben todas a la vez.
 const PAGES := {
 	"UI_PAGE_DISPLAY": ["fullscreen", "resolution", "vsync", "max_fps", "brightness"],
-	"UI_PAGE_GRAPHICS": ["quality", "render_scale", "film_grain", "crt"],
+	"UI_PAGE_GRAPHICS": ["quality", "film_grain", "crt"],
 	"UI_PAGE_AUDIO": ["volume", "volume_tv", "volume_room"],
 	"UI_PAGE_CONTROLS": ["mouse_sensitivity"],
 }
@@ -173,8 +173,6 @@ func _change(key: String, step: int, wrap := false) -> void:
 			s.max_fps = UserSettings.cycle(UserSettings.FPS_LIMITS, s.max_fps, step)
 		"brightness":
 			s.brightness = _step(s.brightness, step, UserSettings.BRIGHTNESS_MIN, UserSettings.BRIGHTNESS_MAX, wrap)
-		"render_scale":
-			s.render_scale = UserSettings.cycle(UserSettings.RENDER_SCALES, s.render_scale, step)
 		"film_grain":
 			s.film_grain = not s.film_grain
 		"volume", "volume_tv", "volume_room":
@@ -213,8 +211,6 @@ func _refresh() -> void:
 	(_rows["vsync"] as Button).text = tr("UI_VSYNC") % yes_no.call(s.vsync)
 	(_rows["max_fps"] as Button).text = tr("UI_MAX_FPS") % (tr("UI_UNLIMITED") if s.max_fps == 0 else str(s.max_fps))
 	(_rows["brightness"] as Button).text = tr("UI_BRIGHTNESS") % percent.call(s.brightness)
-	(_rows["render_scale"] as Button).text = tr("UI_RENDER_SCALE") % (tr("UI_AUTO") if s.render_scale == 0.0
-			else "%d %%" % percent.call(s.render_scale))
 	(_rows["film_grain"] as Button).text = tr("UI_FILM_GRAIN") % yes_no.call(s.film_grain)
 	(_rows["volume"] as Button).text = tr("UI_VOLUME") % percent.call(s.volume)
 	(_rows["volume_tv"] as Button).text = tr("UI_VOLUME_TV") % percent.call(s.volume_tv)

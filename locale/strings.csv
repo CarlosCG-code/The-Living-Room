@@ -67,7 +67,6 @@ UI_VSYNC,VSync: %s
 UI_MAX_FPS,Límite de FPS: %s
 UI_UNLIMITED,sin límite
 UI_BRIGHTNESS,Brillo: %d %%
-UI_RENDER_SCALE,Escala 3D: %s
 UI_AUTO,auto
 UI_FILM_GRAIN,Grano y viñeta: %s
 UI_VOLUME_TV,Tele: %d %%

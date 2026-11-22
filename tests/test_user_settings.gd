@@ -35,7 +35,6 @@ func test_round_trip_new_keys() -> void:
 	s.vsync = false
 	s.max_fps = 60
 	s.brightness = 1.2
-	s.render_scale = 0.75
 	s.film_grain = false
 	s.volume_tv = 0.4
 	s.volume_room = 0.6
@@ -45,7 +44,6 @@ func test_round_trip_new_keys() -> void:
 	assert_false(back.vsync)
 	assert_eq(back.max_fps, 60)
 	assert_almost_eq(back.brightness, 1.2, 0.0001)
-	assert_almost_eq(back.render_scale, 0.75, 0.0001)
 	assert_false(back.film_grain)
 	assert_almost_eq(back.volume_tv, 0.4, 0.0001)
 	assert_almost_eq(back.volume_room, 0.6, 0.0001)
@@ -84,13 +82,12 @@ func test_bad_new_values_are_corrected() -> void:
 	cfg.set_value("settings", "resolution", Vector2i(10, 10))
 	cfg.set_value("settings", "max_fps", 59)
 	cfg.set_value("settings", "brightness", 9.0)
-	cfg.set_value("settings", "render_scale", 0.3)
+	cfg.set_value("settings", "render_scale", 0.3)  # clave de un archivo antiguo: se ignora
 	cfg.save(PATH)
 	var s := UserSettings.load_from(PATH)
 	assert_eq(s.resolution, Vector2i.ZERO)
 	assert_eq(s.max_fps, 0)
 	assert_almost_eq(s.brightness, 1.5, 0.0001)
-	assert_almost_eq(s.render_scale, 0.0, 0.0001)
 
 
 func test_resolution_options_fit_the_screen() -> void:

@@ -10,8 +10,6 @@ const QUALITIES: Array[StringName] = [&"low", &"medium", &"high", &"ultra"]
 const SECTION := "settings"
 ## 0 = sin límite.
 const FPS_LIMITS: Array[int] = [0, 30, 60, 120, 144, 165, 240]
-## 0 = la del preset.
-const RENDER_SCALES: Array[float] = [0.0, 0.5, 0.67, 0.75, 0.85, 1.0]
 const COMMON_RESOLUTIONS: Array[Vector2i] = [Vector2i(1280, 720), Vector2i(1366, 768), Vector2i(1600, 900),
 		Vector2i(1920, 1080), Vector2i(2560, 1440), Vector2i(3840, 2160)]
 const BRIGHTNESS_MIN := 0.5
@@ -23,13 +21,14 @@ const SENSITIVITY_MAX := 0.0024
 
 var quality: StringName = &"medium"
 var fullscreen := false
-## Resolución del 3D y, en ventana, tamaño de la ventana. (0, 0) = auto: decide el preset (en ventana, maximizada).
+## Resolución a la que se dibuja el 3D y, en ventana, tamaño de la ventana. (0, 0) = auto: decide el preset (en
+## ventana, maximizada). No hay «escala 3D» aparte (usuario, 2026-11-22: la resolución elegida es la que se dibuja);
+## un archivo antiguo con render_scale se lee sin ella.
 var resolution := Vector2i.ZERO
 var vsync := true
 var max_fps := 0
 ## Multiplicador de la exposición (0,5–1,5).
 var brightness := 1.0
-var render_scale := 0.0
 var film_grain := true
 ## Volumen general, 0–1. Bajo por defecto: la primera vez no debe sonar fuerte.
 var volume := 0.25
@@ -56,10 +55,6 @@ static func load_from(path: String) -> UserSettings:
 	var fps: Variant = cfg.get_value(SECTION, "max_fps", s.max_fps)
 	s.max_fps = fps if fps is int and fps in FPS_LIMITS else s.max_fps
 	s.brightness = clampf(_num(cfg.get_value(SECTION, "brightness", s.brightness), s.brightness), BRIGHTNESS_MIN, BRIGHTNESS_MAX)
-	var rs := _num(cfg.get_value(SECTION, "render_scale", s.render_scale), s.render_scale)
-	for v in RENDER_SCALES:  # se guarda la de la lista, no la leída: cycle() la busca exacta
-		if is_equal_approx(v, rs):
-			s.render_scale = v
 	s.film_grain = cfg.get_value(SECTION, "film_grain", s.film_grain) != false
 	s.volume = clampf(_num(cfg.get_value(SECTION, "volume", s.volume), s.volume), 0.0, 1.0)
 	s.volume_tv = clampf(_num(cfg.get_value(SECTION, "volume_tv", s.volume_tv), s.volume_tv), 0.0, 1.0)
@@ -79,7 +74,6 @@ func save_to(path: String) -> bool:
 	cfg.set_value(SECTION, "vsync", vsync)
 	cfg.set_value(SECTION, "max_fps", max_fps)
 	cfg.set_value(SECTION, "brightness", brightness)
-	cfg.set_value(SECTION, "render_scale", render_scale)
 	cfg.set_value(SECTION, "film_grain", film_grain)
 	cfg.set_value(SECTION, "volume", volume)
 	cfg.set_value(SECTION, "volume_tv", volume_tv)
