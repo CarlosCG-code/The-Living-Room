@@ -11,6 +11,7 @@ const PRESETS := {
 		"ssao": false, "ssao_quality": RenderingServer.ENV_SSAO_QUALITY_LOW,
 		"ssil": false, "ssil_quality": RenderingServer.ENV_SSIL_QUALITY_LOW,
 		"probe": true, "taa": false, "fxaa": true, "scale": 0.67, "max_height": 720, "glow": false, "half": true,
+		"mirror_rows": 0,
 	},
 	&"medium": {
 		"gi": false, "gi_quality": RenderingServer.VOXEL_GI_QUALITY_LOW, "fog": false,
@@ -18,6 +19,7 @@ const PRESETS := {
 		"ssao": true, "ssao_quality": RenderingServer.ENV_SSAO_QUALITY_LOW,
 		"ssil": false, "ssil_quality": RenderingServer.ENV_SSIL_QUALITY_LOW,
 		"probe": true, "taa": true, "fxaa": false, "scale": 0.85, "max_height": 900, "glow": true, "half": true,
+		"mirror_rows": 256,
 	},
 	&"high": {
 		"gi": true, "gi_quality": RenderingServer.VOXEL_GI_QUALITY_LOW, "fog": true,
@@ -25,6 +27,7 @@ const PRESETS := {
 		"ssao": true, "ssao_quality": RenderingServer.ENV_SSAO_QUALITY_MEDIUM,
 		"ssil": true, "ssil_quality": RenderingServer.ENV_SSIL_QUALITY_MEDIUM,
 		"probe": true, "taa": true, "fxaa": false, "scale": 1.0, "max_height": 1080, "glow": true, "half": true,
+		"mirror_rows": 512,
 	},
 	&"ultra": {
 		"gi": true, "gi_quality": RenderingServer.VOXEL_GI_QUALITY_HIGH, "fog": true,
@@ -32,6 +35,7 @@ const PRESETS := {
 		"ssao": true, "ssao_quality": RenderingServer.ENV_SSAO_QUALITY_HIGH,
 		"ssil": true, "ssil_quality": RenderingServer.ENV_SSIL_QUALITY_HIGH,
 		"probe": true, "taa": true, "fxaa": false, "scale": 1.0, "max_height": 1440, "glow": true, "half": false,
+		"mirror_rows": 768,
 	},
 }
 const AMBIENT_GI_SCALE := 0.4  # con iluminación global, la luz ambiente base se baja (D9)
@@ -118,6 +122,8 @@ func _apply() -> void:
 	if _probe:
 		_probe.visible = current["probe"]
 	if _viewport:
+		# Espejos (PlanarMirror): filas del reflejo; en bajo no se pintan.
+		_viewport.get_tree().call_group(&"mirrors", &"set_rows", current["mirror_rows"])
 		_viewport.positional_shadow_atlas_size = current["shadow_atlas"]
 		_viewport.use_taa = current["taa"]
 		_viewport.screen_space_aa = Viewport.SCREEN_SPACE_AA_FXAA if current["fxaa"] else Viewport.SCREEN_SPACE_AA_DISABLED

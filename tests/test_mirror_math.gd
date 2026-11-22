@@ -32,3 +32,20 @@ func test_facing_plus_x_faces_minus_x() -> void:
 func test_basis_stays_orthonormal() -> void:
 	var m := MirrorMath.mirror_transform(_rotated())
 	assert_true(m.basis.orthonormalized().is_equal_approx(m.basis))
+
+
+# Espejo de pared (PlanarMirror): cristal en x = -2 mirando a +X, ojo delante.
+func test_planar_mirror_camera() -> void:
+	var centre := Vector3(-2.0, 1.5, 0.3)
+	var n := Vector3.RIGHT
+	var right := PlanarMirror.right_of(n)
+	assert_true(right.is_equal_approx(Vector3(0, 0, -1)), "derecha vista desde la habitación")
+	var eye := Vector3(0.5, 1.7, 1.0)
+	var cam: Array = PlanarMirror.mirror_camera(eye, centre, n, right)
+	var t: Transform3D = cam[0]
+	assert_true(t.origin.is_equal_approx(Vector3(-4.5, 1.7, 1.0)), "el ojo, reflejado tras el cristal")
+	assert_true((-t.basis.z).is_equal_approx(n), "mira hacia la habitación")
+	assert_almost_eq(float(cam[2]), 2.51, 0.0001, "plano cercano 1 cm por delante del cristal")
+	assert_almost_eq(float(cam[3]), 2.51 / 2.5, 0.0001)
+	# El centro del cristal, visto desde la cámara (su derecha es +Z del mundo): 0,7 m a su izquierda y 0,2 m más bajo.
+	assert_true((cam[1] as Vector2).is_equal_approx(Vector2(-0.7, -0.2) * 2.51 / 2.5))

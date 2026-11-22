@@ -36,6 +36,7 @@ func _ready() -> void:
 			door.setup(conn, mirrored)
 			doors.append(door)
 	_add_lamps()
+	_add_mirrors(geometry)
 	_add_acoustics()
 	var backdrop := living_room.get_node("WindowBackdrop") as Node3D
 	for zone in FACADE_WINDOWS:
@@ -48,6 +49,39 @@ func _ready() -> void:
 
 func get_layout() -> FlatLayout:
 	return LAYOUT
+
+
+# Espejos de verdad (PlanarMirror) sobre el cristal de cada Mirror_<zona> (material «Mirror», furnish_flat.py y
+# build_living_room.py). La cara buena es la que da a su habitación.
+func _add_mirrors(geometry: Node) -> void:
+	for root: Node in [living_room, geometry]:
+		for m: MeshInstance3D in root.find_children("Mirror_*", "MeshInstance3D", true, false):
+			var glass := _glass_box(m)
+			var zone: ZoneDef = LAYOUT.find_zone(StringName(String(m.name).trim_prefix("Mirror_")))
+			if glass.size == Vector3.ZERO or zone == null:
+				continue
+			var c := zone.rect.get_center()
+			var inside := Vector3(-c.x if mirrored else c.x, 0.0, c.y)
+			var thin := Vector3.AXIS_X if glass.size.x < glass.size.z else Vector3.AXIS_Z
+			var normal := Vector3.ZERO
+			normal[thin] = signf(inside[thin] - glass.get_center()[thin])
+			var mirror := PlanarMirror.new()
+			mirror.name = "PlanarMirror_%s" % zone.id
+			add_child(mirror)
+			mirror.setup(glass.get_center(), normal, Vector2(glass.size[2 - thin], glass.size.y))
+
+
+# Caja global de la superficie con el material «Mirror» (el marco va en la misma malla).
+func _glass_box(m: MeshInstance3D) -> AABB:
+	for i in m.mesh.get_surface_count():
+		var mat := m.get_active_material(i)
+		if mat and mat.resource_name == "Mirror":
+			var verts: PackedVector3Array = m.mesh.surface_get_arrays(i)[Mesh.ARRAY_VERTEX]
+			var box := AABB(m.global_transform * verts[0], Vector3.ZERO)
+			for v in verts:
+				box = box.expand(m.global_transform * v)
+			return box
+	return AABB()
 
 
 ## Las del salón y las del resto del piso: todas pasan por el único LightMixer (specs/hito4a.md D8, D12).

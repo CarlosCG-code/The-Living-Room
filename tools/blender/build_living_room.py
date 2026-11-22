@@ -574,7 +574,13 @@ def decorate():
     # Cuadros y espejo en las paredes.
     to_wall(import_model("hanging_picture_frame_02", "1k", (0.95, -2.3, 1.25), rot_z_deg=180, drop=("glass",)), "y", -D / 2)
     to_wall(import_model("fancy_picture_frame_02", "1k", (0, 2.3, 1.3), drop=("glass",)), "y", D / 2)
-    to_wall(import_model("ornate_mirror_01", "1k", (-1.9, 0.5, 1.15), rot_z_deg=90), "x", -W / 2)
+    # Espejo de verdad (PlanarMirror busca el material «Mirror»; usuario, 2026-11-22): el de Poly Haven llevaba el
+    # cristal en el mismo material que el marco y no se podía separar.
+    glass = framed(mat("Mirror", (0.5, 0.5, 0.47), 0.25, metallic=0.6), 0.5, 0.72, "ornate", "Mirror_living_room")
+    glass.rotation_euler.z = math.radians(90)
+    glass.location = (-1.9, 0.5, 1.15 + 0.36)
+    bpy.context.view_layer.update()  # to_wall lee matrix_world: sin esto lo empujaba fuera de la pared
+    to_wall([glass], "x", -W / 2)
 
     # Lámpara de techo (apagada por ahora), alfombra, gafas en la mesa y cesto junto al sofá.
     lamp = import_model("Chandelier_02", "1k", (0, 0.3, 0))
