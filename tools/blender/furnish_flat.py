@@ -607,7 +607,7 @@ def furnish():
     made(towel_rail(M, 0.6, 1.35), "TowelRail", z, "py1", 1.6, gap=0.0)
     made(toilet(M), "Toilet", z, "px1", -1.4)
     made(basin(M), "Basin", z, "px0", -1.6)
-    mirror(M, z, "px0", -1.6, 1.5, 0.36, 0.48, "ebony")
+    mirror(M, z, "px0", -1.6, 1.68, 0.36, 0.48, "ebony")  # por encima del remate del azulejo (1,37 m), que asomaba
     put("wooden_bucket_02", z, "px0", -1.05, gap=0.05)  # junto a la bañera se metía dentro
     put("wooden_stool_02", z, "px1", -2.3, gap=0.05)
     fixture(z)

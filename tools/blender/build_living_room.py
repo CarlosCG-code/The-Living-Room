@@ -614,7 +614,8 @@ def wall_plate(loc, rot_z_deg, axis, coord):
 
 # Marcos de Poly Haven (usuario, 2026-11-22: los hechos aquí eran «feísimos»): el dorado ornamentado para los
 # cuadros principales y el moldurado, teñido, para el resto. (modelo, tinte del color).
-FRAME_STYLES = {"ornate": ("fancy_picture_frame_02", None), "gilt": ("fancy_picture_frame_01", None),
+FRAME_STYLES = {"ornate": ("fancy_picture_frame_01", (0.72, 0.6, 0.42)),  # el 02 era enorme (usuario, 2026-11-22)
+                "gilt": ("fancy_picture_frame_01", None),
                 "ebony": ("fancy_picture_frame_01", (0.16, 0.13, 0.11)), "walnut": ("fancy_picture_frame_01", (0.5, 0.34, 0.22)),
                 "silver": ("fancy_picture_frame_01", (0.75, 0.78, 0.82))}
 

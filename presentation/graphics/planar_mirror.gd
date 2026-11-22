@@ -72,8 +72,8 @@ func setup(centre: Vector3, normal: Vector3, size: Vector2) -> void:
 	_material.set_shader_parameter(&"reflection", _viewport.get_texture())
 	quad.material_override = _material
 	add_child(quad)
-	# El quad mira a +Z: se gira hacia la habitación, 2 mm por delante del cristal.
-	quad.global_transform = Transform3D(Basis(_right, _normal.cross(_right), _normal), centre + _normal * 0.002)
+	# El quad mira a +Z: se gira hacia la habitación, 6 mm por delante del cristal (a 2 mm la pared asomaba al moverse).
+	quad.global_transform = Transform3D(Basis(_right, _normal.cross(_right), _normal), centre + _normal * 0.006)
 	var notifier := VisibleOnScreenNotifier3D.new()
 	notifier.aabb = AABB(Vector3(-size.x / 2, -size.y / 2, -0.01), Vector3(size.x, size.y, 0.02))
 	quad.add_child(notifier)
@@ -107,13 +107,15 @@ func set_rows(rows: int) -> void:
 
 # Presentación, no lógica de juego: la cámara del reflejo sigue a la del jugador cada fotograma.
 func _process(_delta: float) -> void:
-	var eye := get_viewport().get_camera_3d()
-	var active := _rows > 0 and _on_screen and eye != null \
-			and eye.global_position.distance_to(_centre) < MAX_DISTANCE \
-			and (eye.global_position - _centre).dot(_normal) > 0.05
+	var cam3d := get_viewport().get_camera_3d()
+	# La posición que se dibuja (con interpolación física), no la del último tick: si no, el reflejo iba con retraso
+	# y bailaba al moverse (usuario, 2026-11-22).
+	var eye := cam3d.get_global_transform_interpolated().origin if cam3d else Vector3.INF
+	var active := _rows > 0 and _on_screen and cam3d != null and eye.distance_to(_centre) < MAX_DISTANCE \
+			and (eye - _centre).dot(_normal) > 0.05
 	_viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS if active else SubViewport.UPDATE_DISABLED
-	_material.set_shader_parameter(&"active", active)
-	if active:
-		var cam := mirror_camera(eye.global_position, _centre, _normal, _right)
+	if active:  # al dejar de pintarse se queda la última imagen, no un negro de golpe
+		_material.set_shader_parameter(&"active", true)
+		var cam := mirror_camera(eye, _centre, _normal, _right)
 		_camera.global_transform = cam[0]
 		_camera.set_frustum(_size.y * cam[3], cam[1], cam[2], 40.0)
