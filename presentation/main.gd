@@ -55,6 +55,8 @@ func _ready() -> void:
 	for key in _dev("TLR_OFF").split(",", false):
 		if GraphicsSettings.PRESETS[&"high"].get(key) is bool:
 			settings.overrides[key] = false
+	if _dev("TLR_OCCLUSION") == "0":  # comparar con y sin oclusión (flat.gd)
+		get_viewport().use_occlusion_culling = false
 	var flicker := LightFlicker.new()
 	flicker.name = "LightFlicker"
 	add_child(flicker)

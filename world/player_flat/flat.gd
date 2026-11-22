@@ -42,6 +42,7 @@ func _ready() -> void:
 			door.setup(conn, mirrored)
 			doors.append(door)
 	_add_lamps(geometry)
+	_add_occluder(geometry)
 	_keep_living_light_inside()
 	_add_mirrors(geometry)
 	_add_acoustics()
@@ -181,3 +182,31 @@ func _add_lamps(geometry: Node) -> void:
 			lamp.set_meta(&"base_dark", l["base_dark"])
 			add_child(lamp)
 			_lights.append(lamp)
+
+# Oclusión: los muros tapan lo que hay detrás y no se dibuja (las sombras y la GI no cambian: no la usan).
+# Se hace con la misma malla de los muros, así los vanos de puertas y ventanas quedan abiertos.
+func _add_occluder(geometry: Node) -> void:
+	var walls := geometry.find_children("Wall_*", "MeshInstance3D", true, false)
+	walls.append_array(geometry.find_children("Lintel_*", "MeshInstance3D", true, false))
+	walls.append_array(living_room.find_children("Wall*", "MeshInstance3D", true, false))
+	var vertices := PackedVector3Array()
+	var indices := PackedInt32Array()
+	for m: MeshInstance3D in walls:
+		var to_flat := global_transform.affine_inverse() * m.global_transform
+		for s in m.mesh.get_surface_count():
+			var arrays := m.mesh.surface_get_arrays(s)
+			var base := vertices.size()
+			var pos: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+			for v in pos:
+				vertices.append(to_flat * v)
+			var idx = arrays[Mesh.ARRAY_INDEX]
+			if idx == null:
+				idx = range(pos.size())
+			for i in idx:
+				indices.append(base + i)
+	var occluder := ArrayOccluder3D.new()
+	occluder.set_arrays(vertices, indices)
+	var instance := OccluderInstance3D.new()
+	instance.name = "WallOccluder"
+	instance.occluder = occluder
+	add_child(instance)

@@ -27,7 +27,8 @@ func before_each() -> void:
 func test_low() -> void:
 	settings.apply_preset(&"low")
 	assert_true(gi.visible, "GI en todos: sin ella el salón perdía un tercio de luz")
-	assert_false(env.volumetric_fog_enabled)
+	assert_true(env.volumetric_fog_enabled, "la niebla da buena parte de la luz del ambiente: en todos")
+	assert_eq(settings.current["fog_volume"], 32, "en bajo, a menos resolución")
 	assert_false(env.ssao_enabled)
 	assert_false(env.ssil_enabled)
 	assert_true(probe.visible, "la sonda es el reflejo del cristal: barata, en todos los presets")
@@ -37,8 +38,7 @@ func test_low() -> void:
 	assert_false(viewport.use_taa)
 	assert_almost_eq(viewport.scaling_3d_scale, 0.67, 0.001)
 	assert_eq(viewport.scaling_3d_mode, Viewport.SCALING_3D_MODE_FSR)
-	# Con GI el ambiente baja (0,4) y sin SSIL sube algo (×1,2) para no quedar más oscuro que el alto.
-	assert_almost_eq(env.ambient_light_energy, GraphicsSettings.AMBIENT_GI_SCALE * GraphicsSettings.NO_SSIL_AMBIENT, 0.001)
+	assert_almost_eq(env.ambient_light_energy, GraphicsSettings.AMBIENT_GI_SCALE, 0.001, "con GI el ambiente baja (0,4)")
 
 
 func test_medium() -> void:

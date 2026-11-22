@@ -76,6 +76,14 @@ func _build() -> void:
 	col.shape = _shape
 	col.position = _leaf_center()
 	_leaf.add_child(col)
+	# Cerrada, la hoja tapa el cuarto de detrás (oclusión, flat.gd); algo más pequeña que ella para que no
+	# esconda lo que asoma por sus bordes.
+	var occluder := OccluderInstance3D.new()
+	var quad := QuadOccluder3D.new()
+	quad.size = Vector2(_width - 0.1, HEIGHT - 0.1)
+	occluder.occluder = quad
+	occluder.position = _leaf_center()
+	_leaf.add_child(occluder)
 	# El modelo va con la cara de los pernios en su -Z; del otro lado de la puerta se refleja.
 	var model := LEAF_SCENE.instantiate() as Node3D
 	model.position = Vector3(0.0, 0.02, _sign * THICKNESS / 2.0)  # rendija de 2 cm bajo la hoja, como en el salón

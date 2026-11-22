@@ -7,7 +7,9 @@ extends RefCounted
 const PRESETS := {
 	&"low": {
 		# GI en todos (usuario, 2026-11-22: en bajo y medio «la iluminación baja»): sin ella el salón perdía un tercio de luz.
-		"gi": true, "gi_quality": RenderingServer.VOXEL_GI_QUALITY_LOW, "fog": false,
+		# Niebla en todos (2026-11-22): es buena parte de la luz del ambiente; sin ella bajo y medio salían hasta un 50 %
+		# más oscuros. En bajo y medio, a menos resolución (fog_volume: celdas de lado y de fondo; 64 es el de Godot).
+		"gi": true, "gi_quality": RenderingServer.VOXEL_GI_QUALITY_LOW, "fog": true, "fog_volume": 32,
 		"shadow_atlas": 1024, "shadow_filter": RenderingServer.SHADOW_QUALITY_HARD, "flashlight_shadow": true, "soft_shadows": false,
 		"ssao": false, "ssao_quality": RenderingServer.ENV_SSAO_QUALITY_LOW,
 		"ssil": false, "ssil_quality": RenderingServer.ENV_SSIL_QUALITY_LOW,
@@ -15,7 +17,7 @@ const PRESETS := {
 		"mirror_rows": 192,  # espejos en todos los presets (usuario, 2026-11-22)
 	},
 	&"medium": {
-		"gi": true, "gi_quality": RenderingServer.VOXEL_GI_QUALITY_LOW, "fog": false,
+		"gi": true, "gi_quality": RenderingServer.VOXEL_GI_QUALITY_LOW, "fog": true, "fog_volume": 48,
 		"shadow_atlas": 2048, "shadow_filter": RenderingServer.SHADOW_QUALITY_SOFT_LOW, "flashlight_shadow": true, "soft_shadows": true,
 		"ssao": true, "ssao_quality": RenderingServer.ENV_SSAO_QUALITY_LOW,
 		"ssil": false, "ssil_quality": RenderingServer.ENV_SSIL_QUALITY_LOW,
@@ -23,7 +25,7 @@ const PRESETS := {
 		"mirror_rows": 320,
 	},
 	&"high": {
-		"gi": true, "gi_quality": RenderingServer.VOXEL_GI_QUALITY_LOW, "fog": true,
+		"gi": true, "gi_quality": RenderingServer.VOXEL_GI_QUALITY_LOW, "fog": true, "fog_volume": 64,
 		"shadow_atlas": 4096, "shadow_filter": RenderingServer.SHADOW_QUALITY_SOFT_MEDIUM, "flashlight_shadow": true, "soft_shadows": true,
 		"ssao": true, "ssao_quality": RenderingServer.ENV_SSAO_QUALITY_MEDIUM,
 		"ssil": true, "ssil_quality": RenderingServer.ENV_SSIL_QUALITY_MEDIUM,
@@ -31,7 +33,7 @@ const PRESETS := {
 		"mirror_rows": 512,
 	},
 	&"ultra": {
-		"gi": true, "gi_quality": RenderingServer.VOXEL_GI_QUALITY_HIGH, "fog": true,
+		"gi": true, "gi_quality": RenderingServer.VOXEL_GI_QUALITY_HIGH, "fog": true, "fog_volume": 64,
 		"shadow_atlas": 8192, "shadow_filter": RenderingServer.SHADOW_QUALITY_SOFT_HIGH, "flashlight_shadow": true, "soft_shadows": true,
 		"ssao": true, "ssao_quality": RenderingServer.ENV_SSAO_QUALITY_HIGH,
 		"ssil": true, "ssil_quality": RenderingServer.ENV_SSIL_QUALITY_HIGH,
@@ -40,7 +42,6 @@ const PRESETS := {
 	},
 }
 const AMBIENT_GI_SCALE := 0.4  # con iluminación global, la luz ambiente base se baja (D9)
-const NO_SSIL_AMBIENT := 1.2
 
 var current: Dictionary = {}
 ## Claves del preset forzadas (p. ej. TLR_OFF en depuración); sobreviven a cada apply_preset.
@@ -102,12 +103,13 @@ func _apply() -> void:
 		_voxel_gi.visible = gi
 	RenderingServer.voxel_gi_set_quality(current["gi_quality"])
 	if _mixer:
-		# Sin SSIL (bajo y medio) falta la luz que rebota de cerca: algo más de ambiente lo iguala con el alto.
-		_mixer.set_ambient_gi_scale((AMBIENT_GI_SCALE if gi else 1.0) * (1.0 if current["ssil"] else NO_SSIL_AMBIENT))
+		# Sin SSIL no hace falta más ambiente: con la niebla en todos los presets el brillo ya se iguala (2026-11-22).
+		_mixer.set_ambient_gi_scale(AMBIENT_GI_SCALE if gi else 1.0)
 		# Sin TAA (bajo), las sombras suaves (light_size) salen con ruido: se dibujan duras.
 		_mixer.set_soft_shadows(current["soft_shadows"])
 	if _environment:
 		_environment.volumetric_fog_enabled = current["fog"]
+		RenderingServer.environment_set_volumetric_fog_volume_size(current["fog_volume"], current["fog_volume"])
 		_environment.ssao_enabled = current["ssao"]
 		_environment.ssil_enabled = current["ssil"]
 		# Halo de la pantalla sobre el marco y la pared (niveles en living_room.tscn); barato, fuera en bajo.

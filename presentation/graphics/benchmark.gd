@@ -15,6 +15,8 @@ var _elapsed := 0.0
 var _frames: PackedFloat32Array = []
 var _gpu: PackedFloat32Array = []
 var _vram_max := 0.0
+var _objects := 0  # objetos dibujados en el último fotograma: en pantalla (lo que descarta la oclusión) y en sombras
+var _draws := 0
 var _results: PackedStringArray = []
 
 
@@ -33,6 +35,8 @@ func _process(delta: float) -> void:
 	_gpu.append(RenderingServer.viewport_get_measured_render_time_gpu(get_viewport().get_viewport_rid()))
 	_vram_max = maxf(_vram_max, Performance.get_monitor(Performance.RENDER_VIDEO_MEM_USED) / 1048576.0)
 	if _elapsed >= WARMUP + SAMPLE:
+		_objects = get_viewport().get_render_info(Viewport.RENDER_INFO_TYPE_VISIBLE, Viewport.RENDER_INFO_OBJECTS_IN_FRAME)
+		_draws = get_viewport().get_render_info(Viewport.RENDER_INFO_TYPE_SHADOW, Viewport.RENDER_INFO_OBJECTS_IN_FRAME)
 		_finish_camera()
 
 
@@ -44,7 +48,8 @@ func _start_camera() -> void:
 
 
 func _finish_camera() -> void:
-	_results.append("%s:%.2f/%.2f/%.2f" % [cameras[_index].name, _avg(_frames), _p95(_frames), _p95(_gpu)])
+	_results.append("%s:%.2f/%.2f/%.2f/%d/%d" % [cameras[_index].name, _avg(_frames), _p95(_frames), _p95(_gpu),
+			_objects, _draws])
 	_index += 1
 	if _index < cameras.size():
 		_start_camera()

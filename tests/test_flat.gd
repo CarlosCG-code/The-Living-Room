@@ -83,3 +83,25 @@ func test_sound_occlusion_counts_walls_not_furniture() -> void:
 	var sofa := (f.living_room.get_node("Anchors/SeatAnchor") as Node3D).global_position + Vector3.UP * 0.5
 	assert_eq(SoundOcclusion.obstacles(space, sofa, rain), 0, "dentro del salón la lluvia se oye")
 	assert_gt(SoundOcclusion.obstacles(space, Vector3(-2.75, 1.6, 4.6), rain), 0, "desde el pasillo la tapa un muro")
+
+
+# Oclusión: los muros del piso y del salón, en triángulos; en espejo, el mismo contorno reflejado en x.
+func test_wall_occluder_covers_flat_and_mirrors() -> void:
+	var boxes: Array[AABB] = []
+	for mirrored in [false, true]:
+		var occ := (_flat(mirrored).get_node("WallOccluder") as OccluderInstance3D).occluder as ArrayOccluder3D
+		assert_gt(occ.vertices.size(), 100)
+		assert_eq(occ.indices.size() % 3, 0)
+		var box := AABB(occ.vertices[0], Vector3.ZERO)
+		for v in occ.vertices:
+			box = box.expand(v)
+		boxes.append(box)
+	assert_almost_eq(boxes[1].position.x, -boxes[0].end.x, 0.01)
+	assert_almost_eq(boxes[1].size, boxes[0].size, Vector3.ONE * 0.01)
+
+
+# La lluvia se mueve en cada fotograma: si diera sombra, obligaría a redibujar cada fotograma la sombra de todas
+# las lámparas a su alcance (miles de objetos de más). Su sombra no se notaba.
+func test_rain_casts_no_shadow() -> void:
+	var rain := _flat(false).living_room.get_node("Rain") as GeometryInstance3D
+	assert_eq(rain.cast_shadow, GeometryInstance3D.SHADOW_CASTING_SETTING_OFF)
