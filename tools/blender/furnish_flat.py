@@ -525,6 +525,9 @@ def furnish():
     photo(448866, commode, dpx=-0.05, rot=ROT["py0"], h=0.22, style="ornate")
     window_curtain(z)
     fixture(z, "Chandelier_01")
+    side = put("gallinera_table", z, "py1", 1.5, gap=0.03)  # mesita bajo el cuadro de la Virgen
+    on("brass_vase_02", side, dpx=-0.2)
+    on("old_book_st_ives", side, dpx=0.15, rot=25, lay=True)
 
     # Comedor: mesa con mantel y cuatro sillas, aparador con la foto del abuelo, jarrón de latón en su pie alto, reloj
     # de pared pintado y araña de cristal.
@@ -545,6 +548,9 @@ def furnish():
     stand = put("side_table_tall_01", z, "py0", 0.45, gap=0.1)
     on("brass_vase_01", stand)
     put("orava_clock", z, "px1", 3.4, gap=0.0, z=1.45)  # reloj de pared pintado, de Orava (Sketchfab, escaneo de museo)
+    corner = put("round_wooden_table_02", z, "py1", -0.5, gap=0.05)  # velador del rincón con una maceta
+    on("potted_plant_04", corner)
+    pic("cma:93239", z, "px0", 3.3, 1.6, 0.35, "walnut")  # bodegón
     fixture(z, "Chandelier_03")
 
     # Taller: banco de tablas viejas con tornillo, cepillo, martillo, destornilladores, llave y berbiquí (tumbados);
@@ -575,7 +581,8 @@ def furnish():
     on("wooden_crate_01", low, dpy=-0.4)
     on("handsaw_wood", low, dpy=0.45, rot=90, lay=True)
     on("dirty_blanket", low, dpy=0.0, rot=20)  # trapo
-    put("barrel_03", z, "px0", 3.4, gap=0.05)
+    barrel = put("barrel_03", z, "px0", 3.4, gap=0.05)
+    on("wooden_lantern_01", barrel)  # farol de aceite sobre el barril
     free("sledgehammer_01", 16.3, 5.0, rot=30, lay=True)
     crate = put("wooden_crate_02", z, "px0", 7.6)
     on("wooden_axe", crate, rot=70, lay=True)
@@ -603,6 +610,7 @@ def furnish():
     shelf = made(wall_shelf(M, 0.7, 1.3), "ShipShelf", "corridor_main_e", "py0", -1.0, gap=0.0)
     on("dutch_ship_medium", shelf, top=1.3125, rot=-90, scale=0.02)
     pic("cma:151298", "corridor_main_e", "py1", 1.0, 1.55, 0.38, "silver")
+    pic("cma:108809", "corridor_main_e", "py1", 2.0, 1.55, 0.36, "walnut")  # bosque
     fixture("corridor_main_e", "lantern_chandelier_01")
     # Pasillo lateral: un Cristo muerto y una banqueta plegable.
     pic(441965, "corridor_side", "px0", 1.8, 1.55, 0.6)
@@ -617,6 +625,7 @@ def furnish():
     fixture("corridor_service_w")
     made(peg_rail(M), "PegRail", "corridor_service_m", "py0", 1.0, gap=0.0)
     pic("cma:171296", "corridor_service_m", "py0", 4.6, 1.55, 0.4, "ebony")
+    pic("cma:147016", "corridor_service_m", "py1", 3.3, 1.6, 0.42)  # Virgen con el Niño
     fixture("corridor_service_m")
     pic("cma:145450", "corridor_service_e", "py1", 1.9, 1.55, 0.45, "ebony")
     fixture("corridor_service_e")
@@ -632,6 +641,7 @@ def furnish():
     made(wardrobe(M), "Wardrobe", z, "px0", -1.0)
     put("gallinera_chair", z, "py1", 2.0, gap=0.05)
     put("vintage_suitcase", z, "py1", 0.9, gap=0.05, rot=8)
+    pic("cma:124080", z, "py1", 2.0, 1.62, 0.42, "walnut")  # retrato sobre la silla
     rug("rug_rag", z, 1.0, 1.6)
     pic("cma:142472", z, "py0", -0.6, 1.55, 0.4)  # icono de la Virgen
     fixture(z, "brass_diya_lantern", scale=2.0, drop=("flame",))
@@ -647,6 +657,9 @@ def furnish():
     mirror(M, z, "px0", -1.6, 1.68, 0.36, 0.48, "ebony")  # por encima del remate del azulejo (1,37 m), que asomaba
     put("wooden_bucket_02", z, "px0", -1.05, gap=0.05)  # junto a la bañera se metía dentro
     put("wooden_stool_02", z, "px1", -2.3, gap=0.05)
+    put("plunger", z, "px1", -0.85, gap=0.05)
+    shelf = made(wall_shelf(M, 0.4, 1.45), "BathShelf", z, "py0", 1.9, gap=0.0)
+    on("lambis_shell", shelf, top=1.4625, rot=30)
     fixture(z)
 
     # Dormitorio 3 (de niño): cama de día, mesa de estudio con ajedrez y su taburete pintado y desconchado, pizarra.
@@ -659,15 +672,24 @@ def furnish():
     free("painted_wooden_stool", 9.85, 6.45, rot=180)  # la silla blanca parecía nueva
     made(wall_slate(M), "WallSlate", z, "py1", -0.6, gap=0.0)
     pic("cma:149768", z, "py0", 1.3, 1.65, 0.55, "walnut")  # san Juan, sobre la cama
+    # Lo del niño: la maqueta de barco y el microscopio con los prismáticos en sus repisas, y una foto de niños.
+    shelf = made(wall_shelf(M, 0.7, 1.4), "ShipShelf3", z, "py1", 0.6, gap=0.0)
+    on("ship_pinnace", shelf, top=1.4125, rot=90, scale=0.012)
+    shelf = made(wall_shelf(M, 0.6, 1.35), "StudyShelf", z, "px0", 1.5, gap=0.0)
+    on("vintage_microscope", shelf, top=1.3625, dpy=-0.13, rot=90)
+    on("vintage_binocular", shelf, top=1.3625, dpy=0.15, rot=20)
+    pic("cma:162316", z, "px1", 0.9, 1.6, 0.4, "walnut")
     fixture(z)
 
     # Paso de la despensa: alacena azul, escoba, recogedor, cesto y lechera.
     z = "pantry_hall"
-    put("painted_wooden_cabinet_02", z, "px1", 1.6)
+    cupboard = put("painted_wooden_cabinet_02", z, "px1", 1.6)
     put("wooden_broom", z, "px0", 0.5, gap=0.05)
     put("dustpan", z, "px0", 0.9, gap=0.05)
     put("wicker_basket_02", z, "px0", 1.6, gap=0.05)
     put("metal_jug", z, "px0", 2.3, gap=0.05)
+    put("wine_bottles_01", z, "px0", 2.9, gap=0.05)
+    on("brass_pot_02", cupboard)
     fixture(z)
 
     # Galería: rueca, canapé pintado, plantas con su regadera y cubo de la colada.
@@ -678,6 +700,7 @@ def furnish():
     put("potted_plant_01", z, "py1", 0.5, gap=0.05)
     put("watering_can_metal_01", z, "py1", 1.1, gap=0.08, rot=30)
     put("planter_pot_clay", z, "py1", 2.45, gap=0.05)
+    put("trowel_01", z, "py1", 1.75, gap=0.05, rot=70)
     put("wooden_bucket_01", z, "px0", 0.6, gap=0.05)
     window_curtain(z)
     fixture(z)
@@ -685,10 +708,12 @@ def furnish():
     # Trastero (con los fusibles en el hito 4b): escalera, caja militar, máscara de gas colgada, pala y muletas.
     z = "storage"
     put("wooden_ladder", z, "px0", 1.6, gap=0.05)
-    put("wooden_military_crate", z, "py1", 0.72, gap=0.05)
+    crate = put("wooden_military_crate", z, "py1", 0.72, gap=0.05)
     put("old_gas_mask", z, "px0", -0.5, gap=0.03, z=0.55)
     put("rusted_spade_01", z, "px1", 2.6, gap=0.03)
     put("vintage_crutches_01", z, "px1", 0.7, gap=0.03)
+    put("metal_jerrycan", z, "px1", 1.6, gap=0.03)
+    on("picke_dirty_01", crate, rot=10, lay=True)
     fixture(z)
 
     # Recibidor (usuario, 2026-11-22: ni busto ni jarrón; zapatero y perchero): banco bajo la Adoración, perchero de
@@ -699,6 +724,7 @@ def furnish():
     pic("cma:152349", z, "py1", 1.0, 1.6, 0.3, "ebony")
     pic(436200, z, "px0", 1.6, 1.6, 0.7, "ornate")
     pic("cma:111435", z, "py0", 0.5, 1.6, 0.45)
+    pic("cma:127571", z, "py0", 3.3, 1.6, 0.42, "ebony")  # retrato de un caballero
     made(coat_rack(M), "CoatRack", z, None, (8.15, 13.2))
     # Abrigo y sombrero colgados de los ganchos (usuario, 2026-11-22: la bufanda por un abrigo, el sombrero mejor
     # colgado). Puntas de los ganchos (coat_rack): a 0,107 m del palo y 1,72 m de alto; el de +X da a la habitación.
@@ -736,6 +762,7 @@ def furnish():
                           ("yellow_onion", 1.4, 1.2, 0, False), ("yellow_onion", 1.4, 1.32, 70, False)))
     free("wine_barrel_01", 9.5, 13.05)
     free("mousetrap", 9.4, 10.7, rot=20)
+    free("street_rat", 9.75, 11.2, rot=200)  # junto a la ratonera
     pic("cma:128393", z, "py1", 0.7, 1.65, 0.4, "ebony")  # bodegón con raya
     fixture(z)
 
@@ -758,6 +785,8 @@ def furnish():
     on("wooden_spoon", table, dpx=-0.15, rot=40)
     on("jug_01", table, dpx=0.3, scale=0.7)
     on("wooden_bowl_02", table, dpx=0.05, dpy=0.2)
+    on("lemon", table, dpx=0.03, dpy=0.18)  # limones en el cuenco
+    on("lemon", table, dpx=0.08, dpy=0.23, rot=60)
     pic("cma:147607", z, "px0", 0.6, 1.6, 0.38, "walnut")  # bodegón con arenques
     fixture(z)
 
