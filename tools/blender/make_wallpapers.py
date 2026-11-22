@@ -73,7 +73,7 @@ def damask():
     pin = smooth(0.0016, 0.0, np.abs((u * 8 + 0.5) % 1 - 0.5) / 8 - 0.0)  # filete entre columnas
     rgb = mix((0.34, 0.31, 0.22), (0.45, 0.4, 0.28), motif)
     rgb = mix(rgb, (0.28, 0.25, 0.18), np.clip(outline * 0.7 + pin * 0.8, 0, 1))
-    return rgb, motif * 0.6 + outline * 0.3, 0.8 - 0.12 * motif
+    return rgb, motif * 0.2 + outline * 0.1, 0.8 - 0.12 * motif
 
 
 def stripes():
@@ -84,7 +84,7 @@ def stripes():
     dots = smooth(0.0015, 0.0, np.hypot((p - 0.62) * 2.5 / 20, ((v * 60) % 1 - 0.5) * 2.5 / 60) - 0.004)  # en metros
     rgb = mix((0.44, 0.39, 0.3), (0.37, 0.32, 0.24), band)
     rgb = mix(rgb, (0.27, 0.23, 0.17), np.clip(pin + dots, 0, 1))
-    return rgb, band * 0.25 + pin * 0.3, 0.83 - 0.05 * band
+    return rgb, band * 0.1 + pin * 0.1, 0.83 - 0.05 * band
 
 
 def sprig():
@@ -99,7 +99,7 @@ def sprig():
     rgb = mix((0.47, 0.41, 0.36), (0.42, 0.27, 0.25), flower)
     rgb = mix(rgb, (0.52, 0.42, 0.3), centre)
     rgb = mix(rgb, (0.3, 0.33, 0.24), leaves)
-    return rgb, (flower + leaves) * 0.4, 0.82 - 0.05 * flower
+    return rgb, (flower + leaves) * 0.15, 0.82 - 0.05 * flower
 
 
 def paint():
@@ -218,6 +218,8 @@ def normal_from_height(h, strength):
     return n * 0.5 + 0.5
 
 
+# Mismo envejecido en todas las paredes (usuario, 2026-11-22): casa vieja y vivida, ni nueva ni en ruinas. El papel
+# es impreso: con mucho relieve parecía vinilo moderno.
 def write(img_id, fn, aging):
     rgb, height, rough = fn()
     srgb = np.clip(age(rgb, aging), 0, 1) ** (1 / 2.2)  # los colores de arriba son lineales; el jpg es sRGB
@@ -228,8 +230,8 @@ def write(img_id, fn, aging):
     save(img_id, "rough", np.repeat(r[..., None], 3, -1))
 
 
-for img_id, fn, aging in (("wallpaper_damask", damask, 0.22), ("wallpaper_stripes", stripes, 0.22),
-                          ("wallpaper_sprig", sprig, 0.2), ("wall_paint", paint, 0.3), ("wall_tiles", tiles, 0.35),
+for img_id, fn, aging in (("wallpaper_damask", damask, 0.34), ("wallpaper_stripes", stripes, 0.34),
+                          ("wallpaper_sprig", sprig, 0.34), ("wall_paint", paint, 0.34), ("wall_tiles", tiles, 0.35),
                           ("floor_hydraulic", floor_hydraulic, 0.1), ("floor_checker", floor_checker, 0.1),
                           ("porcelain_old", porcelain, 0.1)):
     write(img_id, fn, aging)

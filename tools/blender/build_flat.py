@@ -33,7 +33,7 @@ WINDOWS = {"bedroom_main": ("h", L.Y0, 2.2), "dining_room": ("h", L.Y0, 11.8), "
 OUT = os.path.join(ROOT, "assets", "models", "living_room")  # misma carpeta que el salón: comparten texturas
 # Acabado de cada habitación como el salón (usuario, 2026-11-21): papel (make_wallpapers.py) y zócalo de madera,
 # rodapié o azulejo hasta 1,4 m. El salón ya tiene el suyo.
-PAPER = {"damask": "wallpaper_damask", "stripes": "wallpaper_stripes", "sprig": "wallpaper_sprig", "paint": "worn_plaster_wall"}
+PAPER = {"damask": "wallpaper_damask", "stripes": "wallpaper_stripes", "sprig": "wallpaper_sprig", "paint": "wall_paint"}  # pintura vieja y vivida; el yeso desconchado parecía de la guerra (usuario, 2026-11-22)
 FINISH = {"bedroom_main": ("damask", "wainscot"), "dining_room": ("damask", "wainscot"), "entrance_hall": ("damask", "wainscot"),
           "bedroom_2": ("sprig", "skirt"), "bedroom_3": ("sprig", "skirt"),
           "workshop": ("paint", "skirt"), "pantry_hall": ("paint", "skirt"), "gallery": ("paint", "skirt"),
@@ -279,7 +279,7 @@ def finish_zones():
                     lows.append(give(skin("Skirt", axis, face, inward, a0, a1, 0.0, SKIRT_H, 0.02), wood))
         o = join(papers, "Paper_%s" % zid)
         # La pintura de las habitaciones de servicio es el yeso gastado de Poly Haven (usuario, 2026-11-22: más sucio).
-        give(o, tex_mat("Paper_" + paper, PAPER[paper], "2k", root=None if paper == "paint" else GEN))
+        give(o, tex_mat("Paper_" + paper, PAPER[paper], "2k", root=GEN))
         uv_world(o, 2.5)
         if lows:
             w = join(lows, "%s_%s" % ("Wainscot" if low == "wainscot" else "WallTile" if low == "tiles" else "Skirt", zid))

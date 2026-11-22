@@ -21828,6 +21828,18 @@
 		},
 		{
 			"sampler":0,
+			"source":196
+		},
+		{
+			"sampler":0,
+			"source":197
+		},
+		{
+			"sampler":0,
+			"source":198
+		},
+		{
+			"sampler":0,
 			"source":280
 		},
 		{
@@ -22192,18 +22204,6 @@
 		},
 		{
 			"sampler":0,
-			"source":371
-		},
-		{
-			"sampler":0,
-			"source":372
-		},
-		{
-			"sampler":0,
-			"source":373
-		},
-		{
-			"sampler":0,
 			"source":183
 		},
 		{
@@ -22213,6 +22213,18 @@
 		{
 			"sampler":0,
 			"source":185
+		},
+		{
+			"sampler":0,
+			"source":371
+		},
+		{
+			"sampler":0,
+			"source":372
+		},
+		{
+			"sampler":0,
+			"source":373
 		},
 		{
 			"sampler":0,
@@ -22252,51 +22264,51 @@
 		},
 		{
 			"sampler":0,
-			"source":383
+			"source":380
 		},
 		{
 			"sampler":0,
-			"source":384
+			"source":381
 		},
 		{
 			"sampler":0,
-			"source":385
+			"source":382
 		},
 		{
 			"sampler":0,
-			"source":383
+			"source":380
 		},
 		{
 			"sampler":0,
-			"source":384
+			"source":381
 		},
 		{
 			"sampler":0,
-			"source":385
+			"source":382
 		},
 		{
 			"sampler":0,
-			"source":383
+			"source":380
 		},
 		{
 			"sampler":0,
-			"source":384
+			"source":381
 		},
 		{
 			"sampler":0,
-			"source":385
+			"source":382
 		},
 		{
 			"sampler":0,
-			"source":383
+			"source":380
 		},
 		{
 			"sampler":0,
-			"source":384
+			"source":381
 		},
 		{
 			"sampler":0,
-			"source":385
+			"source":382
 		},
 		{
 			"sampler":0,
@@ -22520,39 +22532,39 @@
 		},
 		{
 			"sampler":0,
-			"source":438
+			"source":435
 		},
 		{
 			"sampler":0,
-			"source":439
+			"source":436
 		},
 		{
 			"sampler":0,
-			"source":440
+			"source":437
 		},
 		{
 			"sampler":0,
-			"source":438
+			"source":435
 		},
 		{
 			"sampler":0,
-			"source":439
+			"source":436
 		},
 		{
 			"sampler":0,
-			"source":440
+			"source":437
 		},
 		{
 			"sampler":0,
-			"source":438
+			"source":435
 		},
 		{
 			"sampler":0,
-			"source":439
+			"source":436
 		},
 		{
 			"sampler":0,
-			"source":440
+			"source":437
 		},
 		{
 			"sampler":0,
@@ -22601,18 +22613,6 @@
 		{
 			"sampler":0,
 			"source":449
-		},
-		{
-			"sampler":0,
-			"source":450
-		},
-		{
-			"sampler":0,
-			"source":451
-		},
-		{
-			"sampler":0,
-			"source":452
 		}
 	],
 	"images":[
@@ -24015,21 +24015,6 @@
 			"mimeType":"image/jpeg",
 			"name":"171296",
 			"uri":"textures/171296.jpg"
-		},
-		{
-			"mimeType":"image/jpeg",
-			"name":"worn_plaster_wall_nor_gl_2k",
-			"uri":"textures/worn_plaster_wall_nor_gl_2k.jpg"
-		},
-		{
-			"mimeType":"image/jpeg",
-			"name":"worn_plaster_wall_diff_2k",
-			"uri":"textures/worn_plaster_wall_diff_2k.jpg"
-		},
-		{
-			"mimeType":"image/png",
-			"name":"worn_plaster_wall_rough_2k",
-			"uri":"textures/worn_plaster_wall_rough_2k.png"
 		},
 		{
 			"mimeType":"image/png",
