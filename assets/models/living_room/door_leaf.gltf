@@ -139,19 +139,19 @@
 	],
 	"images":[
 		{
-			"mimeType":"image/jpeg",
-			"name":"dark_wood_nor_gl_1k",
-			"uri":"textures/dark_wood_nor_gl_1k.jpg"
-		},
-		{
-			"mimeType":"image/jpeg",
-			"name":"dark_wood_diff_1k",
-			"uri":"textures/dark_wood_diff_1k.jpg"
+			"mimeType":"image/png",
+			"name":"dark_wood_worn_nor_gl_2k",
+			"uri":"textures/dark_wood_worn_nor_gl_2k.png"
 		},
 		{
 			"mimeType":"image/png",
-			"name":"dark_wood_rough_1k",
-			"uri":"textures/dark_wood_rough_1k.png"
+			"name":"dark_wood_worn_diff_2k",
+			"uri":"textures/dark_wood_worn_diff_2k.png"
+		},
+		{
+			"mimeType":"image/png",
+			"name":"dark_wood_worn_rough_2k",
+			"uri":"textures/dark_wood_worn_rough_2k.png"
 		}
 	],
 	"accessors":[

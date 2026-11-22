@@ -34,6 +34,12 @@ MODELS = {
     "old_book_balfour": ("blenderkit", 0.2, 0, 10000, (), None),
     "old_book_red": ("blenderkit", 0.24, 0, 10000, (), None),
     "dirty_blanket": ("blenderkit", 0.5, 0, 20000, (), None),  # trapo del taller
+    "scarf": ("blenderkit", 0.45, 0, 20000, (), None),
+    "black_hat": ("blenderkit", 0.32, 0, 20000, (), None),
+    "bread_braid": ("blenderkit", 0.3, 0, 20000, (), None),
+    "bread_rustic": ("blenderkit", 0.2, 0, 20000, (), None),
+    "letters": ("blenderkit", 0.3, 0, 20000, (), None),
+    "rusty_tin": ("blenderkit", 0.15, 0, 20000, (), None),
 }
 
 

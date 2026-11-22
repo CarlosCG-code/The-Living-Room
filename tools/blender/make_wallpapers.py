@@ -246,21 +246,30 @@ def rag_rug():
     return rgb, weave * 0.4, 0.95 - 0.0 * weave
 
 
-def gingham(colour):
-    """Mantel de cuadros de cocina (2 cm). Cubre 0,5 m (uv_world(o, 0.5))."""
-    hb = (((u * 25) % 1) < 0.5).astype(float)
-    vb = (((v * 25) % 1) < 0.5).astype(float)
-    rgb = mix(np.ones((N, N, 3)) * np.array((0.62, 0.58, 0.48)), colour, (hb + vb) / 2)
-    weave = 0.5 + 0.5 * np.sin(u * N * np.pi / 3) * np.sin(v * N * np.pi / 3)
-    return rgb * (0.92 + 0.1 * weave)[..., None], weave * 0.2, 0.9 + 0.0 * weave
-
-
 def linen():
-    """Mantel de hilo del comedor: blanco roto con la trama y arrugas suaves (con listas parecía baldosa). Cubre 0,5 m."""
+    """Hilo de toalla usada: blanco roto con la trama, arrugas y manchas. Cubre 0,5 m."""
     weave = 0.5 + 0.5 * np.sin(u * N * np.pi / 3) * np.sin(v * N * np.pi / 3)
     folds = norm01(blur(rng.standard_normal((N, N)), 30))
     rgb = np.ones((N, N, 3)) * np.array((0.58, 0.55, 0.48)) * (0.94 + 0.08 * weave)[..., None] * (0.9 + 0.15 * folds)[..., None]
     return rgb, weave * 0.15 + 0.5 * folds, 0.88 + 0.0 * weave
+
+
+def worn_wood():
+    """Madera de puertas, marcos y zócalos gastada (usuario, 2026-11-22: «nuevas e impolutas»): la dark_wood de Poly
+    Haven con polvo y roña en manchas, el barniz apagado y arañazos claros. Cubre lo mismo que la original."""
+    def load(kind, colour):
+        im = bpy.data.images.load(os.path.join(ROOT, "art_source", "polyhaven", "dark_wood", "dark_wood_%s_1k.jpg" % kind))
+        im.colorspace_settings.name = "sRGB" if colour else "Non-Color"
+        im.scale(N, N)
+        a = np.array(im.pixels[:], np.float32).reshape(N, N, 4)[..., :3]
+        return a ** 2.2 if colour else a  # los píxeles vienen en sRGB; aquí se trabaja en lineal
+    rgb, rough = load("diff", True), load("rough", False)[..., 0]
+    scratch = smooth(0.15, 0.0, np.abs(blur(rng.standard_normal((N, N)), 9)) / 0.03) * smooth(0.4, 0.7, norm01(blur(rng.standard_normal((N, N)), 60)))
+    grime = smooth(0.3, 0.9, STAINS)
+    rgb = mix(rgb, (0.16, 0.14, 0.11), 0.12 + grime * 0.35)  # polvo claro pegado al barniz: oscurecer no se notaba
+    rgb = mix(rgb, (0.4, 0.28, 0.17), scratch * 0.75)  # la madera clara bajo el barniz
+    grain = rgb.mean(-1)
+    return rgb, grain * 3 - 0.3 * scratch, np.clip(rough + 0.3 * grime + 0.15 * scratch + 0.25, 0, 1)
 
 
 def save(img_id, kind, arr):
@@ -302,7 +311,6 @@ for img_id, fn, aging in (("wallpaper_damask", damask, 0.34), ("wallpaper_stripe
                           ("rug_persian_blue", lambda: rug((0.07, 0.1, 0.2), (0.3, 0.07, 0.05), (0.5, 0.42, 0.28), 1.4, 2), 0.2),
                           ("rug_persian_green", lambda: rug((0.12, 0.15, 0.08), (0.28, 0.07, 0.05), (0.55, 0.43, 0.25), 1.4, 4), 0.2),
                           ("rug_runner", lambda: rug((0.28, 0.07, 0.05), (0.08, 0.07, 0.05), (0.5, 0.38, 0.2), 5.0, 3), 0.25),
-                          ("rug_rag", rag_rug, 0.2), ("cloth_gingham_green", lambda: gingham((0.12, 0.25, 0.16)), 0.2),
-                          ("cloth_gingham_red", lambda: gingham((0.4, 0.07, 0.06)), 0.2), ("cloth_linen", linen, 0.15)):
+                          ("rug_rag", rag_rug, 0.2), ("cloth_linen", linen, 0.15), ("dark_wood_worn", worn_wood, 0.15)):
     write(img_id, fn, aging)
     print("WALLPAPER_OK", img_id)

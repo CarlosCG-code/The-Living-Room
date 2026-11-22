@@ -61,7 +61,11 @@ def on(asset, base, dpx=0.0, dpy=0.0, rot=0.0, top=None, **kw):
     """Encima de otro mueble (de tapa plana): en el centro de su caja más (dpx, dpy) del plano. top: altura de la
     tapa si el mueble tiene algo más alto (el tiro de la cocina económica)."""
     lo, hi = bounds(base)
-    return import_model(asset, "1k", ((lo.x + hi.x) / 2 - dpy, (lo.y + hi.y) / 2 + dpx, top or hi.z), rot_z_deg=rot, **kw)
+    x, y = (lo.x + hi.x) / 2 - dpy, (lo.y + hi.y) / 2 + dpx
+    if top is None:  # la superficie real bajo ese punto: con lo más alto, un libro en un banco flotaba al alto del respaldo
+        hit, loc = bpy.context.scene.ray_cast(bpy.context.evaluated_depsgraph_get(), Vector((x, y, hi.z + 0.01)), Vector((0, 0, -1)))[:2]
+        top = loc.z if hit else hi.z
+    return import_model(asset, "1k", (x, y, top), rot_z_deg=rot, **kw)
 
 
 def pic(met_id, zid, wall, at, z, h, style="gilt"):
@@ -74,20 +78,6 @@ def rug(tex, zid, w, l, dpx=0.0, dpy=0.0, rot=0.0):
     """Alfombra en el centro de la habitación más (dpx, dpy); w a lo ancho del plano (py), l a lo largo (px)."""
     lo_x, lo_y, hi_x, hi_y = interior(zid)
     return rug_plane(tex, to_b((lo_x + hi_x) / 2 + dpx, (lo_y + hi_y) / 2 + dpy), w, l, rot, "Rug_" + zid)
-
-
-def tablecloth(table, tex, drop=0.22, margin=0.03):
-    """Mantel sobre la tapa de una mesa, caído drop por los lados. Devuelve la mesa con el mantel, para on()."""
-    lo, hi = bounds(table)
-    x0, y0, x1, y1, zt, zb = lo.x - margin, lo.y - margin, hi.x + margin, hi.y + margin, hi.z + 0.004, hi.z - drop
-    me = bpy.data.meshes.new("Tablecloth")
-    me.from_pydata([(x0, y0, zt), (x1, y0, zt), (x1, y1, zt), (x0, y1, zt), (x0, y0, zb), (x1, y0, zb), (x1, y1, zb), (x0, y1, zb)],
-                   [], [(0, 1, 2, 3), (4, 5, 1, 0), (5, 6, 2, 1), (6, 7, 3, 2), (7, 4, 0, 3)])
-    o = bpy.data.objects.new("Tablecloth", me)
-    bpy.context.collection.objects.link(o)
-    give(o, tex_mat(tex, tex, "2k", root=GEN))
-    uv_world(o, 0.5)
-    return table + [o]
 
 
 def photo(cma_id, base, dpx=0.0, dpy=0.0, rot=0.0, h=0.2, style="walnut"):
@@ -131,7 +121,7 @@ def materials():
         "tile": tex_mat("WallTiles", "wall_tiles", "2k", root=GEN),
         "brass": bpy.data.materials.get("Brass") or mat("Brass", (0.6, 0.45, 0.22), 0.3, metallic=1.0),
         "enamel_blue": mat("EnamelBlue", (0.02, 0.05, 0.16), 0.15),
-        "linen": mat("Linen", (0.45, 0.42, 0.35), 0.95),
+        "linen": tex_mat("UsedLinen", "cloth_linen", "2k", root=GEN),  # la lisa parecía nueva (usuario, 2026-11-22)
         "soap": mat("Soap", (0.62, 0.58, 0.48), 0.6),
         "slate": mat("Slate", (0.03, 0.035, 0.035), 0.85),
         "mirror": mat("Mirror", (0.5, 0.5, 0.47), 0.25, metallic=0.6),  # sin sonda de reflejo (paso 6) salía negro
@@ -435,8 +425,21 @@ def shelf_items(shelves, items):
     """Cosas en las baldas de larder_shelves: (modelo, altura de la balda, desplazamiento a lo largo, giro, tumbado).
     A lo largo es X de Blender: antes se movían por Y, hacia fuera de la balda, y quedaban en el aire."""
     lo, hi = bounds(shelves)
+    cx, cy = (lo.x + hi.x) / 2, (lo.y + hi.y) / 2
     for asset, level, along, rot, lay in items:
-        import_model(asset, "1k", ((lo.x + hi.x) / 2 + along, (lo.y + hi.y) / 2, level + 0.0125), rot_z_deg=rot, lay=lay)
+        pivot = Vector((cx + along, cy, level + 0.0125))
+        objs = import_model(asset, "1k", tuple(pivot), rot_z_deg=rot, lay=lay)
+        a, b = bounds(objs)
+        s = min(1.0, 0.4 / (b.z - a.z), 0.32 / (b.y - a.y))  # usuario, 2026-11-22: cosas metidas dentro de la estantería
+        for o in objs:
+            o.location = pivot + (o.location - pivot) * s
+            o.scale *= s
+        a, b = bounds(objs)
+        for d in (lo.x + 0.025, cx, hi.x - 0.025):  # montantes
+            if a.x < d + 0.015 and b.x > d - 0.015:
+                shift = d + 0.015 - a.x if (a.x + b.x) / 2 > d else d - 0.015 - b.x
+                for o in objs:
+                    o.location.x += shift
 
 
 # --- Habitaciones -------------------------------------------------------------------------------------------------
@@ -476,7 +479,6 @@ def furnish():
     commode = put("GothicCommode_01", z, "py0", -1.0)
     on("ceramic_vase_02", commode, dpx=0.35)
     on("vintage_pocket_watch", commode, dpx=-0.3, rot=15)
-    mirror(M, z, "py0", -1.0, 1.65, 0.42, 0.56, "ornate")
     pic(437336, z, "px0", 2.0, 1.85, 0.5, "ornate")
     pic("cma:125247", z, "py1", 1.5, 1.6, 0.45, "ebony")
     # Vida (usuario, 2026-11-22, sus fotos de referencia): alfombra a los pies de la cama, foto de ella en la cómoda,
@@ -492,7 +494,6 @@ def furnish():
     lo_x, lo_y, hi_x, hi_y = interior(z)
     table = free("dining_table", (lo_x + hi_x) / 2, 1.55, rot=90)  # hacia la ventana: libre el giro de la puerta
     chairs_around(table, "WoodenChair_01", gap=0.28, scale=0.62)  # el modelo mide 2,27 m de alto
-    table = tablecloth(table, "cloth_linen", drop=0.25)
     on("wooden_bowl_01", table)
     on("food_apple_01", table, dpx=0.05, dpy=0.02)
     rug("rug_persian_green", z, 2.6, 3.0, dpy=1.55 - 2.0)
@@ -529,11 +530,16 @@ def furnish():
     shelf_items(rack, (("can_rusted", 0.5, -0.5, 0, False), ("brass_blowtorch", 0.5, 0.25, 90, False),
                        ("oil_tin", 0.95, -0.45, 30, False), ("tongue_groove_pliers", 0.95, 0.0, 70, True),
                        ("small_oil_can_01", 0.95, 0.4, 80, False), ("rusted_hacksaw", 1.4, -0.3, 0, True),
-                       ("wooden_hammer_01", 1.4, 0.15, 10, True), ("pipe_wrench", 1.4, 0.5, -15, True)))
+                       ("wooden_hammer_01", 1.4, 0.15, 10, True), ("pipe_wrench", 1.4, 0.5, -15, True),
+                       ("rusty_tin", 0.05, -0.5, 0, False), ("rusty_tin", 0.05, -0.3, 40, False),
+                       ("combination_wrench", 0.05, 0.3, 20, True), ("ratchet_wrench", 0.05, 0.55, -10, True),
+                       ("wooden_axe_02", 1.85, -0.3, 0, True)))
     low = put("WoodenTable_01", z, "px0", 1.8)
     on("wooden_crate_01", low, dpy=-0.4)
     on("handsaw_wood", low, dpy=0.45, rot=90, lay=True)
     on("dirty_blanket", low, dpy=0.0, rot=20)  # trapo
+    put("barrel_03", z, "px0", 3.4, gap=0.05)
+    free("sledgehammer_01", 16.3, 5.0, rot=30, lay=True)
     crate = put("wooden_crate_02", z, "px0", 7.6)
     on("wooden_axe", crate, rot=70, lay=True)
     put("crowbar_01", z, "py0", 0.4, gap=0.03)
@@ -602,7 +608,7 @@ def furnish():
     made(toilet(M), "Toilet", z, "px1", -1.4)
     made(basin(M), "Basin", z, "px0", -1.6)
     mirror(M, z, "px0", -1.6, 1.5, 0.36, 0.48, "ebony")
-    put("wooden_bucket_02", z, "px1", -0.55, gap=0.05)
+    put("wooden_bucket_02", z, "px0", -1.05, gap=0.05)  # junto a la bañera se metía dentro
     put("wooden_stool_02", z, "px1", -2.3, gap=0.05)
     fixture(z)
 
@@ -652,11 +658,16 @@ def furnish():
     # madera gastada, zapatero con botas viejas al lado, el espejo encima y farol de cobre.
     z = "entrance_hall"
     bench = put("painted_wooden_bench", z, "px0", 1.6)
-    on("old_book_st_ives", bench, dpy=0.4, rot=80, lay=True)
+    on("letters", bench, dpx=0.08, dpy=0.35, rot=10)  # el correo, en el asiento
     pic("cma:152349", z, "py1", 1.0, 1.6, 0.3, "ebony")
     pic(436200, z, "px0", 1.6, 1.6, 0.7, "ornate")
     pic("cma:111435", z, "py0", 0.5, 1.6, 0.45)
     made(coat_rack(M), "CoatRack", z, None, (8.15, 13.2))
+    free("black_hat", 8.15, 13.2, z=1.8)  # el sombrero, en lo alto del perchero
+    scarf = free("scarf", 8.15, 13.2 - 0.12)  # la bufanda, colgada de un gancho
+    a, b = bounds(scarf)
+    for o in scarf:
+        o.location.z += 1.66 - b.z
     put("painted_wooden_shelves", z, "px1", 1.8)  # zapatero
     put("old_boots", z, "px1", 1.2, gap=0.06, rot=-15)  # botas de cuero viejas (Sketchfab, escaneo de museo)
     mirror(M, z, "px1", 1.8, 1.7, 0.45, 0.55, "walnut")
@@ -667,10 +678,18 @@ def furnish():
     z = "larder"
     lo_x, lo_y, hi_x, hi_y = interior(z)
     shelves = made(larder_shelves(M, hi_y - lo_y - 0.1), "LarderShelves", z, "px0", (hi_y - lo_y) / 2)
-    shelf_items(shelves, (("ceramic_pot", 0.5, -1.1, 0, False), ("yellow_onion", 0.5, -0.45, 0, False),
-                          ("sweet_potato", 0.5, 0.1, 30, False), ("CheeseBox_01", 0.95, -0.9, 0, False),
-                          ("russian_food_cans_01", 0.95, -0.2, 15, False), ("ceramic_vase_03", 1.4, -0.9, 0, False),
-                          ("food_pomegranate_01", 1.4, -0.3, 0, False), ("food_pears_asian_01", 1.4, 0.3, 0, False)))
+    # Llena (usuario, 2026-11-22: «muchas más cosas»): lo de comer se repite como en una despensa de verdad.
+    shelf_items(shelves, (("ceramic_pot", 0.05, -1.25, 0, False), ("ceramic_vase_03", 0.05, -0.7, 0, False),
+                          ("russian_food_cans_01", 0.05, 0.5, 0, False), ("ceramic_pot", 0.05, 1.1, 40, False),
+                          ("yellow_onion", 0.5, -1.35, 0, False), ("yellow_onion", 0.5, -1.22, 50, False),
+                          ("yellow_onion", 0.5, -1.09, 110, False), ("sweet_potato", 0.5, -0.6, 30, False),
+                          ("sweet_potato", 0.5, -0.4, 80, False), ("bread_rustic", 0.5, 0.45, 0, False),
+                          ("bread_braid", 0.5, 1.0, 10, False), ("CheeseBox_01", 0.95, -1.1, 0, False),
+                          ("russian_food_cans_01", 0.95, -0.55, 20, False), ("russian_food_cans_01", 0.95, -0.35, 70, False),
+                          ("food_pears_asian_01", 0.95, 0.45, 0, False), ("food_pomegranate_01", 0.95, 1.1, 0, False),
+                          ("food_pomegranate_01", 1.4, -1.25, 60, False), ("food_pomegranate_01", 1.4, -1.1, 0, False),
+                          ("ceramic_pot", 1.4, -0.45, 90, False), ("ceramic_vase_03", 1.4, 0.6, 30, False),
+                          ("yellow_onion", 1.4, 1.2, 0, False), ("yellow_onion", 1.4, 1.32, 70, False)))
     free("wine_barrel_01", 9.5, 13.05)
     free("mousetrap", 9.4, 10.7, rot=20)
     pic("cma:128393", z, "py1", 0.7, 1.65, 0.4, "ebony")  # bodegón con raya
@@ -682,14 +701,13 @@ def furnish():
     stove = put("rusty_stove", z, "px1", 1.7, gap=0.03)  # cocina esmaltada y oxidada (BlenderKit)
     on("pot_enamel_01", stove, dpy=0.13)
     on("brass_pan_01", stove, dpy=-0.15, rot=30)
-    made(kitchen_sink(M), "KitchenSink", z, "py1", 2.03, gap=0.01, uv=2.4)  # el azulejo, a su escala de pared
+    made(kitchen_sink(M), "KitchenSink", z, "py1", -0.5, gap=0.01, uv=2.4)  # en la esquina: bajo la ventana no se pasaba
     cab = put("painted_wooden_cabinet", z, "py0", -0.8)
     on("philips_radio", cab, rot=-90)  # radio Philips de 1939 (Sketchfab, escaneo de museo)
     shelf = made(wall_shelf(M, 0.6, 1.5), "KitchenShelf", z, "py0", 2.0, gap=0.0)
     on("brass_pot_01", shelf, top=1.5125, scale=0.7)
-    table = free("painted_wooden_table", 12.0, 12.0, rot=90, scale=0.75)  # 2,4 m: tapaba las dos puertas
+    table = free("painted_wooden_table", 12.1, 11.85, scale=0.75)  # 2,4 m: tapaba las dos puertas; a lo largo deja paso
     chairs_around(table, "painted_wooden_chair_02", per_side=1, gap=0.25)
-    table = tablecloth(table, "cloth_gingham_red", drop=0.2)
     on("enamel_kettle", table, dpy=-0.25, rot=30)
     window_curtain(z)
     on("wooden_cutting_board", table, dpx=-0.2)

@@ -117,7 +117,7 @@ def build():
     parquet = tex_mat("Parquet", "herringbone_parquet", "2k")
     tiles = tex_mat("Tiles", "dirty_tiles", "2k")
     ceiling = tex_mat("Gotele", "white_stucco", "1k", tint=(0.6, 0.57, 0.52))
-    door_wood = tex_mat("DoorWood", "dark_wood", "1k", tint=_helpers["DOOR_TINT"])
+    door_wood = tex_mat("DoorWood", "dark_wood_worn", "2k", tint=_helpers["DOOR_TINT"], root=GEN)
     glass = mat("Glass", (0.6, 0.65, 0.7), 0.05)
     gb = next(n for n in glass.node_tree.nodes if n.type == "BSDF_PRINCIPLED")
     gb.inputs["Alpha"].default_value = 0.12
@@ -245,7 +245,7 @@ def faces(zid):
 
 def finish_zones():
     wood = mat("DarkWood", (0.05, 0.028, 0.016), 0.45)
-    panel = tex_mat("Wainscot", "dark_wood", "1k", tint=(0.75, 0.62, 0.5))
+    panel = tex_mat("Wainscot", "dark_wood_worn", "2k", tint=(0.75, 0.62, 0.5), root=GEN)
     tile = tex_mat("WallTiles", "wall_tiles", "2k", root=GEN)
     cap = mat("TileCap", (0.6, 0.55, 0.42), 0.18)  # moldura vidriada que remata el azulejo
     for zid, (paper, low) in FINISH.items():

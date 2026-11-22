@@ -18,6 +18,7 @@ exec(open(_helpers["__file__"], encoding="utf-8").read(), _helpers)
 box, give, tex_mat, mat, cylinder = _helpers["box"], _helpers["give"], _helpers["tex_mat"], _helpers["mat"], _helpers["cylinder"]
 reset, export_final, join = _helpers["reset"], _helpers["export_final"], _helpers["join"]
 DOOR_TINT = _helpers["DOOR_TINT"]
+GEN = _helpers["GEN"]
 
 W, H, T = 0.885, 2.074, 0.04
 STILE, TOP_RAIL, BOTTOM_RAIL, MUNTIN = 0.12, 0.12, 0.22, 0.10
@@ -53,7 +54,7 @@ def piece(name, x0, x1, z0, z1, depth, wood, vertical, bevel):
 
 
 def build():
-    wood = tex_mat("DoorWood", "dark_wood", "1k", tint=DOOR_TINT)
+    wood = tex_mat("DoorWood", "dark_wood_worn", "2k", tint=DOOR_TINT, root=GEN)
     brass = bpy.data.materials.get("Brass") or mat("Brass", (0.6, 0.45, 0.22), 0.3, metallic=1.0)
     dark = mat("Keyhole", (0.01, 0.01, 0.01), 0.8)
     parts = []

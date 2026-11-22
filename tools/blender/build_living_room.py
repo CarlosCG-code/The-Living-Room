@@ -343,7 +343,7 @@ def build_final():
             uv_world(o, 2.0)
 
     wood = mat("DarkWood", (0.05, 0.028, 0.016), 0.45)
-    door_wood = tex_mat("DoorWood", "dark_wood", "1k", tint=DOOR_TINT)
+    door_wood = tex_mat("DoorWood", "dark_wood_worn", "2k", tint=DOOR_TINT, root=GEN)
     marble = mat("Marble", (0.62, 0.6, 0.57), 0.2)
     blind = mat("Blind", (0.42, 0.38, 0.3), 0.6)
     brass = mat("Brass", (0.6, 0.45, 0.22), 0.3, metallic=1.0)
@@ -384,7 +384,6 @@ def build_final():
     bpy.context.view_layer.objects.active = slats[0]
     bpy.ops.object.join()
     give(bpy.context.active_object, blind).name = "Blind"
-    uv_world(give(box("BlindBox", (0.14, win_w + 0.2, 0.22), (W / 2 - 0.07, win_y, win_top + 0.13)), door_wood, bevel=0.004), 0.8)
 
     # Puerta (pared -X), cerrada: marco, hoja y manilla. La hoja va aparte para poder abrirla en el hito 4.
     dx = -W / 2 - T / 2
@@ -692,7 +691,7 @@ def decorate_1940s(wood, brass, shade):
     """Ronda 3 (usuario, 2026-11-19): un salón de Visage llevado a los años 40. Zócalo de madera, reloj de pie,
     crucifijo y apliques de tela sobre la tele, y paredes llenas de cuadros y platos."""
     # Zócalo de madera hasta 0,9 m con moldura arriba y montantes cada ~0,5 m, salvo en el hueco de la puerta.
-    panel = tex_mat("Wainscot", "dark_wood", "1k", tint=(0.75, 0.62, 0.5))
+    panel = tex_mat("Wainscot", "dark_wood_worn", "2k", tint=(0.75, 0.62, 0.5), root=GEN)
     zh, zt = 0.9, 0.012
     y0, y1 = -D / 2, D / 2
     a1, a2 = 1.6 - 0.45 - 0.07, 1.6 + 0.45 + 0.07  # puerta con su marco
