@@ -10,7 +10,7 @@ import math
 from mathutils import Matrix, Vector
 
 import_model, painting, cylinder, cone = _helpers["import_model"], _helpers["painting"], _helpers["cylinder"], _helpers["cone"]
-floor_colliders = _helpers["floor_colliders"]
+floor_colliders, framed = _helpers["floor_colliders"], _helpers["framed"]
 
 # Hacia dónde mira un mueble pegado a cada pared (los modelos de Poly Haven miran a -Y: +90° → +X, -90° → -X).
 ROT = {"py0": -90.0, "py1": 90.0, "px0": 180.0, "px1": 0.0}
@@ -70,9 +70,12 @@ def pic(met_id, zid, wall, at, z, h, style="gilt"):
     return snap(painting(met_id, (*to_b(px, py), z), ROT[wall], h, style), zid, wall, 0.003)
 
 
-def made(parts, name, zid, wall, at, off=0.4, gap=0.02, rot=0.0, z=0.0):
-    """Un modelo hecho aquí (en el origen, de cara a -Y, con la base en z = 0) colocado contra una pared."""
+def made(parts, name, zid, wall, at, off=0.4, gap=0.02, rot=0.0, z=0.0, uv=0.6):
+    """Un modelo hecho aquí (en el origen, de cara a -Y, con la base en z = 0) colocado contra una pared. uv: metros
+    que cubre cada textura (None: deja las UV, p. ej. un marco de Poly Haven)."""
     o = join(parts, name)
+    if uv:
+        uv_world(o, uv)
     # La unión conserva la transformación de la primera pieza (posición y escala): se pasa a la malla.
     o.data.transform(o.matrix_world)
     o.matrix_world = Matrix.Identity(4)
@@ -88,39 +91,26 @@ def made(parts, name, zid, wall, at, off=0.4, gap=0.02, rot=0.0, z=0.0):
 # --- Materiales ---------------------------------------------------------------------------------------------------
 
 def materials():
-    m = {
-        "enamel": mat("Enamel", (0.78, 0.77, 0.73), 0.12),
-        "iron": mat("CastIron", (0.025, 0.025, 0.025), 0.55, metallic=0.7),
-        "brass": bpy.data.materials.get("Brass") or mat("Brass", (0.6, 0.45, 0.22), 0.3, metallic=1.0),
-        "tub_paint": mat("TubPaint", (0.035, 0.07, 0.05), 0.45),
-        "enamel_blue": mat("EnamelBlue", (0.02, 0.05, 0.16), 0.15),
-        "linen": mat("Linen", (0.5, 0.47, 0.4), 0.95),
-        "glass_shelf": bpy.data.materials["Glass"],  # el de las ventanas, transparente: opaco brillaba como un panel
-        "soap": mat("Soap", (0.62, 0.58, 0.48), 0.6),
-        "dial": mat("ClockDial", (0.66, 0.62, 0.52), 0.3),
-        "slate": mat("Slate", (0.03, 0.035, 0.035), 0.85),
-        "terrazzo": mat("Terrazzo", (0.5, 0.48, 0.45), 0.35),
-        "mirror": mat("Mirror", (0.55, 0.55, 0.53), 0.2, metallic=0.6),  # sin sonda de reflejo (paso 6) salía negro
-        "bench": tex_mat("WorkbenchWood", "dark_wood", "1k", tint=(1.0, 0.85, 0.7)),
-        "shelf": tex_mat("ShelfWood", "dark_wood", "1k", tint=(0.8, 0.65, 0.5)),
-        "walnut": tex_mat("DoorWood", "dark_wood", "1k", tint=_helpers["DOOR_TINT"]),
+    """Todo lo modelado aquí lleva texturas fotográficas gastadas de Poly Haven (usuario, 2026-11-22: lo de colores
+    lisos «se nota» y parece nuevo): loza y esmalte viejos (make_wallpapers.py), hierro negro con desconchones,
+    pintura verde oxidada, terrazo y maderas viejas."""
+    return {
+        "enamel": tex_mat("PorcelainOld", "porcelain_old", "2k", root=GEN),
+        "porcelain": tex_mat("PorcelainOld", "porcelain_old", "2k", root=GEN),
+        "iron": tex_mat("IronWorn", "rusty_metal_04", "1k"),
+        "tub_paint": tex_mat("GreenPaintRust", "green_metal_rust", "1k"),
+        "terrazzo": tex_mat("TerrazzoOld", "terrazzo_tiles", "1k", tint=(0.8, 0.77, 0.72)),
+        "bench": tex_mat("OldPlanks", "old_planks_02", "1k"),
+        "shelf": tex_mat("WornWood", "wood_table_worn", "1k"),
+        "walnut": tex_mat("WornWalnut", "wood_table_worn", "1k", tint=(0.55, 0.42, 0.34)),
         "tile": tex_mat("WallTiles", "wall_tiles", "2k", root=GEN),
-        "shade_on": mat("LampShade", (0.42, 0.36, 0.27), 0.8, emission=(1.0, 0.8, 0.6), emission_strength=0.2),
-        "shade2_on": mat("LampShadeGreen", (0.2, 0.26, 0.2), 0.8, emission=(1.0, 0.8, 0.6), emission_strength=0.2),
-        "shade2_off": mat("LampShadeGreenOff", (0.16, 0.21, 0.16), 0.8),
-        "shade3_on": mat("LampShadeRose", (0.42, 0.28, 0.26), 0.8, emission=(1.0, 0.8, 0.6), emission_strength=0.2),
-        "shade3_off": mat("LampShadeRoseOff", (0.34, 0.22, 0.2), 0.8),
-        "milk_glass": mat("MilkGlass", (0.62, 0.6, 0.56), 0.3),
-        "enamel_green": mat("EnamelGreen", (0.12, 0.22, 0.16), 0.15),
-        "gilt": mat("Frame_gilt", (0.42, 0.3, 0.12), 0.38, metallic=1.0),
-        "shade_off": mat("LampShadeOff", (0.33, 0.29, 0.23), 0.8),
-        "glass_on": mat("GlobeGlassOn", (0.8, 0.78, 0.72), 0.3, emission=(1.0, 0.85, 0.65), emission_strength=0.6),
-        "bulb_on": mat("BulbOn", (1.0, 0.9, 0.7), 0.3, emission=(1.0, 0.85, 0.6), emission_strength=1.5),
-        "bulb_off": mat("BulbOff", (0.7, 0.7, 0.66), 0.1),
+        "brass": bpy.data.materials.get("Brass") or mat("Brass", (0.6, 0.45, 0.22), 0.3, metallic=1.0),
+        "enamel_blue": mat("EnamelBlue", (0.02, 0.05, 0.16), 0.15),
+        "linen": mat("Linen", (0.45, 0.42, 0.35), 0.95),
+        "soap": mat("Soap", (0.62, 0.58, 0.48), 0.6),
+        "slate": mat("Slate", (0.03, 0.035, 0.035), 0.85),
+        "mirror": mat("Mirror", (0.5, 0.5, 0.47), 0.25, metallic=0.6),  # sin sonda de reflejo (paso 6) salía negro
     }
-    for k in ("shade_on", "shade_off", "shade2_on", "shade2_off", "shade3_on", "shade3_off"):
-        m[k].use_backface_culling = False
-    return m
 
 
 # --- Modelos hechos aquí (de cara a -Y, la trasera en +Y, base en z = 0) ------------------------------------------
@@ -187,7 +177,7 @@ def bathtub(M):
     claw = [(0, 0), (0.05, 0), (0.055, 0.025), (0.035, 0.06), (0.026, 0.11), (0.04, 0.18), (0.05, 0.22), (0, 0.22)]
     for x in (-0.6, 0.6):
         for y in (-0.21, 0.21):
-            parts.append(give(lathe("TubClaw", claw, (x, y, 0), verts=14), M["brass"]))
+            parts.append(give(lathe("TubClaw", claw, (x, y, 0), verts=14), M["iron"]))
     for y in (-0.09, 0.09):
         parts += tap(M, 0.74, y + 0.02, 0.69, spout=0.0)
     parts.append(give(cylinder("TubSpout", 0.012, 0.16, (0.7, 0.02, 0.76), rot=(0, math.radians(-70), 0), verts=12), M["brass"]))
@@ -199,7 +189,7 @@ def toilet(M, wooden_tank=False):
     (de hierro pintado, o de madera en el aseo de servicio), bajante de latón y cadena con tirador de loza."""
     bowl = [(0.7, 0), (0.68, 0.03), (0.52, 0.09), (0.5, 0.2), (0.72, 0.3), (0.94, 0.37), (1.0, 0.4), (0.97, 0.415),
             (0.88, 0.41), (0.7, 0.33), (0.45, 0.25), (0, 0.22)]
-    parts = [give(lathe("WcBowl", bowl, (0, -0.1, 0), sx=0.19, sy=0.25, verts=36), M["enamel"])]
+    parts = [give(lathe("WcBowl", bowl, (0, -0.1, 0), sx=0.19, sy=0.25, verts=36), M["porcelain"])]
     bpy.ops.mesh.primitive_torus_add(major_radius=0.165, minor_radius=0.022, location=(0, -0.1, 0.43))
     seat = bpy.context.active_object
     seat.scale = (1, 1.3, 0.6)
@@ -217,7 +207,7 @@ def toilet(M, wooden_tank=False):
         parts.append(brace)
     parts.append(give(cylinder("WcPipe", 0.018, tz - 0.48, (0, 0.2, (tz - 0.12 + 0.36) / 2), verts=12), M["brass"]))
     parts.append(give(cylinder("WcChain", 0.003, 0.6, (0.2, 0.07, tz - 0.42), verts=6), M["brass"]))
-    parts.append(give(lathe("WcPull", [(0, 0), (0.014, 0.01), (0.018, 0.05), (0.008, 0.08), (0, 0.085)], (0.2, 0.07, tz - 0.8), verts=14), M["enamel"]))
+    parts.append(give(lathe("WcPull", [(0, 0), (0.014, 0.01), (0.018, 0.05), (0.008, 0.08), (0, 0.085)], (0.2, 0.07, tz - 0.8), verts=14), M["porcelain"]))
     return parts
 
 
@@ -225,9 +215,9 @@ def basin(M):
     """Lavabo de pie de loza: pie torneado, pila con reborde, peto trasero y dos grifos de cruceta."""
     foot = [(0, 0), (0.15, 0), (0.15, 0.02), (0.1, 0.06), (0.065, 0.2), (0.06, 0.45), (0.08, 0.6), (0.12, 0.66), (0, 0.66)]
     bowl = [(0.2, 0.6), (0.55, 0.68), (0.9, 0.79), (1.0, 0.85), (0.98, 0.87), (0.9, 0.865), (0.7, 0.8), (0.35, 0.75), (0, 0.74)]
-    parts = [give(lathe("BasinFoot", foot, (0, 0.02, 0), verts=28), M["enamel"]),
-             give(lathe("BasinBowl", bowl, (0, -0.02, 0), sx=0.3, sy=0.23, e=2.6, verts=40), M["enamel"]),
-             give(box("BasinSplash", (0.6, 0.04, 0.16), (0, 0.19, 0.93)), M["enamel"], bevel=0.015)]
+    parts = [give(lathe("BasinFoot", foot, (0, 0.02, 0), verts=28), M["porcelain"]),
+             give(lathe("BasinBowl", bowl, (0, -0.02, 0), sx=0.3, sy=0.23, e=2.6, verts=40), M["porcelain"]),
+             give(box("BasinSplash", (0.6, 0.04, 0.16), (0, 0.19, 0.93)), M["porcelain"], bevel=0.015)]
     for x in (-0.12, 0.12):
         parts += tap(M, x, 0.15, 0.86)
     return parts
@@ -253,23 +243,6 @@ def washstand(M):
     return parts
 
 
-def mirror(M, w, h, z):
-    """Espejo de baño con marco de nogal, copete arqueado y repisa de cristal con brocha y jabón."""
-    parts = [give(box("MirrorGlass", (w, 0.006, h), (0, -0.012, z)), M["mirror"])]
-    f = 0.045
-    for name, size, at in (("MirrorTop", (w + 2 * f, 0.03, f), (0, 0, z + h / 2 + f / 2)), ("MirrorBottom", (w + 2 * f, 0.03, f), (0, 0, z - h / 2 - f / 2)),
-                           ("MirrorL", (f, 0.03, h), (-w / 2 - f / 2, 0, z)), ("MirrorR", (f, 0.03, h), (w / 2 + f / 2, 0, z))):
-        parts.append(give(box(name, size, at), M["walnut"], bevel=0.008))
-    parts.append(give(cylinder("MirrorCrest", w * 0.32, 0.025, (0, 0.002, z + h / 2 + f), rot=(math.radians(90), 0, 0), verts=32), M["walnut"]))
-    sz = z - h / 2 - 0.12
-    parts.append(give(box("GlassShelf", (w, 0.12, 0.008), (0, -0.06, sz)), M["glass_shelf"]))
-    for x in (-w / 2 + 0.04, w / 2 - 0.04):
-        parts.append(give(box("ShelfBracket", (0.012, 0.1, 0.05), (x, -0.05, sz - 0.03)), M["brass"]))
-    parts.append(give(lathe("ShavingBrush", [(0, 0), (0.018, 0), (0.014, 0.05), (0.022, 0.07), (0.016, 0.11), (0, 0.115)], (-0.1, -0.06, sz + 0.004), verts=14), M["walnut"]))
-    parts.append(give(box("Soap", (0.08, 0.05, 0.025), (0.08, -0.06, sz + 0.017)), M["soap"], bevel=0.01))
-    return parts
-
-
 def towel_rail(M, w=0.6, z=1.1):
     """Toallero de pared: barra de madera entre dos soportes de latón, con una toalla de hilo doblada encima."""
     parts = [give(cylinder("TowelRod", 0.012, w, (0, -0.07, z), rot=(0, math.radians(90), 0), verts=12), M["walnut"])]
@@ -277,43 +250,6 @@ def towel_rail(M, w=0.6, z=1.1):
         parts.append(give(box("TowelPost", (0.02, 0.07, 0.02), (x, -0.035, z)), M["brass"]))
     parts += [give(box("TowelFront", (w * 0.6, 0.008, 0.42), (0, -0.085, z - 0.2)), M["linen"]),
               give(box("TowelBack", (w * 0.6, 0.008, 0.3), (0, -0.055, z - 0.14)), M["linen"])]
-    return parts
-
-
-def regulator_clock(M):
-    """Reloj de pared de péndulo (regulador) de nogal: esfera de esmalte con bisel de latón, sus doce marcas y
-    agujas; debajo, la ventana del péndulo con su marco; copete arriba. Base en z = 0: se cuelga con
-    made(..., z=altura). La caja es maciza, así que esfera y péndulo van por delante de su frente (f)."""
-    w, d, h = 0.34, 0.12, 0.88
-    f = -d / 2
-    parts = [give(box("ClockCase", (w, d, h), (0, 0, h / 2)), M["walnut"], bevel=0.006),
-             give(box("ClockCrest", (w + 0.06, d + 0.03, 0.05), (0, 0, h + 0.025)), M["walnut"], bevel=0.008),
-             give(box("ClockFoot", (w + 0.04, d + 0.02, 0.04), (0, 0, -0.02)), M["walnut"], bevel=0.008),
-             give(cylinder("ClockFinial", 0.09, 0.02, (0, 0.0, h + 0.09), rot=(math.radians(90), 0, 0), verts=24), M["walnut"])]
-    cz = h - 0.17
-    parts.append(give(cylinder("ClockDial", 0.12, 0.008, (0, f - 0.004, cz), rot=(math.radians(90), 0, 0), verts=40), M["dial"]))
-    bpy.ops.mesh.primitive_torus_add(major_radius=0.125, minor_radius=0.008, location=(0, f - 0.01, cz), rotation=(math.radians(90), 0, 0))
-    parts.append(give(bpy.context.active_object, M["brass"]))
-    for k in range(12):
-        a = math.radians(k * 30)
-        mark = give(box("ClockMark", (0.007, 0.003, 0.024 if k % 3 == 0 else 0.013), (0.1 * math.sin(a), f - 0.01, cz + 0.1 * math.cos(a))), M["iron"])
-        mark.rotation_euler.y = -a
-        parts.append(mark)
-    for length, ang in ((0.08, 40), (0.06, 150)):  # las diez y veinte, más o menos
-        a = math.radians(ang)
-        hand = give(box("ClockHand", (0.007, 0.003, length), (length / 2 * math.sin(a), f - 0.013, cz + length / 2 * math.cos(a))), M["iron"])
-        hand.rotation_euler.y = -a
-        parts.append(hand)
-    # Ventana del péndulo: fondo de madera, péndulo de latón y marco de la puerta (con cristal se veía un panel gris).
-    z0, z1 = 0.06, cz - 0.15
-    parts += [give(box("ClockBack", (w - 0.08, 0.004, z1 - z0), (0, f - 0.002, (z0 + z1) / 2)), M["bench"]),
-              give(cylinder("PendulumRod", 0.004, z1 - z0 - 0.06, (0, f - 0.01, (z0 + z1) / 2 + 0.03), verts=8), M["brass"]),
-              give(cylinder("PendulumBob", 0.055, 0.012, (0, f - 0.012, z0 + 0.1), rot=(math.radians(90), 0, 0), verts=28), M["brass"])]
-    for name, size, at in (("ClockDoorL", (0.03, 0.025, z1 - z0 + 0.06), (-(w - 0.05) / 2, f - 0.0125, (z0 + z1) / 2)),
-                           ("ClockDoorR", (0.03, 0.025, z1 - z0 + 0.06), ((w - 0.05) / 2, f - 0.0125, (z0 + z1) / 2)),
-                           ("ClockDoorB", (w - 0.02, 0.025, 0.03), (0, f - 0.0125, z0 - 0.015)),
-                           ("ClockDoorT", (w - 0.02, 0.025, 0.03), (0, f - 0.0125, z1 + 0.015))):
-        parts.append(give(box(name, size, at), M["walnut"], bevel=0.004))
     return parts
 
 
@@ -327,16 +263,6 @@ def wall_slate(M):
         parts.append(give(box(name, size, at), M["shelf"], bevel=0.004))
     parts.append(give(box("SlateLedge", (w, 0.05, 0.012), (0, -0.04, z - h / 2 - f)), M["shelf"]))
     parts.append(give(cylinder("Chalk", 0.005, 0.06, (0.15, -0.04, z - h / 2 - f + 0.011), rot=(0, math.radians(90), 0), verts=8), M["soap"]))
-    return parts
-
-
-def enamel_kettle(M):
-    """Tetera de chapa esmaltada verde con asa de alambre, para la cocina económica."""
-    body = [(0, 0), (0.095, 0), (0.105, 0.02), (0.105, 0.09), (0.08, 0.14), (0.035, 0.165), (0.035, 0.18), (0.02, 0.19), (0, 0.19)]
-    parts = [give(lathe("KettleBody", body, verts=28), M["enamel_green"]),
-             give(cylinder("KettleSpout", 0.012, 0.12, (0.13, 0, 0.11), rot=(0, math.radians(55), 0), verts=10), M["enamel_green"])]
-    bpy.ops.mesh.primitive_torus_add(major_radius=0.08, minor_radius=0.004, location=(0, 0, 0.17), rotation=(math.radians(90), 0, 0))
-    parts.append(give(bpy.context.active_object, M["iron"]))
     return parts
 
 
@@ -397,44 +323,6 @@ def coat_rack(M):
     return parts
 
 
-def pendant(M, kind, lit):
-    """Lámpara de techo hecha aquí, una forma por tipo de habitación (usuario, 2026-11-21: casi nada repetido; los
-    tramos de un mismo pasillo comparten modelo). La luz de Godot va dentro, a 2,3 m."""
-    bulb = M["bulb_on"] if lit else M["bulb_off"]
-    parts = [give(cylinder("Rose", 0.05, 0.02, (0, 0, H - 0.01), verts=16), M["brass"])]
-    if kind in ("globe", "plafon"):  # pegadas al techo: globo de cristal o plafón de media esfera
-        r = 0.14 if kind == "globe" else 0.2
-        parts.append(give(cylinder("Neck", 0.06, 0.05, (0, 0, H - 0.04), verts=16), M["brass"]))
-        bpy.ops.mesh.primitive_uv_sphere_add(radius=r, location=(0, 0, H - (0.2 if kind == "globe" else 0.06)), segments=24, ring_count=12)
-        g = bpy.context.active_object
-        if kind == "plafon":
-            g.scale = (1, 1, 0.45)
-        parts.append(give(g, M["glass_on"] if lit else M["milk_glass"]))
-        return parts
-    drop = {"fabric": 0.42, "drum": 0.5, "bell": 0.35, "enamel": 0.42, "enamel_green": 0.5, "tulip": 0.3, "dome": 0.25}[kind]
-    parts.append(give(cylinder("Cord", 0.004, drop, (0, 0, H - drop / 2), verts=6), M["iron"]))
-    bpy.ops.mesh.primitive_uv_sphere_add(radius=0.03, location=(0, 0, H - drop - 0.04), segments=12, ring_count=6)
-    parts.append(give(bpy.context.active_object, bulb))
-    z = H - drop
-    if kind == "fabric":
-        parts.append(give(cone("Shade", 0.21, 0.09, 0.22, (0, 0, z - 0.06)), M["shade_on" if lit else "shade_off"]))
-    elif kind == "drum":
-        parts.append(give(cone("Shade", 0.2, 0.2, 0.2, (0, 0, z - 0.06)), M["shade2_on" if lit else "shade2_off"]))
-    elif kind == "bell":
-        parts.append(give(cone("Shade", 0.27, 0.06, 0.26, (0, 0, z - 0.08)), M["shade3_on" if lit else "shade3_off"]))
-    elif kind == "tulip":  # tulipa de cristal hacia arriba con su portalámparas de latón
-        parts.append(give(cone("Shade", 0.05, 0.16, 0.2, (0, 0, z - 0.02)), M["glass_on"] if lit else M["milk_glass"]))
-        parts.append(give(cylinder("Holder", 0.03, 0.06, (0, 0, z - 0.12), verts=12), M["brass"]))
-    elif kind == "dome":  # cúpula de latón
-        bpy.ops.mesh.primitive_uv_sphere_add(radius=0.16, location=(0, 0, z - 0.06), segments=24, ring_count=12)
-        d = bpy.context.active_object
-        d.scale = (1, 1, 0.5)
-        parts.append(give(d, M["brass"]))
-    else:  # esmalte de cocina: blanco, o verde en el paso de la despensa
-        parts.append(give(cone("Shade", 0.24, 0.05, 0.13, (0, 0, z - 0.01)), M["enamel_green" if kind == "enamel_green" else "enamel"]))
-    return parts
-
-
 def wardrobe(M):
     """Armario ropero de dos puertas con plafones, cornisa y pomos, de nogal como las puertas."""
     w, d, h = 1.1, 0.55, 1.95
@@ -454,25 +342,6 @@ def wall_shelf(M, w=0.6, z=1.3):
     for x in (-w / 2 + 0.06, w / 2 - 0.06):
         parts.append(give(box("ShelfBracket", (0.02, 0.15, 0.12), (x, -0.075, z - 0.07)), M["walnut"]))
     return parts
-
-
-def plate_rack(M, z=1.45):
-    """Escurreplatos de madera colgado con cinco platos de loza."""
-    parts = [give(box("RackRail", (0.7, 0.03, 0.03), (0, -0.04, z + dz)), M["shelf"]) for dz in (0.0, 0.25)]
-    parts.append(give(box("RackTray", (0.7, 0.2, 0.02), (0, -0.1, z - 0.02)), M["shelf"]))
-    for k in range(5):
-        parts.append(give(cylinder("Plate", 0.11, 0.012, (-0.26 + k * 0.13, -0.1, z + 0.1), rot=(math.radians(78), 0, 0), verts=28), M["enamel"], bevel=0.003))
-    return parts
-
-
-def oval_mirror(M, w, h, z):
-    bpy.ops.mesh.primitive_torus_add(major_radius=0.5, minor_radius=0.04, location=(0, -0.02, z), rotation=(math.radians(90), 0, 0))
-    ring = bpy.context.active_object
-    ring.scale = (w, 1, h)
-    bpy.ops.mesh.primitive_cylinder_add(vertices=40, radius=0.5, depth=0.006, location=(0, -0.02, z), rotation=(math.radians(90), 0, 0))
-    glass = bpy.context.active_object
-    glass.scale = (w, h, 1)
-    return [give(ring, M["gilt"]), give(glass, M["mirror"])]
 
 
 def crucifix(M, h, z):
@@ -505,39 +374,52 @@ def ceiling(objs):
     return objs
 
 
-def fixture(zid, M, asset=None, kind="fabric", scale=1.0, cord=0.0):
-    """La lámpara de la habitación, en el centro (donde está su luz en Godot: flat_layout.write_tres). Se llama
-    Fixture_*: Godot le quita la sombra para que la luz de dentro no quede tapada. cord: cuelga de un cable."""
+def fixture(zid, asset="pull_chain_light_socket", scale=1.0, drop=()):
+    """La lámpara de la habitación, de Poly Haven, en el centro (donde está su luz en Godot: flat_layout.write_tres).
+    Usuario, 2026-11-22: las hechas aquí no pegaban; arañas y faroles en las habitaciones buenas y, en las de servicio,
+    portalámparas de porcelana con su cadenilla y la bombilla de pera colgando. Se llama Fixture_*: Godot le quita la
+    sombra para que la luz de dentro no quede tapada."""
     lo_x, lo_y, hi_x, hi_y = interior(zid)
     cx, cy = (lo_x + hi_x) / 2, (lo_y + hi_y) / 2
-    lit = zid in LIT
-    if asset:
-        objs = free(asset, cx, cy, scale=scale)
-        lo, hi = bounds(objs)
-        if H - cord - (hi.z - lo.z) < CLEAR:  # la del taller colgaba hasta 1,24 m: la cabeza la atravesaba
-            for o in objs:
-                bpy.data.objects.remove(o, do_unlink=True)
-            objs = free(asset, cx, cy, scale=scale * (H - cord - CLEAR) / (hi.z - lo.z))
-        objs = ceiling(objs)
-        if cord:
-            for o in objs:
-                o.location.z -= cord
-            objs.append(give(cylinder("Cord", 0.004, cord, (*to_b(cx, cy), H - cord / 2), verts=6), M["iron"]))
-        if lit:  # pantallas y bombillas encendidas
-            for o in objs:
-                for i, m in enumerate(o.data.materials):
-                    if m and any(k in m.name.lower() for k in ("shade", "bulb", "glass", "light", "lamp")):
-                        on_m = m.copy()
-                        on_m.name = m.name + "_On"
-                        b = next(n for n in on_m.node_tree.nodes if n.type == "BSDF_PRINCIPLED")
-                        b.inputs["Emission Color"].default_value = (1.0, 0.82, 0.6, 1.0)
-                        b.inputs["Emission Strength"].default_value = 0.4
-                        o.data.materials[i] = on_m
-    else:
-        objs = made(pendant(M, kind, lit), "Pendant", zid, None, (cx, cy))
+    objs = free(asset, cx, cy, scale=scale, drop=drop)
+    lo, hi = bounds(objs)
+    if H - (hi.z - lo.z) < CLEAR:  # la del taller colgaba hasta 1,24 m: la cabeza la atravesaba
+        for o in objs:
+            bpy.data.objects.remove(o, do_unlink=True)
+        objs = free(asset, cx, cy, scale=scale * (H - CLEAR) / (hi.z - lo.z), drop=drop)
+    objs = ceiling(objs)
+    if asset == "pull_chain_light_socket":  # bombilla colgando del portalámparas, con la rosca arriba
+        bulb = free("lightbulb_01", cx, cy)
+        for o in bulb:
+            o.data.transform(Matrix.Rotation(math.pi, 4, "X"))
+            o.location.z = H - 0.048
+        objs += bulb
+    if zid in LIT:  # cristales y bombillas encendidos
+        for o in objs:
+            for i, m in enumerate(o.data.materials):
+                if m and any(k in m.name.lower() for k in ("shade", "bulb", "glass", "lamps_")):
+                    on_m = m.copy()
+                    on_m.name = m.name + "_On"
+                    b = next(n for n in on_m.node_tree.nodes if n.type == "BSDF_PRINCIPLED")
+                    b.inputs["Emission Color"].default_value = (1.0, 0.82, 0.6, 1.0)
+                    b.inputs["Emission Strength"].default_value = 0.4
+                    o.data.materials[i] = on_m
     for k, o in enumerate(objs):
         o.name = "Fixture_%s_%d" % (zid, k)
     return objs
+
+
+def mirror(M, zid, wall, at, z, w, h, style):
+    """Espejo en un marco de Poly Haven (usuario, 2026-11-22: los hechos aquí no parecían antiguos)."""
+    return made([framed(M["mirror"], w, h, style, "Mirror_%s" % zid)], "Mirror_%s" % zid, zid, wall, at, gap=0.0, z=z, uv=None)
+
+
+def shelf_items(shelves, items):
+    """Cosas en las baldas de larder_shelves: (modelo, altura de la balda, desplazamiento a lo largo, giro, tumbado).
+    A lo largo es X de Blender: antes se movían por Y, hacia fuera de la balda, y quedaban en el aire."""
+    lo, hi = bounds(shelves)
+    for asset, level, along, rot, lay in items:
+        import_model(asset, "1k", ((lo.x + hi.x) / 2 + along, (lo.y + hi.y) / 2, level + 0.0125), rot_z_deg=rot, lay=lay)
 
 
 # --- Habitaciones -------------------------------------------------------------------------------------------------
@@ -560,11 +442,12 @@ def chairs_around(table, asset, per_side=2, gap=0.3, scale=1.0):
 
 def furnish():
     """Cada cosa en la habitación que le toca (usuario, 2026-11-21: «en el taller no habrá una cómoda»). Ningún
-    modelo se repite salvo las sillas de un mismo juego; los tramos de un pasillo comparten lámpara."""
+    modelo se repite salvo las sillas de un mismo juego y las lámparas de un mismo tipo de habitación. Usuario,
+    2026-11-22: todo viejo y gastado, de librería antes que hecho aquí, y nada flotando."""
     M = materials()
 
     # Dormitorio principal: cama gótica con baúl a los pies, mesilla con quinqué y despertador, butaca, armario,
-    # cómoda con espejo ovalado, y una Virgen sobre la cama.
+    # cómoda con espejo de marco dorado, y una Virgen sobre la cama.
     z = "bedroom_main"
     put("GothicBed_01", z, "px0", 2.0)
     free("treasure_chest", 2.5, 2.0, rot=180)
@@ -576,13 +459,13 @@ def furnish():
     commode = put("GothicCommode_01", z, "py0", -1.0)
     on("ceramic_vase_02", commode, dpx=0.35)
     on("vintage_pocket_watch", commode, dpx=-0.3, rot=15)
-    made(oval_mirror(M, 0.5, 0.7, 1.75), "OvalMirror", z, "py0", -1.0, gap=0.0)
-    pic(437336, z, "px0", 2.0, 1.85, 0.5)
+    mirror(M, z, "py0", -1.0, 1.65, 0.42, 0.56, "ornate")
+    pic(437336, z, "px0", 2.0, 1.85, 0.5, "ornate")
     pic("cma:125247", z, "py1", 1.5, 1.6, 0.45, "ebony")
-    fixture(z, M, "Chandelier_01")
+    fixture(z, "Chandelier_01")
 
-    # Comedor: mesa con mantel y cuatro sillas, aparador con el toro de bronce, reloj de péndulo, jarrón de
-    # latón en su pie alto y araña de cristal.
+    # Comedor: mesa con mantel y cuatro sillas, aparador con el toro de bronce, jarrón de latón en su pie alto y
+    # araña de cristal.
     z = "dining_room"
     lo_x, lo_y, hi_x, hi_y = interior(z)
     table = free("dining_table", (lo_x + hi_x) / 2, 1.55, rot=90)  # hacia la ventana: libre el giro de la puerta
@@ -593,75 +476,77 @@ def furnish():
     on("bull_head", console, rot=-90)
     on("brass_goblets", console, dpy=-0.5, scale=0.7)
     on("wooden_candlestick", console, dpy=0.5)
-    made(regulator_clock(M), "WallClock", z, "px1", 3.4, gap=0.0, z=1.1)  # el wall_clock de Poly Haven era de oficina
     pic("cma:151555", z, "px0", 2.0, 1.6, 0.55)  # bodegón con pescado y pan
     pic("cma:150140", z, "py1", -1.2, 1.6, 0.4, "walnut")  # bodegón de dulces
     stand = put("side_table_tall_01", z, "py0", 0.45, gap=0.1)
     on("brass_vase_01", stand)
-    fixture(z, M, "Chandelier_03")
+    fixture(z, "Chandelier_03")
 
-    # Taller: banco con tornillo, cepillo, martillo, destornilladores, llave y berbiquí; caja de herramientas,
-    # taladro de columna, estantería con latas de aceite y sierra, mesa baja con caja y serrucho, hacha vieja y palanca.
+    # Taller: banco de tablas viejas con tornillo, cepillo, martillo, destornilladores, llave y berbiquí (tumbados);
+    # caja de herramientas, taladro de columna, estantería con latas, soplete, sierra, llave de tubo, martillo y
+    # alicates; mesa baja con caja y serrucho, hacha vieja sobre una caja y palanca.
     z = "workshop"
     bench = made(workbench(M), "Workbench", z, "px1", 2.0)
-    on("bench_vice_01", bench, dpy=-0.75, dpx=-0.22, rot=90, top=0.9)
-    on("hand_plane_no4", bench, dpy=-0.4, rot=20, top=0.9)
-    on("cross_pein_hammer", bench, dpy=-0.08, rot=80, top=0.9)
+    # Atornillado al canto del banco: la manivela cuelga 9 cm por debajo de su cuerpo. drop: traía una esfera de 2 m.
+    on("bench_vice_01", bench, dpy=-0.72, dpx=-0.3, rot=90, top=0.814, drop=("icosphere",))
+    on("hand_plane_no4", bench, dpy=-0.35, rot=20, top=0.9)
+    on("cross_pein_hammer", bench, dpy=-0.05, rot=80, top=0.9, lay=True)
     on("screwdrivers_02", bench, dpy=0.2, dpx=-0.1, top=0.9)
-    on("adjustable_wrench", bench, dpy=0.45, rot=20, top=0.9)
-    on("vintage_hand_drill", bench, dpy=0.7, rot=30, top=0.9)
+    on("flathead_screwdriver", bench, dpy=0.15, dpx=0.12, rot=-30, top=0.9, lay=True)
+    on("adjustable_wrench", bench, dpy=0.42, rot=20, top=0.9, lay=True)
+    on("vintage_hand_drill", bench, dpy=0.7, rot=30, top=0.9, lay=True)
     put("metal_toolbox", z, "px1", 3.2, gap=0.05)
     free("wooden_stool_01", 16.4, 2.3)
     put("drill_press_01", z, "px1", 4.1)
     rack = made(larder_shelves(M, 1.6), "WorkshopShelves", z, "px1", 6.2)
-    rl, rh = bounds(rack)
-    cx, cy = (rl.x + rh.x) / 2, (rl.y + rh.y) / 2
-    for asset, level, dy, rot in (("can_rusted", 0.5, -0.5, 0), ("oil_tin", 0.95, -0.4, 30), ("small_oil_can_01", 0.95, 0.3, 80),
-                                  ("rusted_hacksaw", 1.4, 0.0, 0)):
-        import_model(asset, "1k", (cx, cy + dy, level + 0.0125), rot_z_deg=rot)
+    shelf_items(rack, (("can_rusted", 0.5, -0.5, 0, False), ("brass_blowtorch", 0.5, 0.25, 90, False),
+                       ("oil_tin", 0.95, -0.45, 30, False), ("tongue_groove_pliers", 0.95, 0.0, 70, True),
+                       ("small_oil_can_01", 0.95, 0.4, 80, False), ("rusted_hacksaw", 1.4, -0.3, 0, True),
+                       ("wooden_hammer_01", 1.4, 0.15, 10, True), ("pipe_wrench", 1.4, 0.5, -15, True)))
     low = put("WoodenTable_01", z, "px0", 1.8)
     on("wooden_crate_01", low, dpy=-0.4)
-    on("handsaw_wood", low, dpy=0.45, rot=90)
+    on("handsaw_wood", low, dpy=0.45, rot=90, lay=True)
     crate = put("wooden_crate_02", z, "px0", 7.6)
-    on("wooden_axe", crate, rot=70)  # el hatchet tenía mango de goma moderno
+    on("wooden_axe", crate, rot=70, lay=True)
     put("crowbar_01", z, "py0", 0.4, gap=0.03)
-    fixture(z, M, "hanging_industrial_lamp")
+    fixture(z)
 
-    # Pasillo principal (plafón de cristal): repisas con una jarra, el león de bronce y una maqueta de galeón,
-    # y una santa pequeña en su repisa, como un altarcito.
+    # Pasillo principal (farol de cobre como el del recibidor, el mismo pasillo): repisas con una jarra, el león de
+    # bronce y una maqueta de galeón, y una santa pequeña en su repisa, como un altarcito.
     shelf = made(wall_shelf(M, 0.5, 1.3), "ShelfMainW", "corridor_main_w", "py0", 1.5, gap=0.0)
     on("ceramic_vase_04", shelf, top=1.3125)
     shelf = made(wall_shelf(M, 0.5, 1.3), "ShelfMainW2", "corridor_main_w", "py1", -0.8, gap=0.0)
     on("lion_head", shelf, top=1.3125, rot=90)
     pic("cma:160885", "corridor_main_w", "py0", 2.5, 1.55, 0.45, "ebony")
-    fixture("corridor_main_w", M, kind="plafon")
+    fixture("corridor_main_w", "lantern_chandelier_01")
     shelf = made(wall_shelf(M, 0.45, 1.35), "Altar", "corridor_main_m", "py0", 1.9, gap=0.0)
     on("gothic_statue", shelf, top=1.3625, rot=-90, scale=0.15)
     pic("cma:109507", "corridor_main_m", "py0", 0.6, 1.6, 0.45)
     pic("cma:148965", "corridor_main_m", "py1", 3.4, 1.55, 0.38, "walnut")
-    fixture("corridor_main_m", M, kind="plafon")
+    fixture("corridor_main_m", "lantern_chandelier_01")
     shelf = made(wall_shelf(M, 0.7, 1.3), "ShipShelf", "corridor_main_e", "py0", -1.0, gap=0.0)
     on("dutch_ship_medium", shelf, top=1.3125, rot=-90, scale=0.02)
     pic("cma:151298", "corridor_main_e", "py1", 1.0, 1.55, 0.38, "silver")
-    fixture("corridor_main_e", M, kind="plafon")
-    # Pasillo lateral (tulipa): un Cristo muerto y una banqueta plegable.
+    fixture("corridor_main_e", "lantern_chandelier_01")
+    # Pasillo lateral: un Cristo muerto y una banqueta plegable.
     pic(441965, "corridor_side", "px0", 1.8, 1.55, 0.6)
     put("folding_wooden_stool", "corridor_side", "px1", 0.9, gap=0.05)
     pic("cma:148758", "corridor_side", "px1", 2.5, 1.6, 0.5)
-    fixture("corridor_side", M, kind="tulip")
-    # Pasillo de servicio (campana de tela): farol de aceite para los apagones y colgador con un sombrero.
+    fixture("corridor_side")
+    # Pasillo de servicio: farol de aceite para los apagones y un colgador.
     shelf = made(wall_shelf(M, 0.4, 1.35), "LanternShelf", "corridor_service_w", "py0", 3.0, gap=0.0)
     on("Lantern_01", shelf, top=1.3625)
     pic("cma:152006", "corridor_service_w", "py0", 4.5, 1.55, 0.4, "walnut")
     pic("cma:97155", "corridor_service_w", "py1", 2.7, 1.6, 0.45)
-    fixture("corridor_service_w", M, kind="bell")
+    fixture("corridor_service_w")
     made(peg_rail(M), "PegRail", "corridor_service_m", "py0", 1.0, gap=0.0)
     pic("cma:171296", "corridor_service_m", "py0", 4.6, 1.55, 0.4, "ebony")
-    fixture("corridor_service_m", M, kind="bell")
+    fixture("corridor_service_m")
     pic("cma:145450", "corridor_service_e", "py1", 1.9, 1.55, 0.45, "ebony")
-    fixture("corridor_service_e", M, kind="bell")
+    fixture("corridor_service_e")
 
-    # Dormitorio 2: cama de hierro con crucifijo, banqueta con jarra de noche, armario ropero, silla tallada y maletas.
+    # Dormitorio 2: cama de hierro con crucifijo, banqueta con jarra de noche, armario ropero, silla tallada, maletas
+    # y un farolillo de latón colgado de su cadena.
     z = "bedroom_2"
     put("old_bed_frame", z, "px1", -1.2)
     made(crucifix(M, 0.4, 1.55), "Crucifix", z, "px1", -1.2, gap=0.0)
@@ -671,43 +556,41 @@ def furnish():
     put("gallinera_chair", z, "py1", 2.0, gap=0.05)
     put("vintage_suitcase", z, "py1", 0.9, gap=0.05, rot=8)
     pic("cma:142472", z, "py0", -0.6, 1.55, 0.4)  # icono de la Virgen
-    fixture(z, M, kind="fabric")
+    fixture(z, "brass_diya_lantern", scale=2.0, drop=("flame",))
 
-    # Baño (usuario, 2026-11-21: «parecen de 2026»): bañera de hierro con patas de garra, inodoro de cisterna alta
-    # con cadena, lavabo de pie con espejo y repisa, toallero sobre la bañera, banqueta, cubo y globo de cristal.
+    # Baño (usuario, 2026-11-22: lo de antes «no pinta nada»): bañera de hierro con patas de garra, pintada de verde
+    # y oxidada, esmalte desconchado; inodoro de loza cuarteada con cisterna alta; lavabo de pie con su espejo;
+    # toallero sobre la bañera, escabel, cubo y bombilla.
     z = "bathroom"
     made(bathtub(M), "Bathtub", z, "py1", 1.05)
     made(towel_rail(M, 0.6, 1.35), "TowelRail", z, "py1", 1.6, gap=0.0)
     made(toilet(M), "Toilet", z, "px1", -1.4)
     made(basin(M), "Basin", z, "px0", -1.6)
-    made(mirror(M, 0.42, 0.55, 1.5), "BathMirror", z, "px0", -1.6, gap=0.0)
+    mirror(M, z, "px0", -1.6, 1.5, 0.36, 0.48, "ebony")
     put("wooden_bucket_02", z, "px1", -0.55, gap=0.05)
-    put("painted_wooden_stool", z, "px1", -2.3, gap=0.05)
-    fixture(z, M, kind="globe")
+    put("wooden_stool_02", z, "px1", -2.3, gap=0.05)
+    fixture(z)
 
-    # Dormitorio 3 (de niño): cama de día, mesa de estudio con ajedrez, silla, estantería con un caballo
-    # de bronce y pizarra.
+    # Dormitorio 3 (de niño): cama de día, mesa de estudio con ajedrez y su taburete pintado y desconchado, pizarra.
     z = "bedroom_3"
     put("vintage_day_bed", z, "py0", 1.3)
     desk = put("wooden_table_02", z, "px1", 0.9)
     on("chess_set", desk, dpy=-0.15, scale=0.6, rot=8)
-    free("painted_wooden_chair_01", 9.85, 6.4, rot=180)
-    shelves = put("painted_wooden_shelves", z, "px0", 1.9)
-    on("horse_head", shelves, rot=180, scale=0.7)
+    free("painted_wooden_stool", 9.85, 6.45, rot=180)  # la silla blanca parecía nueva
     made(wall_slate(M), "WallSlate", z, "py1", -0.6, gap=0.0)
     pic("cma:149768", z, "py0", 1.3, 1.65, 0.55, "walnut")  # san Juan, sobre la cama
-    fixture(z, M, kind="drum")
+    fixture(z)
 
-    # Paso de la despensa: alacena azul, escoba, recogedor, cesto y lechera; lámpara de esmalte verde.
+    # Paso de la despensa: alacena azul, escoba, recogedor, cesto y lechera.
     z = "pantry_hall"
     put("painted_wooden_cabinet_02", z, "px1", 1.6)
     put("wooden_broom", z, "px0", 0.5, gap=0.05)
     put("dustpan", z, "px0", 0.9, gap=0.05)
     put("wicker_basket_02", z, "px0", 1.6, gap=0.05)
     put("metal_jug", z, "px0", 2.3, gap=0.05)
-    fixture(z, M, kind="enamel_green")
+    fixture(z)
 
-    # Galería: rueca, canapé pintado, plantas con su regadera, cubo de la colada y farol colgado.
+    # Galería: rueca, canapé pintado, plantas con su regadera y cubo de la colada.
     z = "gallery"
     put("spinning_wheel_01", z, "px0", -1.5, gap=0.05)
     pic("cma:136680", z, "px0", -1.5, 1.65, 0.5)  # san Jerónimo
@@ -716,57 +599,53 @@ def furnish():
     put("watering_can_metal_01", z, "py1", 1.1, gap=0.08, rot=30)
     put("planter_pot_clay", z, "py1", 2.45, gap=0.05)
     put("wooden_bucket_01", z, "px0", 0.6, gap=0.05)
-    fixture(z, M, "Lantern_01", scale=1.3, cord=0.45)
+    fixture(z)
 
-    # Trastero (con los fusibles en el hito 4b): escalera, caja militar, máscara de gas
-    # colgada, pala y muletas.
+    # Trastero (con los fusibles en el hito 4b): escalera, caja militar, máscara de gas colgada, pala y muletas.
     z = "storage"
     put("wooden_ladder", z, "px0", 1.6, gap=0.05)
     put("wooden_military_crate", z, "py1", 0.72, gap=0.05)
     put("old_gas_mask", z, "px0", -0.5, gap=0.03, z=0.55)
     put("rusted_spade_01", z, "px1", 2.6, gap=0.03)
     put("vintage_crutches_01", z, "px1", 0.7, gap=0.03)
-    fixture(z, M, "pull_chain_light_socket")
+    fixture(z)
 
-    # Recibidor: banco bajo la Adoración, perchero, espejo sobre un arcón tallado con un busto, paragüero y farol.
+    # Recibidor (usuario, 2026-11-22: ni busto ni jarrón; zapatero y perchero): banco bajo la Adoración, perchero de
+    # madera gastada, zapatero con el espejo encima y farol de cobre.
     z = "entrance_hall"
     put("painted_wooden_bench", z, "px0", 1.6)
-    pic(436200, z, "px0", 1.6, 1.6, 0.7)
+    pic(436200, z, "px0", 1.6, 1.6, 0.7, "ornate")
     pic("cma:111435", z, "py0", 0.5, 1.6, 0.45)
     made(coat_rack(M), "CoatRack", z, None, (8.15, 13.2))
-    made(mirror(M, 0.55, 0.85, 1.55), "HallMirror", z, "px1", 1.8, gap=0.0)
-    chest = put("gallinera_table", z, "px1", 1.8)
-    on("marble_bust_01", chest, rot=-20)
-    made([give(cylinder("UmbrellaStand", 0.12, 0.55, (0, 0, 0.275), verts=20), M["brass"])], "UmbrellaStand", z, "px1", 0.6)
-    fixture(z, M, "lantern_chandelier_01")
+    put("painted_wooden_shelves", z, "px1", 1.8)  # zapatero
+    mirror(M, z, "px1", 1.8, 1.7, 0.45, 0.55, "walnut")
+    fixture(z, "lantern_chandelier_01")
 
-    # Fresquera: baldas a lo largo de la pared con conservas, queso, olla de barro y cebollas; barril de vino y
-    # una ratonera; bombilla colgando del cable.
+    # Fresquera: baldas a lo largo de la pared con olla de barro, cebollas, boniatos, queso, conservas, jarrón,
+    # granadas y peras; barril de vino y una ratonera.
     z = "larder"
     lo_x, lo_y, hi_x, hi_y = interior(z)
     shelves = made(larder_shelves(M, hi_y - lo_y - 0.1), "LarderShelves", z, "px0", (hi_y - lo_y) / 2)
-    sl, sh = bounds(shelves)
-    for asset, level, dy in (("ceramic_pot", 0.5, -1.0), ("CheeseBox_01", 0.95, -0.4),
-                             ("russian_food_cans_01", 0.95, 0.6), ("yellow_onion", 0.5, 0.3)):
-        import_model(asset, "1k", ((sl.x + sh.x) / 2, (sl.y + sh.y) / 2 + dy, level + 0.0125))
+    shelf_items(shelves, (("ceramic_pot", 0.5, -1.1, 0, False), ("yellow_onion", 0.5, -0.45, 0, False),
+                          ("sweet_potato", 0.5, 0.1, 30, False), ("CheeseBox_01", 0.95, -0.9, 0, False),
+                          ("russian_food_cans_01", 0.95, -0.2, 15, False), ("ceramic_vase_03", 1.4, -0.9, 0, False),
+                          ("food_pomegranate_01", 1.4, -0.3, 0, False), ("food_pears_asian_01", 1.4, 0.3, 0, False)))
     free("wine_barrel_01", 9.5, 13.05)
     free("mousetrap", 9.4, 10.7, rot=20)
     pic("cma:128393", z, "py1", 0.7, 1.65, 0.4, "ebony")  # bodegón con raya
-    fixture(z, M, "lightbulb_01", cord=0.5)
+    fixture(z)
 
-    # Cocina: cocina económica con olla, cazo y tetera, fregadero bajo la ventana, alacena, mesa con dos sillas,
-    # escurreplatos y una lámpara de esmalte blanco.
+    # Cocina: cocina económica de hierro con olla y cazo, fregadero de terrazo bajo la ventana, alacena, mesa con dos
+    # sillas y una repisa con el puchero de latón.
     z = "kitchen"
     rng = made(kitchen_range(M), "KitchenRange", z, "px1", 1.7, gap=0.01)
     on("pot_enamel_01", rng, dpy=0.25, top=0.81)
     on("brass_pan_01", rng, dpy=-0.3, rot=30, top=0.81)
-    kettle = made(enamel_kettle(M), "Kettle", z, None, (0, 0))[0]
-    lo, hi = bounds(rng)
-    kettle.location = ((lo.x + hi.x) / 2 + 0.05, (lo.y + hi.y) / 2 + 0.1, 0.81)
-    made(kitchen_sink(M), "KitchenSink", z, "py1", 2.03, gap=0.01)
+    made(kitchen_sink(M), "KitchenSink", z, "py1", 2.03, gap=0.01, uv=2.4)  # el azulejo, a su escala de pared
     cab = put("painted_wooden_cabinet", z, "py0", -0.8)
     on("brass_pot_02", cab, dpx=-0.25)
-    made(plate_rack(M), "PlateRack", z, "py0", 2.0, gap=0.0)
+    shelf = made(wall_shelf(M, 0.6, 1.5), "KitchenShelf", z, "py0", 2.0, gap=0.0)
+    on("brass_pot_01", shelf, top=1.5125, scale=0.7)
     table = free("painted_wooden_table", 12.0, 12.0, rot=90, scale=0.75)  # 2,4 m: tapaba las dos puertas
     chairs_around(table, "painted_wooden_chair_02", per_side=1, gap=0.25)
     on("wooden_cutting_board", table, dpx=-0.2)
@@ -774,18 +653,29 @@ def furnish():
     on("jug_01", table, dpx=0.3, scale=0.7)
     on("wooden_bowl_02", table, dpx=0.05, dpy=0.2)
     pic("cma:147607", z, "px0", 0.6, 1.6, 0.38, "walnut")  # bodegón con arenques
-    fixture(z, M, kind="enamel")
+    fixture(z)
 
-    # Aseo de servicio: retrete con cisterna de madera, palangana en su trípode con jarra y toalla, y banqueta;
-    # cúpula de latón.
+    # Aseo de servicio: retrete con cisterna de madera y palangana en su trípode con jarra y toalla.
     z = "service_toilet"
     made(toilet(M, wooden_tank=True), "ServiceToilet", z, "py1", 1.4)
     made(washstand(M), "Washstand", z, "px1", 2.2, gap=0.05)
-    put("wooden_stool_02", z, "px0", 1.5, gap=0.05)
-    fixture(z, M, kind="dome")
+    fixture(z)
 
     floor_colliders()
     check_doors()
+    check_colliders()
+
+
+def check_colliders():
+    """Aviso si una colisión queda fuera de su habitación (el tornillo de banco traía una esfera de 2 m que llenó
+    el salón de una caja invisible: usuario, 2026-11-22, «no se puede andar por ningún sitio»)."""
+    rects = [L.interior(r, zid) for zid, _, r, _ in L.ZONES]
+    for o in bpy.context.scene.objects:
+        if o.name.startswith("Solid_"):
+            lo, hi = bounds([o])
+            x0, x1, y0, y1 = lo.y + 7, hi.y + 7, 2 - hi.x, 2 - lo.x  # en el plano: px = Y + 7, py = 2 - X
+            if not any(a - 0.05 <= x0 and x1 <= c + 0.05 and b - 0.05 <= y0 and y1 <= d + 0.05 for a, b, c, d in rects):
+                print("COLLIDER_OUTSIDE %s (px %.2f-%.2f, py %.2f-%.2f)" % (o.name, x0, x1, y0, y1))
 
 
 def check_doors():

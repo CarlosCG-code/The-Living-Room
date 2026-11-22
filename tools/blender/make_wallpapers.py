@@ -138,9 +138,14 @@ def tiles():
     rgb *= (1 - 0.22 * craze)[..., None]
     chip = (hash01(tid + 3) > 0.93) * smooth(0.16, 0.12, np.minimum.reduce([np.hypot(p, q), np.hypot(1 - p, 1 - q)]))
     rgb = mix(rgb, (0.38, 0.3, 0.22), chip)  # algún azulejo desconchado en la esquina, el bizcocho al aire
-    dirt = smooth(0.18, 0.0, v) * 0.35 + 0.25 * STAINS
-    rgb = mix(rgb, (0.12, 0.1, 0.07), joint * 0.85 + 0.0) * (1 - dirt * 0.4)[..., None]
-    return rgb, bevel * (1 - 0.4 * chip) - 0.05 * craze, 0.12 + 0.75 * joint + 0.6 * chip + 0.15 * dirt
+    # Suciedad de muchos años (usuario, 2026-11-22: «más sucias/desgastadas»): roña junto al suelo, manchas grandes y
+    # chorretones verticales que bajan desde la cenefa, y la junta casi negra.
+    runs = norm01(blur(np.repeat(rng.standard_normal((1, N)), N, axis=0), 2.5))
+    runs = smooth(0.62, 0.9, runs) * smooth(0.55, 0.2, v) * (0.6 + 0.4 * norm01(blur(rng.standard_normal((N, N)), 40)))
+    dirt = np.clip(0.15 + smooth(0.22, 0.0, v) * 0.6 + 0.7 * smooth(0.25, 0.9, STAINS) + 0.7 * runs, 0, 1)
+    rgb = mix(rgb, (0.06, 0.05, 0.035), joint * 0.95)
+    rgb = rgb * (1 - 0.65 * dirt)[..., None] * mix(np.ones((N, N, 3)), (1.0, 0.9, 0.72), dirt)  # oscurece y amarillea
+    return rgb, bevel * (1 - 0.4 * chip) - 0.05 * craze, 0.15 + 0.7 * joint + 0.6 * chip + 0.45 * dirt
 
 
 def floor_hydraulic():
@@ -180,6 +185,20 @@ def floor_checker():
     return rgb, 1 - joint, 0.75 + 0.2 * joint
 
 
+def porcelain():
+    """Loza y esmalte viejos para bañera, inodoro, lavabo y palangana (usuario, 2026-11-22: lo liso parecía de 2026;
+    la textura de yeso parecía granito y la de chapa oxidada, una bañera podrida): vidriado crema, cuarteado fino,
+    roña en manchas y algún desconchón con el hierro negro al aire. Cubre 0,6 m (made(..., uv=0.6))."""
+    craze = smooth(0.05, 0.0, np.abs(blur(rng.standard_normal((N, N)), 5)) / 0.03)
+    grime = smooth(0.35, 0.95, STAINS)
+    chips = smooth(0.9, 0.97, norm01(blur(rng.standard_normal((N, N)), 3)))
+    rgb = np.ones((N, N, 3)) * np.array((0.74, 0.71, 0.62)) * (0.96 + 0.04 * GRAIN[..., None] * 0.3)
+    rgb *= (1 - 0.18 * craze)[..., None]
+    rgb = mix(rgb, (0.42, 0.34, 0.2), grime * 0.45)
+    rgb = mix(rgb, (0.03, 0.03, 0.03), chips)
+    return rgb, 1 - 0.6 * chips - 0.05 * craze, 0.12 + 0.3 * grime + 0.6 * chips
+
+
 def save(img_id, kind, arr):
     folder = os.path.join(GEN, img_id)
     os.makedirs(folder, exist_ok=True)
@@ -210,7 +229,8 @@ def write(img_id, fn, aging):
 
 
 for img_id, fn, aging in (("wallpaper_damask", damask, 0.22), ("wallpaper_stripes", stripes, 0.22),
-                          ("wallpaper_sprig", sprig, 0.2), ("wall_paint", paint, 0.3), ("wall_tiles", tiles, 0.15),
-                          ("floor_hydraulic", floor_hydraulic, 0.1), ("floor_checker", floor_checker, 0.1)):
+                          ("wallpaper_sprig", sprig, 0.2), ("wall_paint", paint, 0.3), ("wall_tiles", tiles, 0.35),
+                          ("floor_hydraulic", floor_hydraulic, 0.1), ("floor_checker", floor_checker, 0.1),
+                          ("porcelain_old", porcelain, 0.1)):
     write(img_id, fn, aging)
     print("WALLPAPER_OK", img_id)

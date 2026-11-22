@@ -254,9 +254,10 @@ def tex_mat(name, tex_id, res, tint=None, root=None):
     return m
 
 
-def import_model(asset_id, res, loc, rot_z_deg=0.0, scale=1.0, drop=(), tint=None):
+def import_model(asset_id, res, loc, rot_z_deg=0.0, scale=1.0, drop=(), tint=None, lay=False):
     """Importa el glTF de Poly Haven, lo deja sin padres, apoyado en loc (el suelo del modelo en loc.z) y girado.
-    drop quita las mallas o los materiales (con sus caras) cuyo nombre contenga alguna de esas palabras."""
+    drop quita las mallas o los materiales (con sus caras) cuyo nombre contenga alguna de esas palabras.
+    lay: lo tumba sobre su cara más ancha (martillos, llaves y sierras vienen de pie; usuario, 2026-11-22)."""
     before = set(bpy.context.scene.objects)
     bpy.ops.import_scene.gltf(filepath=os.path.join(PH, asset_id, "%s_%s.gltf" % (asset_id, res)))
     new = [o for o in bpy.context.scene.objects if o not in before]
@@ -287,8 +288,17 @@ def import_model(asset_id, res, loc, rot_z_deg=0.0, scale=1.0, drop=(), tint=Non
     for o in meshes:
         o.select_set(True)
     bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
-    # Pivote: centro en planta y base del modelo, para colocarlo por el suelo.
-    pts = [o.matrix_world @ Vector(c) for o in meshes for c in o.bound_box]
+    if lay:
+        pts = [o.matrix_world @ Vector(c) for o in meshes for c in o.bound_box]
+        dims = [max(p[i] for p in pts) - min(p[i] for p in pts) for i in range(3)]
+        thin = dims.index(min(dims))
+        if thin != 2:  # el eje más fino pasa a ser el vertical
+            r = Matrix.Rotation(math.radians(90), 4, "Y" if thin == 0 else "X")
+            for o in meshes:
+                o.data.transform(r)
+    # Pivote: centro en planta y base del modelo, para colocarlo por el suelo. Con los vértices: bound_box se queda
+    # con la caja de antes de tumbarlo y el modelo flotaba (usuario, 2026-11-22).
+    pts = [o.matrix_world @ v.co for o in meshes for v in o.data.vertices]
     cx = (min(p.x for p in pts) + max(p.x for p in pts)) / 2
     cy = (min(p.y for p in pts) + max(p.y for p in pts)) / 2
     cz = min(p.z for p in pts)
@@ -332,7 +342,6 @@ def build_final():
 
     wood = mat("DarkWood", (0.05, 0.028, 0.016), 0.45)
     door_wood = tex_mat("DoorWood", "dark_wood", "1k", tint=DOOR_TINT)
-    white_frame = mat("WindowFrame", (0.5, 0.49, 0.46), 0.35, metallic=0.2)
     marble = mat("Marble", (0.62, 0.6, 0.57), 0.2)
     blind = mat("Blind", (0.42, 0.38, 0.3), 0.6)
     brass = mat("Brass", (0.6, 0.45, 0.22), 0.3, metallic=1.0)
@@ -358,16 +367,11 @@ def build_final():
 
     # Ventana (pared +X): marco, cristal, alféizar de mármol, persiana medio bajada por fuera y su cajón.
     wx, win_y, win_w, win_bot, win_top = W / 2 + T / 2, 0.5, 1.2, 0.9, 2.1
-    f = 0.05
-    for name, size, loc in [
-        ("WinFrameTop", (T + 0.02, win_w, f), (wx, win_y, win_top - f / 2)),
-        ("WinFrameBottom", (T + 0.02, win_w, f), (wx, win_y, win_bot + f / 2)),
-        ("WinFrameL", (T + 0.02, f, win_top - win_bot), (wx, win_y - win_w / 2 + f / 2, (win_top + win_bot) / 2)),
-        ("WinFrameR", (T + 0.02, f, win_top - win_bot), (wx, win_y + win_w / 2 - f / 2, (win_top + win_bot) / 2)),
-        ("WinFrameMid", (0.06, 0.04, win_top - win_bot), (wx, win_y, (win_top + win_bot) / 2)),
-    ]:
-        give(box(name, size, loc), white_frame, bevel=0.004)
-    give(box("WindowGlass", (0.006, win_w - 2 * f, win_top - win_bot - 2 * f), (wx, win_y, (win_top + win_bot) / 2)), glass)
+    timber = tex_mat("WindowTimber", "weathered_peeling_timber", "1k", tint=(0.85, 0.82, 0.75))
+    for name, a0, a1, z0, z1, d in window_parts(win_y - win_w / 2, win_y + win_w / 2, win_bot, win_top):
+        o = box(name, ((T + 0.02) if d is None else d, a1 - a0, z1 - z0), (wx, (a0 + a1) / 2, (z0 + z1) / 2))
+        uv_world(give(o, brass if name.startswith("WinHandle") else timber, bevel=0.004), 0.8)
+    give(box("WindowGlass", (0.006, win_w - 0.14, win_top - win_bot - 0.14), (wx, win_y, (win_top + win_bot) / 2)), glass)
     give(box("WindowSill", (0.2, win_w + 0.1, 0.03), (W / 2 - 0.02, win_y, win_bot - 0.015)), marble, bevel=0.005)
     slats, gap, slat_h = [], 0.006, 0.042
     z = win_top
@@ -380,7 +384,7 @@ def build_final():
     bpy.context.view_layer.objects.active = slats[0]
     bpy.ops.object.join()
     give(bpy.context.active_object, blind).name = "Blind"
-    give(box("BlindBox", (0.14, win_w + 0.2, 0.22), (W / 2 - 0.07, win_y, win_top + 0.13)), white_frame, bevel=0.004)
+    uv_world(give(box("BlindBox", (0.14, win_w + 0.2, 0.22), (W / 2 - 0.07, win_y, win_top + 0.13)), timber, bevel=0.004), 0.8)
 
     # Puerta (pared -X), cerrada: marco, hoja y manilla. La hoja va aparte para poder abrirla en el hito 4.
     dx = -W / 2 - T / 2
@@ -560,7 +564,6 @@ def decorate():
     to_wall(import_model("hanging_picture_frame_02", "1k", (0.95, -2.3, 1.25), rot_z_deg=180, drop=("glass",)), "y", -D / 2)
     to_wall(import_model("fancy_picture_frame_02", "1k", (0, 2.3, 1.3), drop=("glass",)), "y", D / 2)
     to_wall(import_model("ornate_mirror_01", "1k", (-1.9, 0.5, 1.15), rot_z_deg=90), "x", -W / 2)
-    to_wall(import_model("hanging_picture_frame_03", "1k", (1.9, -0.45, 1.4), rot_z_deg=-90, drop=("glass",)), "x", W / 2)
 
     # Lámpara de techo (apagada por ahora), alfombra, gafas en la mesa y cesto junto al sofá.
     lamp = import_model("Chandelier_02", "1k", (0, 0.3, 0))
@@ -593,21 +596,54 @@ def wall_plate(loc, rot_z_deg, axis, coord):
     to_wall(objs, axis, coord)
 
 
-FRAME_STYLES = {"gilt": ((0.42, 0.3, 0.12), 0.38, 1.0), "ebony": ((0.025, 0.02, 0.017), 0.45, 0.0),
-                "walnut": ((0.09, 0.05, 0.03), 0.5, 0.0), "silver": ((0.45, 0.44, 0.42), 0.4, 1.0)}
+# Marcos de Poly Haven (usuario, 2026-11-22: los hechos aquí eran «feísimos»): el dorado ornamentado para los
+# cuadros principales y el moldurado, teñido, para el resto. (modelo, tinte del color).
+FRAME_STYLES = {"ornate": ("fancy_picture_frame_02", None), "gilt": ("fancy_picture_frame_01", None),
+                "ebony": ("fancy_picture_frame_01", (0.16, 0.13, 0.11)), "walnut": ("fancy_picture_frame_01", (0.5, 0.34, 0.22)),
+                "silver": ("fancy_picture_frame_01", (0.75, 0.78, 0.82))}
+
+
+def framed(canvas_mat, w, h, style, name):
+    """Marco de Poly Haven ajustado a un lienzo de w × h con canvas_mat dentro (pintura o espejo). Devuelve un objeto
+    con el centro del lienzo en el origen, de cara a -Y. El moldurado se gira 90° si el cuadro es vertical."""
+    asset, tint = FRAME_STYLES[style]
+    objs = import_model(asset, "1k", (0, 0, 0), drop=("glass",), tint=tint)
+    canvas = next(o for o in objs if "canvas" in o.name)
+    lo, hi = bounds([canvas])
+    c = (lo + hi) / 2
+    if asset == "fancy_picture_frame_01" and (hi.z - lo.z > hi.x - lo.x) != (h > w):
+        r = Matrix.Translation(c) @ Matrix.Rotation(math.radians(90), 4, "Y") @ Matrix.Translation(-c)
+        for o in objs:
+            o.data.transform(r)
+        lo, hi = bounds([canvas])
+    fit = Matrix.Diagonal((w / (hi.x - lo.x), 1.0, h / (hi.z - lo.z), 1.0)) @ Matrix.Translation(-c)
+    for o in objs:
+        o.data.transform(fit)
+    canvas.data.materials.clear()
+    canvas.data.materials.append(canvas_mat)
+    uv = canvas.data.uv_layers.active or canvas.data.uv_layers.new()
+    for poly in canvas.data.polygons:  # la pintura entera en el lienzo (el de Poly Haven usaba un trozo de la suya)
+        for li in poly.loop_indices:
+            v = canvas.data.vertices[canvas.data.loops[li].vertex_index].co
+            uv.data[li].uv = (v.x / w + 0.5, v.z / h + 0.5)
+    return join(objs, name)
+
+
+def bounds(objs):
+    bpy.context.view_layer.update()
+    pts = [o.matrix_world @ Vector(c) for o in objs for c in o.bound_box]
+    return Vector([min(p[i] for p in pts) for i in range(3)]), Vector([max(p[i] for p in pts) for i in range(3)])
 
 
 def painting(met_id, loc, rot_z_deg, height, style="gilt", standing=False):
-    """Cuadro hecho aquí: lienzo con una pintura CC0 del Met, marco moldurado con filete y trasera. loc es el centro
-    del lienzo (de pie: la base); de cara a -Y antes de girar, como los modelos de Poly Haven (usuario, 2026-11-21:
-    ningún cuadro repetido en la casa)."""
+    """Cuadro: una pintura CC0 (Met o Cleveland) en un marco de Poly Haven. loc es el centro del lienzo (de pie: la
+    base); de cara a -Y antes de girar, como los modelos de Poly Haven (usuario, 2026-11-21: ningún cuadro repetido)."""
     # "cma:<id>": Cleveland Museum of Art (tools/fetch_cma.py); un número: el Met (tools/fetch_met.py).
     src = os.path.join(ROOT, "art_source", "cma", met_id[4:] + ".jpg") if str(met_id).startswith("cma:") else os.path.join(MET, "%s.jpg" % met_id)
     met_id = str(met_id).replace(":", "_")
     img = bpy.data.images.load(src, check_existing=True)
     h = height
     w = h * img.size[0] / img.size[1]
-    fw, fd = max(0.03, 0.09 * h), 0.035  # ancho y fondo del marco
     canvas = bpy.data.materials.get("Painting_%s" % met_id)
     if not canvas:
         canvas = bpy.data.materials.new("Painting_%s" % met_id)
@@ -618,35 +654,42 @@ def painting(met_id, loc, rot_z_deg, height, style="gilt", standing=False):
         t.image = img
         nt.links.new(t.outputs["Color"], b.inputs["Base Color"])
         b.inputs["Roughness"].default_value = 0.55
-    color, rough, metal = FRAME_STYLES[style]
-    frame = mat("Frame_" + style, color, rough, metallic=metal)
-    liner = mat("FrameLiner", (0.36, 0.31, 0.22), 0.6)
-    parts = []
-    bpy.ops.mesh.primitive_plane_add(size=1.0, location=(0, -0.006, 0), rotation=(math.radians(90), 0, 0))
-    c = bpy.context.active_object
-    c.scale = (w, h, 1)
-    bpy.ops.object.transform_apply(location=False, rotation=True, scale=True)
-    parts.append(give(c, canvas))
-    sl = 0.012  # filete interior
-    for name, size, at in (("FrameTop", (w + 2 * fw, fd, fw), (0, 0, h / 2 + fw / 2)), ("FrameBottom", (w + 2 * fw, fd, fw), (0, 0, -h / 2 - fw / 2)),
-                           ("FrameL", (fw, fd, h), (-w / 2 - fw / 2, 0, 0)), ("FrameR", (fw, fd, h), (w / 2 + fw / 2, 0, 0))):
-        parts.append(give(box(name, size, at), frame, bevel=min(0.01, fw / 4)))
-    for name, size, at in (("LinerTop", (w, 0.01, sl), (0, -0.002, h / 2 - sl / 2)), ("LinerBottom", (w, 0.01, sl), (0, -0.002, -h / 2 + sl / 2)),
-                           ("LinerL", (sl, 0.01, h), (-w / 2 + sl / 2, -0.002, 0)), ("LinerR", (sl, 0.01, h), (w / 2 - sl / 2, -0.002, 0))):
-        parts.append(give(box(name, size, at), liner))
-    parts.append(give(box("FrameBack", (w, 0.004, h), (0, 0.012, 0)), frame))
-    o = join(parts, "Painting_%s" % met_id)
+    o = framed(canvas, w, h, style, "Painting_%s" % met_id)
     if standing:  # en un mueble: inclinado hacia atrás, apoyado en su pata
-        o.rotation_euler = (math.radians(-12), 0, 0)
-        bpy.ops.object.transform_apply(location=False, rotation=True, scale=False)
-        strut = give(box("FrameStrut", (0.02, 0.01, h * 0.8), (0, 0.06 + h * 0.08, -h * 0.08)), frame)
+        lo, hi = bounds([o])
+        o.data.transform(Matrix.Rotation(math.radians(-12), 4, "X"))
+        strut = give(box("FrameStrut", (0.02, 0.01, h * 0.8), (0, 0.06 + h * 0.08, -h * 0.08)), mat("FrameStrut", (0.05, 0.035, 0.025), 0.6))
         strut.rotation_euler = (math.radians(20), 0, 0)
         o = join([o, strut], "Painting_%s" % met_id)
-        o.data.transform(Matrix.Translation((0, 0, h / 2 + fw)))  # de pie: el origen en la base
+        o.data.transform(Matrix.Translation((0, 0, -lo.z)))  # de pie: el origen en la base
     o.rotation_euler = (0, 0, math.radians(rot_z_deg))
     o.location = loc
+    bpy.ops.object.select_all(action="DESELECT")
+    o.select_set(True)
+    bpy.context.view_layer.objects.active = o
     bpy.ops.object.transform_apply(location=True, rotation=True, scale=False)
     return [o]
+
+
+def window_parts(a0, a1, z0, z1):
+    """Ventana de los años 30 (usuario, 2026-11-22: las de antes «parecían de 2026»): cerco, dos hojas de madera
+    con tres cristales cada una y falleba de latón. Rectángulos en el plano del muro: (nombre, a0, a1, z0, z1,
+    fondo); fondo None = el del muro más 2 cm. Todo centrado en el grueso del muro."""
+    F, S, B = 0.07, 0.055, 0.022  # cerco, bastidor de la hoja, junquillo entre cristales
+    out = [("WinFrameTop", a0, a1, z1 - F, z1, None), ("WinFrameBottom", a0, a1, z0, z0 + F, None),
+           ("WinFrameL", a0, a0 + F, z0, z1, None), ("WinFrameR", a1 - F, a1, z0, z1, None)]
+    m = (a0 + a1) / 2
+    za, zb = z0 + F, z1 - F
+    for la, lb in ((a0 + F, m), (m, a1 - F)):
+        out += [("WinLeafTop", la, lb, zb - S, zb, 0.06), ("WinLeafBottom", la, lb, za, za + 1.6 * S, 0.06),
+                ("WinLeafL", la, la + S, za, zb, 0.06), ("WinLeafR", lb - S, lb, za, zb, 0.06)]
+        g0, g1 = za + 1.6 * S, zb - S
+        for k in (1, 2):
+            z = g0 + (g1 - g0) * k / 3
+            out.append(("WinBar", la + S, lb - S, z - B / 2, z + B / 2, 0.035))
+    zm = (z0 + z1) / 2
+    out += [("WinHandleRod", m - 0.008, m + 0.008, za + 0.1, zb - 0.1, 0.085), ("WinHandle", m - 0.012, m + 0.012, zm - 0.07, zm + 0.02, 0.1)]
+    return out
 
 
 def decorate_1940s(wood, brass, shade):
@@ -699,9 +742,7 @@ def decorate_1940s(wood, brass, shade):
     to_wall(painting(436262, (1.0, y1 - 0.2, 1.62), 0, 0.5, "gilt"), "y", y1)
     wall_plate((-W / 2 + 0.05, 1.6, 2.36), 90, "x", -W / 2)
 
-    # Ronda 5: más objetos de casa vivida. Cuadros pequeños sobre el de la tele (antes, modelos repetidos a otra
-    # escala; usuario, 2026-11-21: ningún cuadro repetido).
-    to_wall(painting(437841, (0.85, y0 + 0.2, 1.86), 180, 0.3, "ebony"), "y", y0)
+    # Usuario, 2026-11-22: fuera el cuadro pequeño sobre el paisaje y el ovalado junto a la librería («quedan fatal»).
     # Lo que se ve desde el suelo alrededor de la tele (la cámara de juego solo encuadra esa franja de pared):
     # dos cuadros pequeños a los lados, justo encima del zócalo.
     # Repisa con un jarrón de latón y una brújula de bolsillo (antes, dos cuadros repetidos).
