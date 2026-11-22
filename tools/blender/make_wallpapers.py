@@ -200,6 +200,69 @@ def porcelain():
     return rgb, 1 - 0.6 * chips - 0.05 * craze, 0.12 + 0.3 * grime + 0.6 * chips
 
 
+def rug(field, border, accent, aspect=1.4, seed=0):
+    """Alfombra persa vieja (usuario, 2026-11-22: casa vivida como en sus fotos): cenefa con rosetas, campo con
+    rombos y medallón central, pisada en el centro. La textura es la alfombra entera (no se repite); aspect = largo /
+    ancho, para que la cenefa mida lo mismo en los dos sentidos. u a lo ancho, v a lo largo."""
+    x, y = (u - 0.5) * 2, (v - 0.5) * 2  # -1..1
+    ex, ey = 1 - np.abs(x), (1 - np.abs(y)) * aspect  # distancia al borde, en anchos/2
+    e = np.minimum(ex, ey)
+    rgb = np.ones((N, N, 3)) * np.array(field)
+    # Campo: rombos pequeños en rejilla, en el color de acento.
+    gx, gy = (x * 6) % 1 - 0.5, (y * 6 * aspect) % 1 - 0.5
+    rgb = mix(rgb, accent, smooth(0.2, 0.16, np.abs(gx) + np.abs(gy)) * 0.55)
+    # Arabescos: sumas de cosenos con simetría en espejo, umbralizadas en volutas finas de los dos colores.
+    X, Y = np.abs(x) * 9, np.abs(y) * 9 * aspect
+    orn = np.cos(X) * np.cos(Y) + 0.6 * np.cos(2.3 * X + 1.1 * Y) + 0.6 * np.cos(1.1 * X - 2.3 * Y) + 0.4 * np.cos(4.1 * (X + Y))
+    rgb = mix(rgb, border, smooth(0.12, 0.0, np.abs(orn - 0.9)) * 0.7)
+    rgb = mix(rgb, accent, smooth(0.1, 0.0, np.abs(orn + 0.8)) * 0.5)
+    # Medallón central en rombo con anillo y corazón claro.
+    d = np.abs(x) / 0.55 + np.abs(y) * aspect / (0.55 * aspect if aspect < 2 else 1.4)
+    rgb = mix(rgb, border, smooth(1.0, 0.97, d))
+    rgb = mix(rgb, accent, smooth(0.04, 0.0, np.abs(d - 0.75)))
+    rgb = mix(rgb, (0.55, 0.45, 0.3), smooth(0.32, 0.28, d))
+    # Cenefa: banda oscura con rosetas, filetes claros por dentro y por fuera.
+    band = smooth(0.3, 0.28, e) * smooth(0.04, 0.06, e)
+    t = np.where(ex < ey, y * aspect, x)  # posición a lo largo de la cenefa
+    ros = smooth(0.3, 0.2, np.abs(((t * 4) % 1) - 0.5) * 2 + np.abs(e - 0.17) * 6)
+    rgb = mix(rgb, border, band)
+    rgb = mix(rgb, accent, band * ros)
+    rgb = mix(rgb, (0.55, 0.45, 0.3), smooth(0.015, 0.0, np.abs(e - 0.32)) + smooth(0.015, 0.0, np.abs(e - 0.05)))
+    # Lana: grano y pisada (más clara y apagada en el centro y en el camino de paso).
+    pile = norm01(blur(np.random.default_rng(seed).standard_normal((N, N)), 1.0))
+    rgb *= (0.88 + 0.2 * pile)[..., None]
+    wear = np.clip(smooth(1.1, 0.2, np.hypot(x, y * 0.7)) * 0.5 + 0.5 * smooth(0.4, 0.9, STAINS), 0, 1)
+    rgb = mix(rgb, (0.32, 0.27, 0.22), wear * 0.35)
+    return rgb, pile * 0.3, 0.92 + 0.06 * pile
+
+
+def rag_rug():
+    """Alfombra de trapo de dormitorio y baño: tiras de tela vieja de colores en franjas, tejidas."""
+    stripe = np.floor(v * 23)
+    pal = np.array([(0.42, 0.3, 0.22), (0.25, 0.3, 0.38), (0.5, 0.45, 0.35), (0.38, 0.16, 0.13), (0.3, 0.33, 0.24)])
+    rgb = pal[(hash01(stripe) * len(pal)).astype(int) % len(pal)]
+    weave = 0.5 + 0.5 * np.sin(u * N * np.pi / 6) * np.sin(v * N * np.pi / 6)
+    rgb = rgb * (0.8 + 0.25 * weave)[..., None] * (0.9 + 0.15 * norm01(blur(rng.standard_normal((N, N)), 2)))[..., None]
+    return rgb, weave * 0.4, 0.95 - 0.0 * weave
+
+
+def gingham(colour):
+    """Mantel de cuadros de cocina (2 cm). Cubre 0,5 m (uv_world(o, 0.5))."""
+    hb = (((u * 25) % 1) < 0.5).astype(float)
+    vb = (((v * 25) % 1) < 0.5).astype(float)
+    rgb = mix(np.ones((N, N, 3)) * np.array((0.62, 0.58, 0.48)), colour, (hb + vb) / 2)
+    weave = 0.5 + 0.5 * np.sin(u * N * np.pi / 3) * np.sin(v * N * np.pi / 3)
+    return rgb * (0.92 + 0.1 * weave)[..., None], weave * 0.2, 0.9 + 0.0 * weave
+
+
+def linen():
+    """Mantel de hilo del comedor: blanco roto con la trama y arrugas suaves (con listas parecía baldosa). Cubre 0,5 m."""
+    weave = 0.5 + 0.5 * np.sin(u * N * np.pi / 3) * np.sin(v * N * np.pi / 3)
+    folds = norm01(blur(rng.standard_normal((N, N)), 30))
+    rgb = np.ones((N, N, 3)) * np.array((0.58, 0.55, 0.48)) * (0.94 + 0.08 * weave)[..., None] * (0.9 + 0.15 * folds)[..., None]
+    return rgb, weave * 0.15 + 0.5 * folds, 0.88 + 0.0 * weave
+
+
 def save(img_id, kind, arr):
     folder = os.path.join(GEN, img_id)
     os.makedirs(folder, exist_ok=True)
@@ -234,6 +297,12 @@ def write(img_id, fn, aging):
 for img_id, fn, aging in (("wallpaper_damask", damask, 0.34), ("wallpaper_stripes", stripes, 0.34),
                           ("wallpaper_sprig", sprig, 0.34), ("wall_paint", paint, 0.34), ("wall_tiles", tiles, 0.35),
                           ("floor_hydraulic", floor_hydraulic, 0.1), ("floor_checker", floor_checker, 0.1),
-                          ("porcelain_old", porcelain, 0.1)):
+                          ("porcelain_old", porcelain, 0.1),
+                          ("rug_persian_red", lambda: rug((0.3, 0.06, 0.045), (0.05, 0.07, 0.16), (0.55, 0.4, 0.2), 1.4, 1), 0.2),
+                          ("rug_persian_blue", lambda: rug((0.07, 0.1, 0.2), (0.3, 0.07, 0.05), (0.5, 0.42, 0.28), 1.4, 2), 0.2),
+                          ("rug_persian_green", lambda: rug((0.12, 0.15, 0.08), (0.28, 0.07, 0.05), (0.55, 0.43, 0.25), 1.4, 4), 0.2),
+                          ("rug_runner", lambda: rug((0.28, 0.07, 0.05), (0.08, 0.07, 0.05), (0.5, 0.38, 0.2), 5.0, 3), 0.25),
+                          ("rug_rag", rag_rug, 0.2), ("cloth_gingham_green", lambda: gingham((0.12, 0.25, 0.16)), 0.2),
+                          ("cloth_gingham_red", lambda: gingham((0.4, 0.07, 0.06)), 0.2), ("cloth_linen", linen, 0.15)):
     write(img_id, fn, aging)
     print("WALLPAPER_OK", img_id)

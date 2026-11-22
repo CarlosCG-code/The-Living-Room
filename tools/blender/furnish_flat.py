@@ -10,7 +10,7 @@ import math
 from mathutils import Matrix, Vector
 
 import_model, painting, cylinder, cone = _helpers["import_model"], _helpers["painting"], _helpers["cylinder"], _helpers["cone"]
-floor_colliders, framed = _helpers["floor_colliders"], _helpers["framed"]
+floor_colliders, framed, rug_plane = _helpers["floor_colliders"], _helpers["framed"], _helpers["rug_plane"]
 
 # Hacia dónde mira un mueble pegado a cada pared (los modelos de Poly Haven miran a -Y: +90° → +X, -90° → -X).
 ROT = {"py0": -90.0, "py1": 90.0, "px0": 180.0, "px1": 0.0}
@@ -68,6 +68,32 @@ def pic(met_id, zid, wall, at, z, h, style="gilt"):
     """Cuadro colgado: z es la altura de su centro."""
     px, py = spot(zid, wall, at, 0.1)
     return snap(painting(met_id, (*to_b(px, py), z), ROT[wall], h, style), zid, wall, 0.003)
+
+
+def rug(tex, zid, w, l, dpx=0.0, dpy=0.0, rot=0.0):
+    """Alfombra en el centro de la habitación más (dpx, dpy); w a lo ancho del plano (py), l a lo largo (px)."""
+    lo_x, lo_y, hi_x, hi_y = interior(zid)
+    return rug_plane(tex, to_b((lo_x + hi_x) / 2 + dpx, (lo_y + hi_y) / 2 + dpy), w, l, rot, "Rug_" + zid)
+
+
+def tablecloth(table, tex, drop=0.22, margin=0.03):
+    """Mantel sobre la tapa de una mesa, caído drop por los lados. Devuelve la mesa con el mantel, para on()."""
+    lo, hi = bounds(table)
+    x0, y0, x1, y1, zt, zb = lo.x - margin, lo.y - margin, hi.x + margin, hi.y + margin, hi.z + 0.004, hi.z - drop
+    me = bpy.data.meshes.new("Tablecloth")
+    me.from_pydata([(x0, y0, zt), (x1, y0, zt), (x1, y1, zt), (x0, y1, zt), (x0, y0, zb), (x1, y0, zb), (x1, y1, zb), (x0, y1, zb)],
+                   [], [(0, 1, 2, 3), (4, 5, 1, 0), (5, 6, 2, 1), (6, 7, 3, 2), (7, 4, 0, 3)])
+    o = bpy.data.objects.new("Tablecloth", me)
+    bpy.context.collection.objects.link(o)
+    give(o, tex_mat(tex, tex, "2k", root=GEN))
+    uv_world(o, 0.5)
+    return table + [o]
+
+
+def photo(cma_id, base, dpx=0.0, dpy=0.0, rot=0.0, h=0.2, style="walnut"):
+    """Foto de familia de pie sobre un mueble (Cleveland, CC0), apoyada en su pata."""
+    lo, hi = bounds(base)
+    return painting("cma:%s" % cma_id, ((lo.x + hi.x) / 2 - dpy, (lo.y + hi.y) / 2 + dpx, hi.z), rot, h, style, standing=True)
 
 
 def made(parts, name, zid, wall, at, off=0.4, gap=0.02, rot=0.0, z=0.0, uv=0.6):
@@ -393,6 +419,13 @@ def fixture(zid, asset="pull_chain_light_socket", scale=1.0, drop=()):
     return objs
 
 
+def window_curtain(zid):
+    """Visillo de encaje con su barra en lo alto de la ventana (BlenderKit, CC0)."""
+    side, wall_py, pos = WINDOWS[zid]
+    lo_x = interior(zid)[0]
+    return put("lace_curtain", zid, "py0" if wall_py == L.Y0 else "py1", pos - lo_x, gap=0.06, z=WIN_TOP + 0.05 - 0.877)
+
+
 def mirror(M, zid, wall, at, z, w, h, style):
     """Espejo en un marco de Poly Haven (usuario, 2026-11-22: los hechos aquí no parecían antiguos)."""
     return made([framed(M["mirror"], w, h, style, "Mirror_%s" % zid)], "Mirror_%s" % zid, zid, wall, at, gap=0.0, z=z, uv=None)
@@ -446,6 +479,11 @@ def furnish():
     mirror(M, z, "py0", -1.0, 1.65, 0.42, 0.56, "ornate")
     pic(437336, z, "px0", 2.0, 1.85, 0.5, "ornate")
     pic("cma:125247", z, "py1", 1.5, 1.6, 0.45, "ebony")
+    # Vida (usuario, 2026-11-22, sus fotos de referencia): alfombra a los pies de la cama, foto de ella en la cómoda,
+    # visillo en la ventana.
+    rug("rug_persian_blue", z, 2.2, 1.6, dpx=-0.3)
+    photo(448866, commode, dpx=-0.05, rot=ROT["py0"], h=0.22, style="ornate")
+    window_curtain(z)
     fixture(z, "Chandelier_01")
 
     # Comedor: mesa con mantel y cuatro sillas, aparador con el toro de bronce, jarrón de latón en su pie alto, reloj
@@ -454,12 +492,16 @@ def furnish():
     lo_x, lo_y, hi_x, hi_y = interior(z)
     table = free("dining_table", (lo_x + hi_x) / 2, 1.55, rot=90)  # hacia la ventana: libre el giro de la puerta
     chairs_around(table, "WoodenChair_01", gap=0.28, scale=0.62)  # el modelo mide 2,27 m de alto
+    table = tablecloth(table, "cloth_linen", drop=0.25)
     on("wooden_bowl_01", table)
     on("food_apple_01", table, dpx=0.05, dpy=0.02)
+    rug("rug_persian_green", z, 2.6, 3.0, dpy=1.55 - 2.0)
+    window_curtain(z)
     console = put("ClassicConsole_01", z, "px1", 2.0)
     on("bull_head", console, rot=-90)
     on("brass_goblets", console, dpy=-0.5, scale=0.7)
     on("wooden_candlestick", console, dpy=0.5)
+    photo(285671, console, dpx=0.25, rot=ROT["px1"], h=0.24)  # el abuelo con su perro
     pic("cma:151555", z, "px0", 2.0, 1.6, 0.55)  # bodegón con pescado y pan
     pic("cma:150140", z, "py1", -1.2, 1.6, 0.4, "walnut")  # bodegón de dulces
     stand = put("side_table_tall_01", z, "py0", 0.45, gap=0.1)
@@ -491,6 +533,7 @@ def furnish():
     low = put("WoodenTable_01", z, "px0", 1.8)
     on("wooden_crate_01", low, dpy=-0.4)
     on("handsaw_wood", low, dpy=0.45, rot=90, lay=True)
+    on("dirty_blanket", low, dpy=0.0, rot=20)  # trapo
     crate = put("wooden_crate_02", z, "px0", 7.6)
     on("wooden_axe", crate, rot=70, lay=True)
     put("crowbar_01", z, "py0", 0.4, gap=0.03)
@@ -503,11 +546,16 @@ def furnish():
     shelf = made(wall_shelf(M, 0.5, 1.3), "ShelfMainW2", "corridor_main_w", "py1", -0.8, gap=0.0)
     on("lion_head", shelf, top=1.3125, rot=90)
     pic("cma:160885", "corridor_main_w", "py0", 2.5, 1.55, 0.45, "ebony")
+    # Fotos de familia en grupo, como en la escalera de las fotos de referencia: los abuelos y la niña.
+    pic("cma:294188", "corridor_main_w", "py1", 1.3, 1.62, 0.22, "ebony")
+    pic("cma:294187", "corridor_main_w", "py1", 1.65, 1.62, 0.22, "ebony")
+    pic("cma:536482", "corridor_main_w", "py1", 1.48, 1.32, 0.2, "walnut")
     fixture("corridor_main_w", "lantern_chandelier_01")
     shelf = made(wall_shelf(M, 0.45, 1.35), "Altar", "corridor_main_m", "py0", 1.9, gap=0.0)
     on("gothic_statue", shelf, top=1.3625, rot=-90, scale=0.15)
     pic("cma:109507", "corridor_main_m", "py0", 0.6, 1.6, 0.45)
     pic("cma:148965", "corridor_main_m", "py1", 3.4, 1.55, 0.38, "walnut")
+    rug("rug_runner", "corridor_main_m", 0.75, 4.4)
     fixture("corridor_main_m", "lantern_chandelier_01")
     shelf = made(wall_shelf(M, 0.7, 1.3), "ShipShelf", "corridor_main_e", "py0", -1.0, gap=0.0)
     on("dutch_ship_medium", shelf, top=1.3125, rot=-90, scale=0.02)
@@ -537,9 +585,11 @@ def furnish():
     made(crucifix(M, 0.4, 1.55), "Crucifix", z, "px1", -1.2, gap=0.0)
     side = put("WoodenTable_02", z, "px1", -0.45, gap=0.03)
     on("ceramic_vase_01", side)
+    photo(523595, side, dpx=0.12, rot=ROT["px1"], h=0.16, style="silver")
     made(wardrobe(M), "Wardrobe", z, "px0", -1.0)
     put("gallinera_chair", z, "py1", 2.0, gap=0.05)
     put("vintage_suitcase", z, "py1", 0.9, gap=0.05, rot=8)
+    rug("rug_rag", z, 1.0, 1.6)
     pic("cma:142472", z, "py0", -0.6, 1.55, 0.4)  # icono de la Virgen
     fixture(z, "brass_diya_lantern", scale=2.0, drop=("flame",))
 
@@ -561,6 +611,8 @@ def furnish():
     put("vintage_day_bed", z, "py0", 1.3)
     desk = put("wooden_table_02", z, "px1", 0.9)
     on("chess_set", desk, dpy=-0.15, scale=0.6, rot=8)
+    on("bankers_lamp", desk, dpy=0.35, rot=ROT["px1"])
+    on("old_book_red", desk, dpy=0.05, dpx=0.15, rot=15)
     free("painted_wooden_stool", 9.85, 6.45, rot=180)  # la silla blanca parecía nueva
     made(wall_slate(M), "WallSlate", z, "py1", -0.6, gap=0.0)
     pic("cma:149768", z, "py0", 1.3, 1.65, 0.55, "walnut")  # san Juan, sobre la cama
@@ -584,6 +636,7 @@ def furnish():
     put("watering_can_metal_01", z, "py1", 1.1, gap=0.08, rot=30)
     put("planter_pot_clay", z, "py1", 2.45, gap=0.05)
     put("wooden_bucket_01", z, "px0", 0.6, gap=0.05)
+    window_curtain(z)
     fixture(z)
 
     # Trastero (con los fusibles en el hito 4b): escalera, caja militar, máscara de gas colgada, pala y muletas.
@@ -598,7 +651,9 @@ def furnish():
     # Recibidor (usuario, 2026-11-22: ni busto ni jarrón; zapatero y perchero): banco bajo la Adoración, perchero de
     # madera gastada, zapatero con botas viejas al lado, el espejo encima y farol de cobre.
     z = "entrance_hall"
-    put("painted_wooden_bench", z, "px0", 1.6)
+    bench = put("painted_wooden_bench", z, "px0", 1.6)
+    on("old_book_st_ives", bench, dpy=0.4, rot=80, lay=True)
+    pic("cma:152349", z, "py1", 1.0, 1.6, 0.3, "ebony")
     pic(436200, z, "px0", 1.6, 1.6, 0.7, "ornate")
     pic("cma:111435", z, "py0", 0.5, 1.6, 0.45)
     made(coat_rack(M), "CoatRack", z, None, (8.15, 13.2))
@@ -634,6 +689,9 @@ def furnish():
     on("brass_pot_01", shelf, top=1.5125, scale=0.7)
     table = free("painted_wooden_table", 12.0, 12.0, rot=90, scale=0.75)  # 2,4 m: tapaba las dos puertas
     chairs_around(table, "painted_wooden_chair_02", per_side=1, gap=0.25)
+    table = tablecloth(table, "cloth_gingham_red", drop=0.2)
+    on("enamel_kettle", table, dpy=-0.25, rot=30)
+    window_curtain(z)
     on("wooden_cutting_board", table, dpx=-0.2)
     on("wooden_spoon", table, dpx=-0.15, rot=40)
     on("jug_01", table, dpx=0.3, scale=0.7)

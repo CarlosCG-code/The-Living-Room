@@ -530,6 +530,18 @@ def curtain(name, y0, y1, z_top, z_bottom, x, material, folds=4, depth=0.05):
     return o
 
 
+def rug_plane(tex, xy, w, l, rot=0.0, name="Rug"):
+    """Alfombra con su textura entera (make_wallpapers.py; usuario, 2026-11-22: casa vivida como en sus fotos): un
+    plano a 4 mm del suelo, sin colisión. w a lo largo de X de Blender, l de Y (el largo de la textura)."""
+    bpy.ops.mesh.primitive_plane_add(size=1.0, location=(xy[0], xy[1], 0.004))
+    o = bpy.context.active_object
+    o.name = name
+    o.scale = (w, l, 1.0)
+    o.rotation_euler.z = math.radians(rot)
+    bpy.ops.object.transform_apply(location=False, rotation=True, scale=True)
+    return [give(o, tex_mat(tex, tex, "2k", root=GEN))]
+
+
 def decorate():
     """Ronda 2 del look-dev (usuario, 2026-11-19): más decoración, paredes con cuadros, libros variados,
     alfombra, cortinas y lámpara de techo. Todo CC0 de Poly Haven o hecho aquí."""
@@ -570,8 +582,7 @@ def decorate():
     top = max((o.matrix_world @ Vector(c)).z for o in lamp for c in o.bound_box)
     for o in lamp:
         o.location.z += H - top
-    rug = give(box("Rug", (1.7, 2.3, 0.008), (0, 0.55, 0.004)), tex_mat("Rug", "quatrefoil_jacquard_fabric", "1k", tint=(0.3, 0.27, 0.27)))
-    uv_world(rug, 0.7)
+    rug_plane("rug_persian_red", (0, 0.55), 1.7, 2.3)
     import_model("round_spectacles", "1k", (0.08, 0.6, 0.551), rot_z_deg=25)
     import_model("wicker_basket_01", "1k", (1.68, 1.55, 0), rot_z_deg=15)
 
@@ -603,7 +614,7 @@ FRAME_STYLES = {"ornate": ("fancy_picture_frame_02", None), "gilt": ("fancy_pict
                 "silver": ("fancy_picture_frame_01", (0.75, 0.78, 0.82))}
 
 
-def framed(canvas_mat, w, h, style, name):
+def framed(canvas_mat, w, h, style, name, crop=(0.0, 0.0, 1.0, 1.0)):
     """Marco de Poly Haven ajustado a un lienzo de w × h con canvas_mat dentro (pintura o espejo). Devuelve un objeto
     con el centro del lienzo en el origen, de cara a -Y. El moldurado se gira 90° si el cuadro es vertical."""
     asset, tint = FRAME_STYLES[style]
@@ -625,7 +636,7 @@ def framed(canvas_mat, w, h, style, name):
     for poly in canvas.data.polygons:  # la pintura entera en el lienzo (el de Poly Haven usaba un trozo de la suya)
         for li in poly.loop_indices:
             v = canvas.data.vertices[canvas.data.loops[li].vertex_index].co
-            uv.data[li].uv = (v.x / w + 0.5, v.z / h + 0.5)
+            uv.data[li].uv = (crop[0] + (v.x / w + 0.5) * (crop[2] - crop[0]), crop[1] + (v.z / h + 0.5) * (crop[3] - crop[1]))
     return join(objs, name)
 
 
@@ -635,15 +646,21 @@ def bounds(objs):
     return Vector([min(p[i] for p in pts) for i in range(3)]), Vector([max(p[i] for p in pts) for i in range(3)])
 
 
+# Recorte (u0, v0, u1, v1; v hacia arriba) de las fotos que el museo retrató dentro de su estuche o con el cartón.
+CROP = {"cma:448866": (0.3, 0.25, 0.7, 0.78), "cma:294188": (0.25, 0.22, 0.75, 0.8), "cma:294187": (0.25, 0.22, 0.75, 0.8),
+        "cma:536482": (0.27, 0.2, 0.73, 0.8), "cma:285671": (0.05, 0.1, 0.95, 0.97), "cma:523595": (0.08, 0.12, 0.92, 0.92)}
+
+
 def painting(met_id, loc, rot_z_deg, height, style="gilt", standing=False):
     """Cuadro: una pintura CC0 (Met o Cleveland) en un marco de Poly Haven. loc es el centro del lienzo (de pie: la
     base); de cara a -Y antes de girar, como los modelos de Poly Haven (usuario, 2026-11-21: ningún cuadro repetido)."""
     # "cma:<id>": Cleveland Museum of Art (tools/fetch_cma.py); un número: el Met (tools/fetch_met.py).
     src = os.path.join(ROOT, "art_source", "cma", met_id[4:] + ".jpg") if str(met_id).startswith("cma:") else os.path.join(MET, "%s.jpg" % met_id)
+    crop = CROP.get(str(met_id), (0.0, 0.0, 1.0, 1.0))
     met_id = str(met_id).replace(":", "_")
     img = bpy.data.images.load(src, check_existing=True)
     h = height
-    w = h * img.size[0] / img.size[1]
+    w = h * img.size[0] * (crop[2] - crop[0]) / (img.size[1] * (crop[3] - crop[1]))
     canvas = bpy.data.materials.get("Painting_%s" % met_id)
     if not canvas:
         canvas = bpy.data.materials.new("Painting_%s" % met_id)
@@ -654,7 +671,7 @@ def painting(met_id, loc, rot_z_deg, height, style="gilt", standing=False):
         t.image = img
         nt.links.new(t.outputs["Color"], b.inputs["Base Color"])
         b.inputs["Roughness"].default_value = 0.55
-    o = framed(canvas, w, h, style, "Painting_%s" % met_id)
+    o = framed(canvas, w, h, style, "Painting_%s" % met_id, crop)
     if standing:  # en un mueble: inclinado hacia atrás, apoyado en su pata
         lo, hi = bounds([o])
         o.data.transform(Matrix.Rotation(math.radians(-12), 4, "X"))

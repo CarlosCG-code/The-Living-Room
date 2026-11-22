@@ -25,6 +25,15 @@ MODELS = {
     # textura: desde dentro no se veía la calle; los pone build_flat.py, transparentes) y sin las contraventanas
     # abiertas que sobresalen por fuera. Exterior hacia -Y; se ajusta al hueco de 1,2 × 1,2 m.
     "classic_window": ("blenderkit", (1.2, 1.2), 0, 40000, ("Classic Window",), "window"),
+    # Decoración (usuario, 2026-11-22: casa vivida como en sus fotos de referencia).
+    "lace_curtain": ("blenderkit", 1.3, 0, 40000, (), None),  # visillo con su barra, a lo ancho de la ventana
+    "bankers_lamp": ("blenderkit", 0.4, 0, 20000, (), None),
+    "enamel_kettle": ("blenderkit", 0.26, 0, 20000, (), None),
+    "old_book_tennyson": ("blenderkit", 0.22, 0, 10000, (), None),
+    "old_book_st_ives": ("blenderkit", 0.2, 0, 10000, (), None),
+    "old_book_balfour": ("blenderkit", 0.2, 0, 10000, (), None),
+    "old_book_red": ("blenderkit", 0.24, 0, 10000, (), None),
+    "dirty_blanket": ("blenderkit", 0.5, 0, 20000, (), None),  # trapo del taller
 }
 
 
