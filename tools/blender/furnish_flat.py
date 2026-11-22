@@ -539,7 +539,7 @@ def furnish():
     console = put("ClassicConsole_01", z, "px1", 2.0)
     on("brass_goblets", console, dpy=-0.5, scale=0.7)
     on("wooden_candlestick", console, dpy=0.5)
-    photo(285671, console, dpx=0.25, rot=ROT["px1"], h=0.24)  # el abuelo con su perro; sin el toro (usuario, 2026-11-22)
+    photo(285671, console, rot=ROT["px1"], h=0.24)  # el abuelo con su perro, en el centro del aparador (usuario, 2026-11-22)
     pic("cma:151555", z, "px0", 2.0, 1.6, 0.55)  # bodegón con pescado y pan
     pic("cma:150140", z, "py1", -1.2, 1.6, 0.4, "walnut")  # bodegón de dulces
     stand = put("side_table_tall_01", z, "py0", 0.45, gap=0.1)
