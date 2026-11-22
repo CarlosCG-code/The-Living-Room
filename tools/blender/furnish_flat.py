@@ -68,6 +68,44 @@ def on(asset, base, dpx=0.0, dpy=0.0, rot=0.0, top=None, **kw):
     return import_model(asset, "1k", (x, y, top), rot_z_deg=rot, **kw)
 
 
+def seg_mid(zid, wall, near, n=1, i=0):
+    """«at» del centro del tramo libre de pared (entre esquinas, puertas, vanos y ventanas) que contiene near; con n,
+    el de la parte i de n iguales (usuario, 2026-11-22: cuadros sin centrar junto a las puertas)."""
+    lo_x, lo_y, hi_x, hi_y = interior(zid)
+    rect = L.zone(zid)[2]
+    side = {"py0": 1, "py1": 3, "px0": 0, "px1": 2}[wall]
+    key, (a, b) = {"py0": (("h", rect[1]), (lo_x, hi_x)), "py1": (("h", rect[3]), (lo_x, hi_x)),
+                   "px0": (("v", rect[0]), (lo_y, hi_y)), "px1": (("v", rect[2]), (lo_y, hi_y))}[wall]
+    # Un pasillo en tramos es una sola pared: se suman los tramos de la misma línea unidos sin muro.
+    chain, todo = {zid}, [zid]
+    while todo:
+        z0 = todo.pop()
+        for p, q in L.OPEN_SEAMS:
+            other = q if p == z0 else p if q == z0 else None
+            if other and other not in chain and abs(L.zone(other)[2][side] - rect[side]) < 1e-6:
+                chain.add(other)
+                todo.append(other)
+    ends = [interior(c) for c in chain]
+    k = 0 if wall in ("py0", "py1") else 1
+    A, B = min(r[k] for r in ends), max(r[k + 2] for r in ends)
+    spans = [(max(x, A), min(y, B)) for x, y in lines(skip_living=False).get(key, []) if min(y, B) > max(x, A)]
+    for h0, h1, _, _ in openings(key):
+        h0, h1 = h0 - 0.07, h1 + 0.07  # el marco de madera del hueco (build_flat.py, j) también tapa pared
+        spans = [s for x, y in spans for s in ((x, min(y, h0)), (max(x, h1), y)) if s[1] - s[0] > 0.01]
+    p = a + near if near >= 0 else b + near
+    x, y = next(s for s in spans if s[0] - 1e-6 <= p <= s[1] + 1e-6)
+    at = x + (y - x) * (i + 0.5) / n - a
+    assert 0.0 <= at <= b - a, "%s %s: el sitio cae en otro tramo del pasillo (%.2f)" % (zid, wall, at)
+    return at
+
+
+def over(objs, zid, wall):
+    """«at» del centro de un mueble a lo largo de su pared: para colgar encima un cuadro o un espejo."""
+    lo, hi = bounds(objs)
+    lo_x, lo_y, _, _ = interior(zid)
+    return (lo.y + hi.y) / 2 + 7 - lo_x if wall in ("py0", "py1") else 2 - (lo.x + hi.x) / 2 - lo_y
+
+
 def pic(met_id, zid, wall, at, z, h, style="gilt"):
     """Cuadro colgado: z es la altura de su centro."""
     px, py = spot(zid, wall, at, 0.1)
@@ -311,6 +349,19 @@ def larder_shelves(M, length):
     return parts
 
 
+def wall_cupboard(M, w=0.8, h=0.75, d=0.26, z0=1.45):
+    """Alacena colgada abierta, con una balda en medio y cornisa (usuario, 2026-11-22: «algún armario que cuelgue de
+    la pared con cosas dentro»). Baldas a z0 + 0,02 y z0 + h / 2 + 0,01."""
+    wood = M["walnut"]
+    parts = [give(box("CupboardBack", (w, 0.012, h), (0, -0.006, z0 + h / 2)), wood)]
+    for x in (-w / 2 + 0.01, w / 2 - 0.01):
+        parts.append(give(box("CupboardSide", (0.02, d, h), (x, -d / 2, z0 + h / 2)), wood, bevel=0.003))
+    for z in (z0 + 0.01, z0 + h / 2, z0 + h - 0.01):
+        parts.append(give(box("CupboardShelf", (w, d, 0.02), (0, -d / 2, z)), wood, bevel=0.003))
+    parts.append(give(box("CupboardCornice", (w + 0.06, d + 0.04, 0.035), (0, -d / 2 - 0.02, z0 + h + 0.0175)), wood, bevel=0.006))
+    return parts
+
+
 def hanging_coat(M, length=1.0):
     """Abrigo de lana colgado por el cuello (usuario, 2026-11-22; no hay ninguno CC0): sección elíptica que baja del
     colgador a los hombros caídos y al bajo algo abierto, con pliegues. Cuelga hacia -Z desde el origen; la espalda
@@ -507,7 +558,7 @@ def furnish():
     # Dormitorio principal: cama gótica con baúl a los pies, mesilla con quinqué y despertador, butaca, armario,
     # cómoda con espejo de marco dorado, y una Virgen sobre la cama.
     z = "bedroom_main"
-    put("GothicBed_01", z, "px0", 2.0)
+    bed = put("GothicBed_01", z, "px0", 2.0)
     free("treasure_chest", 2.5, 2.0, rot=180)
     stand = put("painted_wooden_nightstand", z, "px0", 0.55)
     on("vintage_oil_lamp", stand, dpy=-0.06, scale=0.55)
@@ -517,15 +568,15 @@ def furnish():
     commode = put("GothicCommode_01", z, "py0", -1.0)
     on("ceramic_vase_02", commode, dpx=0.35)
     on("vintage_pocket_watch", commode, dpx=-0.3, rot=15)
-    pic(437336, z, "px0", 2.0, 1.85, 0.5, "ornate")
-    pic("cma:125247", z, "py1", 1.5, 1.6, 0.45, "ebony")
+    pic(437336, z, "px0", over(bed, z, "px0"), 1.85, 0.5, "ornate")
+    pic("cma:125247", z, "py1", seg_mid(z, "py1", 1.5), 1.6, 0.45, "ebony")
     # Vida (usuario, 2026-11-22, sus fotos de referencia): alfombra a los pies de la cama, foto de ella en la cómoda,
     # visillo en la ventana.
     rug("rug_persian_blue", z, 2.2, 1.6, dpx=-0.3)
     photo(448866, commode, dpx=-0.05, rot=ROT["py0"], h=0.22, style="ornate")
     window_curtain(z)
     fixture(z, "Chandelier_01")
-    side = put("gallinera_table", z, "py1", 1.5, gap=0.03)  # mesita bajo el cuadro de la Virgen
+    side = put("gallinera_table", z, "py1", seg_mid(z, "py1", 1.5), gap=0.03)  # mesita bajo el cuadro de la Virgen
     on("brass_vase_02", side, dpx=-0.2)
     on("old_book_st_ives", side, dpx=0.15, rot=25, lay=True)
 
@@ -543,14 +594,14 @@ def furnish():
     on("brass_goblets", console, dpy=-0.5, scale=0.7)
     on("wooden_candlestick", console, dpy=0.5)
     photo(285671, console, rot=ROT["px1"], h=0.24)  # el abuelo con su perro, en el centro del aparador (usuario, 2026-11-22)
-    pic("cma:151555", z, "px0", 2.0, 1.6, 0.55)  # bodegón con pescado y pan
-    pic("cma:150140", z, "py1", -1.2, 1.6, 0.4, "walnut")  # bodegón de dulces
+    pic("cma:151555", z, "px0", seg_mid(z, "px0", 2.0), 1.6, 0.55)  # bodegón con pescado y pan
+    pic("cma:150140", z, "py1", seg_mid(z, "py1", -1.2, 2, 0), 1.6, 0.4, "walnut")  # bodegón de dulces
     stand = put("side_table_tall_01", z, "py0", 0.45, gap=0.1)
     on("brass_vase_01", stand)
     put("orava_clock", z, "px1", 3.4, gap=0.0, z=1.45)  # reloj de pared pintado, de Orava (Sketchfab, escaneo de museo)
-    corner = put("round_wooden_table_02", z, "py1", -0.5, gap=0.05)  # velador del rincón con una maceta
+    corner = put("round_wooden_table_02", z, "py1", seg_mid(z, "py1", -0.5, 2, 1), gap=0.05)  # velador del rincón con una maceta
     on("potted_plant_04", corner)
-    pic("cma:93239", z, "px0", 3.3, 1.6, 0.35, "walnut")  # bodegón
+    pic("cma:93239", z, "py1", over(corner, z, "py1"), 1.55, 0.35, "walnut")  # bodegón sobre el velador
     fixture(z, "Chandelier_03")
 
     # Taller: banco de tablas viejas con tornillo, cepillo, martillo, destornilladores, llave y berbiquí (tumbados);
@@ -583,51 +634,54 @@ def furnish():
     on("dirty_blanket", low, dpy=0.0, rot=20)  # trapo
     barrel = put("barrel_03", z, "px0", 3.4, gap=0.05)
     on("wooden_lantern_01", barrel)  # farol de aceite sobre el barril
-    free("sledgehammer_01", 16.3, 5.0, rot=30, lay=True)
+    put("sledgehammer_01", z, "px0", 6.2, gap=0.05, rot=90, lay=True)  # junto a la pared, pasada la puerta: en medio estorbaba
     crate = put("wooden_crate_02", z, "px0", 7.6)
     on("wooden_axe", crate, rot=70, lay=True)
-    put("crowbar_01", z, "py0", 0.4, gap=0.03)
+    put("crowbar_01", z, "py0", 0.5, gap=0.03, lay=True)
     fixture(z)
 
     # Pasillo principal (farol de cobre como el del recibidor, el mismo pasillo): repisas con una jarra, el león de
     # bronce y una maqueta de galeón, y una santa pequeña en su repisa, como un altarcito.
-    shelf = made(wall_shelf(M, 0.5, 1.3), "ShelfMainW", "corridor_main_w", "py0", 1.5, gap=0.0)
+    shelf = made(wall_shelf(M, 0.5, 1.3), "ShelfMainW", "corridor_main_w", "py0", seg_mid("corridor_main_w", "py0", 1.5, 2, 0), gap=0.0)
     on("ceramic_vase_04", shelf, top=1.3125)
-    shelf = made(wall_shelf(M, 0.5, 1.3), "ShelfMainW2", "corridor_main_w", "py1", -0.8, gap=0.0)
+    shelf = made(wall_shelf(M, 0.5, 1.3), "ShelfMainW2", "corridor_main_w", "py1", seg_mid("corridor_main_w", "py1", -0.8), gap=0.0)
     on("lion_head", shelf, top=1.3125, rot=90)
-    pic("cma:160885", "corridor_main_w", "py0", 2.5, 1.55, 0.45, "ebony")
+    pic("cma:160885", "corridor_main_w", "py0", seg_mid("corridor_main_w", "py0", 2.5, 2, 1), 1.55, 0.45, "ebony")
     # Fotos de familia en grupo, como en la escalera de las fotos de referencia: los abuelos y la niña.
-    pic("cma:294188", "corridor_main_w", "py1", 1.3, 1.62, 0.22, "ebony")
-    pic("cma:294187", "corridor_main_w", "py1", 1.65, 1.62, 0.22, "ebony")
-    pic("cma:536482", "corridor_main_w", "py1", 1.48, 1.32, 0.2, "walnut")
+    fam = seg_mid("corridor_main_w", "py1", 1.5)
+    pic("cma:294188", "corridor_main_w", "py1", fam - 0.175, 1.62, 0.22, "ebony")
+    pic("cma:294187", "corridor_main_w", "py1", fam + 0.175, 1.62, 0.22, "ebony")
+    pic("cma:536482", "corridor_main_w", "py1", fam, 1.32, 0.2, "walnut")
     fixture("corridor_main_w", "lantern_chandelier_01")
-    shelf = made(wall_shelf(M, 0.45, 1.35), "Altar", "corridor_main_m", "py0", 1.9, gap=0.0)
+    shelf = made(wall_shelf(M, 0.45, 1.35), "Altar", "corridor_main_m", "py0", seg_mid("corridor_main_m", "py0", 1.9, 2, 1), gap=0.0)
     on("gothic_statue", shelf, top=1.3625, rot=-90, scale=0.15)
-    pic("cma:109507", "corridor_main_m", "py0", 0.6, 1.6, 0.45)
-    pic("cma:148965", "corridor_main_m", "py1", 3.4, 1.55, 0.38, "walnut")
+    pic("cma:109507", "corridor_main_m", "py0", seg_mid("corridor_main_m", "py0", 0.6, 2, 0), 1.6, 0.45)
+    pic("cma:148965", "corridor_main_m", "py1", seg_mid("corridor_main_m", "py1", 3.4, 3, 0), 1.55, 0.38, "walnut")
     rug("rug_runner", "corridor_main_m", 0.75, 4.4)
     fixture("corridor_main_m", "lantern_chandelier_01")
-    shelf = made(wall_shelf(M, 0.7, 1.3), "ShipShelf", "corridor_main_e", "py0", -1.0, gap=0.0)
+    shelf = made(wall_shelf(M, 0.7, 1.3), "ShipShelf", "corridor_main_e", "py0", seg_mid("corridor_main_e", "py0", -1.0), gap=0.0)
     on("dutch_ship_medium", shelf, top=1.3125, rot=-90, scale=0.02)
-    pic("cma:151298", "corridor_main_e", "py1", 1.0, 1.55, 0.38, "silver")
-    pic("cma:108809", "corridor_main_e", "py1", 2.0, 1.55, 0.36, "walnut")  # bosque
+    pic("cma:151298", "corridor_main_m", "py1", seg_mid("corridor_main_m", "py1", 3.4, 3, 1), 1.55, 0.38, "silver")
+    pic("cma:108809", "corridor_main_e", "py1", seg_mid("corridor_main_e", "py1", 1.0, 3, 2), 1.55, 0.36, "walnut")  # bosque
     fixture("corridor_main_e", "lantern_chandelier_01")
     # Pasillo lateral: un Cristo muerto y una banqueta plegable.
-    pic(441965, "corridor_side", "px0", 1.8, 1.55, 0.6)
-    put("folding_wooden_stool", "corridor_side", "px1", 0.9, gap=0.05)
-    pic("cma:148758", "corridor_side", "px1", 2.5, 1.6, 0.5)
+    pic(441965, "corridor_side", "px0", seg_mid("corridor_side", "px0", 1.8), 1.55, 0.6)
+    put("folding_wooden_stool", "corridor_side", "px1", seg_mid("corridor_side", "px1", 1.8), gap=0.05)
+    pic("cma:148758", "corridor_side", "px1", seg_mid("corridor_side", "px1", 1.8), 1.6, 0.5)
     fixture("corridor_side")
     # Pasillo de servicio: farol de aceite para los apagones y un colgador.
-    shelf = made(wall_shelf(M, 0.4, 1.35), "LanternShelf", "corridor_service_w", "py0", 3.0, gap=0.0)
+    shelf = made(wall_shelf(M, 0.4, 1.35), "LanternShelf", "corridor_service_w", "py0", seg_mid("corridor_service_w", "py0", 3.0, 3, 0), gap=0.0)
     on("Lantern_01", shelf, top=1.3625)
-    pic("cma:152006", "corridor_service_w", "py0", 4.5, 1.55, 0.4, "walnut")
-    pic("cma:97155", "corridor_service_w", "py1", 2.7, 1.6, 0.45)
+    pic("cma:152006", "corridor_service_w", "py0", seg_mid("corridor_service_w", "py0", 3.0, 3, 1), 1.55, 0.4, "walnut")
+    pic("cma:97155", "corridor_service_w", "py1", seg_mid("corridor_service_w", "py1", 2.7), 1.6, 0.45)
+    pic("cma:132367", "corridor_service_w", "py1", seg_mid("corridor_service_w", "py1", 5.0), 1.6, 0.42, "ornate")
     fixture("corridor_service_w")
-    made(peg_rail(M), "PegRail", "corridor_service_m", "py0", 1.0, gap=0.0)
-    pic("cma:171296", "corridor_service_m", "py0", 4.6, 1.55, 0.4, "ebony")
-    pic("cma:147016", "corridor_service_m", "py1", 3.3, 1.6, 0.42)  # Virgen con el Niño
+    made(peg_rail(M), "PegRail", "corridor_service_m", "py0", seg_mid("corridor_service_m", "py0", 1.0, 3, 2), gap=0.0)
+    pic("cma:171296", "corridor_service_m", "py0", seg_mid("corridor_service_m", "py0", 4.6), 1.55, 0.4, "ebony")
+    pic("cma:147016", "corridor_service_m", "py1", seg_mid("corridor_service_m", "py1", 3.3), 1.6, 0.42)  # Virgen con el Niño
     fixture("corridor_service_m")
-    pic("cma:145450", "corridor_service_e", "py1", 1.9, 1.55, 0.45, "ebony")
+    pic("cma:145450", "corridor_service_e", "py1", seg_mid("corridor_service_e", "py1", 1.9), 1.55, 0.45, "ebony")
+    pic("cma:124089", "corridor_service_e", "py0", seg_mid("corridor_service_e", "py0", 2.5), 1.55, 0.42)
     fixture("corridor_service_e")
 
     # Dormitorio 2: cama de hierro con crucifijo, banqueta con jarra de noche, armario ropero, silla tallada, maletas
@@ -639,11 +693,11 @@ def furnish():
     on("ceramic_vase_01", side)
     photo(523595, side, dpx=0.12, rot=ROT["px1"], h=0.16, style="silver")
     made(wardrobe(M), "Wardrobe", z, "px0", -1.0)
-    put("gallinera_chair", z, "py1", 2.0, gap=0.05)
+    chair = put("gallinera_chair", z, "py1", 2.0, gap=0.05)
     put("vintage_suitcase", z, "py1", 0.9, gap=0.05, rot=8)
-    pic("cma:124080", z, "py1", 2.0, 1.62, 0.42, "walnut")  # retrato sobre la silla
+    pic("cma:124080", z, "py1", over(chair, z, "py1"), 1.62, 0.42, "walnut")  # retrato sobre la silla
     rug("rug_rag", z, 1.0, 1.6)
-    pic("cma:142472", z, "py0", -0.6, 1.55, 0.4)  # icono de la Virgen
+    pic("cma:142472", z, "py0", seg_mid(z, "py0", -0.6), 1.55, 0.4)  # icono de la Virgen
     fixture(z, "brass_diya_lantern", scale=2.0, drop=("flame",))
 
     # Baño (usuario, 2026-11-22: lo de antes «no pinta nada»): bañera de hierro con patas de garra, pintada de verde
@@ -658,27 +712,27 @@ def furnish():
     put("wooden_bucket_02", z, "px0", -1.05, gap=0.05)  # junto a la bañera se metía dentro
     put("wooden_stool_02", z, "px1", -2.3, gap=0.05)
     put("plunger", z, "px1", -0.85, gap=0.05)
-    shelf = made(wall_shelf(M, 0.4, 1.45), "BathShelf", z, "py0", 1.9, gap=0.0)
+    shelf = made(wall_shelf(M, 0.4, 1.45), "BathShelf", z, "py0", seg_mid(z, "py0", 1.9), gap=0.0)
     on("lambis_shell", shelf, top=1.4625, rot=30)
     fixture(z)
 
     # Dormitorio 3 (de niño): cama de día, mesa de estudio con ajedrez y su taburete pintado y desconchado, pizarra.
     z = "bedroom_3"
-    put("vintage_day_bed", z, "py0", 1.3)
+    daybed = put("vintage_day_bed", z, "py0", 1.3)
     desk = put("wooden_table_02", z, "px1", 0.9)
     on("chess_set", desk, dpy=-0.15, scale=0.6, rot=8)
     on("bankers_lamp", desk, dpy=0.35, rot=ROT["px1"])
     on("old_book_red", desk, dpy=0.05, dpx=0.15, rot=15)
     free("painted_wooden_stool", 9.85, 6.45, rot=180)  # la silla blanca parecía nueva
-    made(wall_slate(M), "WallSlate", z, "py1", -0.6, gap=0.0)
-    pic("cma:149768", z, "py0", 1.3, 1.65, 0.55, "walnut")  # san Juan, sobre la cama
+    made(wall_slate(M), "WallSlate", z, "py1", seg_mid(z, "py1", -0.6), gap=0.0)
+    pic("cma:149768", z, "py0", over(daybed, z, "py0"), 1.65, 0.55, "walnut")  # san Juan, sobre la cama
     # Lo del niño: la maqueta de barco y el microscopio con los prismáticos en sus repisas, y una foto de niños.
-    shelf = made(wall_shelf(M, 0.7, 1.4), "ShipShelf3", z, "py1", 0.6, gap=0.0)
+    shelf = made(wall_shelf(M, 0.7, 1.4), "ShipShelf3", z, "py1", seg_mid(z, "py1", 0.6), gap=0.0)
     on("ship_pinnace", shelf, top=1.4125, rot=90, scale=0.012)
-    shelf = made(wall_shelf(M, 0.6, 1.35), "StudyShelf", z, "px0", 1.5, gap=0.0)
+    shelf = made(wall_shelf(M, 0.6, 1.35), "StudyShelf", z, "px0", seg_mid(z, "px0", 1.5), gap=0.0)
     on("vintage_microscope", shelf, top=1.3625, dpy=-0.13, rot=90)
     on("vintage_binocular", shelf, top=1.3625, dpy=0.15, rot=20)
-    pic("cma:162316", z, "px1", 0.9, 1.6, 0.4, "walnut")
+    pic("cma:162316", z, "px1", over(desk, z, "px1"), 1.6, 0.4, "walnut")
     fixture(z)
 
     # Paso de la despensa: alacena azul, escoba, recogedor, cesto y lechera.
@@ -686,16 +740,14 @@ def furnish():
     cupboard = put("painted_wooden_cabinet_02", z, "px1", 1.6)
     put("wooden_broom", z, "px0", 0.5, gap=0.05)
     put("dustpan", z, "px0", 0.9, gap=0.05)
-    put("wicker_basket_02", z, "px0", 1.6, gap=0.05)
-    put("metal_jug", z, "px0", 2.3, gap=0.05)
-    put("wine_bottles_01", z, "px0", 2.9, gap=0.05)
     on("brass_pot_02", cupboard)
+    pic("cma:102578", z, "px0", seg_mid(z, "px0", 1.6), 1.6, 0.42, "ebony")  # retrato de una señora
     fixture(z)
 
     # Galería: rueca, canapé pintado, plantas con su regadera y cubo de la colada.
     z = "gallery"
-    put("spinning_wheel_01", z, "px0", -1.5, gap=0.05)
-    pic("cma:136680", z, "px0", -1.5, 1.65, 0.5)  # san Jerónimo
+    wheel = put("spinning_wheel_01", z, "px0", -1.5, gap=0.05)
+    pic("cma:136680", z, "px0", over(wheel, z, "px0"), 1.65, 0.5)  # san Jerónimo
     put("painted_wooden_sofa", z, "px1", 1.8)
     put("potted_plant_01", z, "py1", 0.5, gap=0.05)
     put("watering_can_metal_01", z, "py1", 1.1, gap=0.08, rot=30)
@@ -721,10 +773,10 @@ def furnish():
     z = "entrance_hall"
     bench = put("painted_wooden_bench", z, "px0", 1.6)
     on("letters", bench, dpx=0.08, dpy=0.35, rot=10)  # el correo, en el asiento
-    pic("cma:152349", z, "py1", 1.0, 1.6, 0.3, "ebony")
-    pic(436200, z, "px0", 1.6, 1.6, 0.7, "ornate")
-    pic("cma:111435", z, "py0", 0.5, 1.6, 0.45)
-    pic("cma:127571", z, "py0", 3.3, 1.6, 0.42, "ebony")  # retrato de un caballero
+    pic("cma:152349", z, "py1", seg_mid(z, "py1", 1.0), 1.6, 0.3, "ebony")
+    pic(436200, z, "px0", over(bench, z, "px0"), 1.6, 0.7, "ornate")
+    pic("cma:111435", z, "py0", seg_mid(z, "py0", 0.5), 1.6, 0.45)
+    pic("cma:127571", z, "py0", seg_mid(z, "py0", 3.3), 1.6, 0.42, "ebony")  # retrato de un caballero
     made(coat_rack(M), "CoatRack", z, None, (8.15, 13.2))
     # Abrigo y sombrero colgados de los ganchos (usuario, 2026-11-22: la bufanda por un abrigo, el sombrero mejor
     # colgado). Puntas de los ganchos (coat_rack): a 0,107 m del palo y 1,72 m de alto; el de +X da a la habitación.
@@ -750,7 +802,7 @@ def furnish():
     shelves = made(larder_shelves(M, hi_y - lo_y - 0.1), "LarderShelves", z, "px0", (hi_y - lo_y) / 2)
     # Llena (usuario, 2026-11-22: «muchas más cosas»): lo de comer se repite como en una despensa de verdad.
     shelf_items(shelves, (("ceramic_pot", 0.05, -1.25, 0, False), ("ceramic_vase_03", 0.05, -0.7, 0, False),
-                          ("russian_food_cans_01", 0.05, 0.5, 0, False), ("ceramic_pot", 0.05, 1.1, 40, False),
+                          ("wine_bottles_01", 0.05, 0.42, 0, False), ("ceramic_pot", 0.05, 1.1, 40, False),
                           ("yellow_onion", 0.5, -1.35, 0, False), ("yellow_onion", 0.5, -1.22, 50, False),
                           ("yellow_onion", 0.5, -1.09, 110, False), ("sweet_potato", 0.5, -0.6, 30, False),
                           ("sweet_potato", 0.5, -0.4, 80, False), ("bread_rustic", 0.5, 0.45, 0, False),
@@ -763,7 +815,7 @@ def furnish():
     free("wine_barrel_01", 9.5, 13.05)
     free("mousetrap", 9.4, 10.7, rot=20)
     free("street_rat", 9.75, 11.2, rot=200)  # junto a la ratonera
-    pic("cma:128393", z, "py1", 0.7, 1.65, 0.4, "ebony")  # bodegón con raya
+    pic("cma:128393", z, "py1", seg_mid(z, "py1", 0.7), 1.65, 0.4, "ebony")  # bodegón con raya
     fixture(z)
 
     # Cocina: cocina esmaltada con olla y cazo, fregadero de loza bajo la ventana, alacena, mesa con dos
@@ -772,9 +824,21 @@ def furnish():
     stove = put("rusty_stove", z, "px1", 1.7, gap=0.03)  # cocina esmaltada y oxidada (BlenderKit)
     on("pot_enamel_01", stove, dpy=0.13)
     on("brass_pan_01", stove, dpy=-0.15, rot=30)
-    made(kitchen_sink(M), "KitchenSink", z, "py1", -0.5, gap=0.01, uv=2.4)  # en la esquina: bajo la ventana no se pasaba
+    sink = made(kitchen_sink(M), "KitchenSink", z, "py1", -0.5, gap=0.01, uv=2.4)  # en la esquina: bajo la ventana no se pasaba
+    larder_box = made(wall_cupboard(M), "WallCupboard", z, "py1", over(sink, z, "py1"), gap=0.0)
+    low, mid = 1.45 + 0.02, 1.45 + 0.75 / 2 + 0.01
+    on("ceramic_pot", larder_box, dpx=-0.24, top=low, scale=0.3)  # orzas de sal y azúcar
+    on("ceramic_pot", larder_box, dpx=0.0, top=low, rot=60, scale=0.25)
+    on("ceramic_vase_03", larder_box, dpx=0.25, top=low, scale=0.6)  # aceitera
+    on("russian_food_cans_01", larder_box, dpx=-0.2, top=mid, rot=10)  # latas de pimentón y especias
+    on("can_rusted", larder_box, dpx=0.05, top=mid, scale=0.8)
+    on("food_lime_01", larder_box, dpx=0.22, top=mid)
+    on("food_lime_01", larder_box, dpx=0.29, top=mid, rot=90)
+    on("wicker_basket_02", larder_box, top=1.45 + 0.75 + 0.035)  # cesta encima de la alacena
+    put("metal_jug", z, "px1", 2.45, gap=0.05)  # lechera
     cab = put("painted_wooden_cabinet", z, "py0", -0.8)
     on("philips_radio", cab, rot=-90)  # radio Philips de 1939 (Sketchfab, escaneo de museo)
+    on("bananas", cab, dpx=0.4, scale=0.45)
     shelf = made(wall_shelf(M, 0.6, 1.5), "KitchenShelf", z, "py0", 2.0, gap=0.0)
     on("brass_pot_01", shelf, top=1.5125, scale=0.7)
     table = free("painted_wooden_table", 12.1, 11.85, scale=0.75)  # 2,4 m: tapaba las dos puertas; a lo largo deja paso
@@ -787,13 +851,14 @@ def furnish():
     on("wooden_bowl_02", table, dpx=0.05, dpy=0.2)
     on("lemon", table, dpx=0.03, dpy=0.18)  # limones en el cuenco
     on("lemon", table, dpx=0.08, dpy=0.23, rot=60)
-    pic("cma:147607", z, "px0", 0.6, 1.6, 0.38, "walnut")  # bodegón con arenques
+    pic("cma:147607", z, "px0", seg_mid(z, "px0", 0.6), 1.6, 0.38, "walnut")  # bodegón con arenques
     fixture(z)
 
     # Aseo de servicio: retrete con cisterna de madera y palangana en su trípode con jarra y toalla.
     z = "service_toilet"
     made(toilet(M, wooden_tank=True), "ServiceToilet", z, "py1", 1.4)
     made(washstand(M), "Washstand", z, "px1", 2.2, gap=0.05)
+    pic("cma:151015", z, "px0", seg_mid(z, "px0", 1.0), 1.6, 0.3, "walnut")
     fixture(z)
 
     floor_colliders()
