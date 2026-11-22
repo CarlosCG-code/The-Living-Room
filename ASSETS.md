@@ -267,6 +267,14 @@ Pinturas CC0 del Cleveland Museum of Art, Open Access (`tools/fetch_cma.py`; la 
 | `art_source/cma/171296.jpg` | Vale of Kashmir (Robert S. Duncanson (American, 1821–1872), 1867) | https://clevelandart.org/art/2014.12 | `b73fc51b722d1980333be8d6bdc90b87f35ff59260cdbe35616d9de240c94ea822ba168bbde9197704ee3a4612078007c4404119a1fcd63c7daf2ddc9fe16a91` | CC0 1.0 | 2026-11-21 |
 | `art_source/cma/97155.jpg` | Portrait of a Couple (, c. 1580–88) | https://clevelandart.org/art/1916.793 | `ff30578d68ea87b4458c1bd3baae64aacfd79c002eea97c19e53defbb5949a90a4c7275a6ea83c0e671c306eef023ee0b24a5d50f3094bcb44661f9f23979536` | CC0 1.0 | 2026-11-21 |
 
+Modelos CC0 de Sketchfab (escaneos de museo de Wirtualne Muzea Małopolski), descargados con `tools/fetch_sketchfab.py` (comprueba la licencia en la API) y reducidos con `tools/blender/prep_sketchfab.py`, 2026-11-22:
+
+| Archivo | Fuente | SHA-512 del zip | Licencia |
+|---|---|---|---|
+| Priest Karol Wojtyła’s sports shoes (`art_source/sketchfab/old_boots/`) | https://sketchfab.com/3d-models/priest-karol-wojtyas-sports-shoes-678f96cfadc741a3b260548eeb75954a (autor: Virtual Museums of Małopolska) | `803dbe96cd43ce0a5bc7c9fda4d9f28715bed29f517e5db2a2a5d6591c1e483f44946ca7e706ab333a78f2b3203fdd939c09a7d147405f45fc6d340b8a1d1ade` | CC0 1.0 |
+| Orava clock (`art_source/sketchfab/orava_clock/`) | https://sketchfab.com/3d-models/orava-clock-fb4a138f8bed4086a57e928fda999889 (autor: Virtual Museums of Małopolska) | `a01ce9b6ae42d346aac9ba8f526e62aa045b8a65c4c34961967c217728c1e953837dd57cc33951f0815ea14423ed1c7a6abf785208fcbc9314077e783845c2e8` | CC0 1.0 |
+| Philips 7-39 radio (`art_source/sketchfab/philips_radio/`) | https://sketchfab.com/3d-models/philips-7-39-radio-a0f95588f0ed472b8e135474c7b2516d (autor: Virtual Museums of Małopolska) | `783e2d577b1d4f2f4d9550c3f556f4feb44b5ce707ef782736cffeb3cb5e609d3ff4220b9cbd29ff274d7e809fb795e6e9bda64088c4019cfeb62cd8176f152d` | CC0 1.0 |
+
 Hechos por Claude (sin IA generativa: geometría y matemáticas en scripts de Blender; propios del proyecto):
 
 - Papeles pintados (damasco, rayas, florecillas), pintura vieja, azulejo crema con cenefa, baldosa hidráulica, baldosa de barro y loza vieja: `tools/blender/make_wallpapers.py` → `art_source/generated/`.

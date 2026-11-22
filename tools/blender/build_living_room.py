@@ -259,7 +259,8 @@ def import_model(asset_id, res, loc, rot_z_deg=0.0, scale=1.0, drop=(), tint=Non
     drop quita las mallas o los materiales (con sus caras) cuyo nombre contenga alguna de esas palabras.
     lay: lo tumba sobre su cara más ancha (martillos, llaves y sierras vienen de pie; usuario, 2026-11-22)."""
     before = set(bpy.context.scene.objects)
-    bpy.ops.import_scene.gltf(filepath=os.path.join(PH, asset_id, "%s_%s.gltf" % (asset_id, res)))
+    sk = os.path.join(ROOT, "art_source", "sketchfab", asset_id)  # los de Sketchfab, ya reducidos (prep_sketchfab.py)
+    bpy.ops.import_scene.gltf(filepath=os.path.join(sk if os.path.isdir(sk) else os.path.join(PH, asset_id), "%s_%s.gltf" % (asset_id, res)))
     new = [o for o in bpy.context.scene.objects if o not in before]
     for o in new:
         o.select_set(o.type == "MESH")

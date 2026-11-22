@@ -464,8 +464,8 @@ def furnish():
     pic("cma:125247", z, "py1", 1.5, 1.6, 0.45, "ebony")
     fixture(z, "Chandelier_01")
 
-    # Comedor: mesa con mantel y cuatro sillas, aparador con el toro de bronce, jarrón de latón en su pie alto y
-    # araña de cristal.
+    # Comedor: mesa con mantel y cuatro sillas, aparador con el toro de bronce, jarrón de latón en su pie alto, reloj
+    # de pared pintado y araña de cristal.
     z = "dining_room"
     lo_x, lo_y, hi_x, hi_y = interior(z)
     table = free("dining_table", (lo_x + hi_x) / 2, 1.55, rot=90)  # hacia la ventana: libre el giro de la puerta
@@ -480,6 +480,7 @@ def furnish():
     pic("cma:150140", z, "py1", -1.2, 1.6, 0.4, "walnut")  # bodegón de dulces
     stand = put("side_table_tall_01", z, "py0", 0.45, gap=0.1)
     on("brass_vase_01", stand)
+    put("orava_clock", z, "px1", 3.4, gap=0.0, z=1.45)  # reloj de pared pintado, de Orava (Sketchfab, escaneo de museo)
     fixture(z, "Chandelier_03")
 
     # Taller: banco de tablas viejas con tornillo, cepillo, martillo, destornilladores, llave y berbiquí (tumbados);
@@ -611,13 +612,14 @@ def furnish():
     fixture(z)
 
     # Recibidor (usuario, 2026-11-22: ni busto ni jarrón; zapatero y perchero): banco bajo la Adoración, perchero de
-    # madera gastada, zapatero con el espejo encima y farol de cobre.
+    # madera gastada, zapatero con botas viejas al lado, el espejo encima y farol de cobre.
     z = "entrance_hall"
     put("painted_wooden_bench", z, "px0", 1.6)
     pic(436200, z, "px0", 1.6, 1.6, 0.7, "ornate")
     pic("cma:111435", z, "py0", 0.5, 1.6, 0.45)
     made(coat_rack(M), "CoatRack", z, None, (8.15, 13.2))
     put("painted_wooden_shelves", z, "px1", 1.8)  # zapatero
+    put("old_boots", z, "px1", 1.2, gap=0.06, rot=-15)  # botas de cuero viejas (Sketchfab, escaneo de museo)
     mirror(M, z, "px1", 1.8, 1.7, 0.45, 0.55, "walnut")
     fixture(z, "lantern_chandelier_01")
 
@@ -636,14 +638,14 @@ def furnish():
     fixture(z)
 
     # Cocina: cocina económica de hierro con olla y cazo, fregadero de terrazo bajo la ventana, alacena, mesa con dos
-    # sillas y una repisa con el puchero de latón.
+    # sillas, la radio sobre la alacena y una repisa con el puchero de latón.
     z = "kitchen"
     rng = made(kitchen_range(M), "KitchenRange", z, "px1", 1.7, gap=0.01)
     on("pot_enamel_01", rng, dpy=0.25, top=0.81)
     on("brass_pan_01", rng, dpy=-0.3, rot=30, top=0.81)
     made(kitchen_sink(M), "KitchenSink", z, "py1", 2.03, gap=0.01, uv=2.4)  # el azulejo, a su escala de pared
     cab = put("painted_wooden_cabinet", z, "py0", -0.8)
-    on("brass_pot_02", cab, dpx=-0.25)
+    on("philips_radio", cab, rot=-90)  # radio Philips de 1939 (Sketchfab, escaneo de museo)
     shelf = made(wall_shelf(M, 0.6, 1.5), "KitchenShelf", z, "py0", 2.0, gap=0.0)
     on("brass_pot_01", shelf, top=1.5125, scale=0.7)
     table = free("painted_wooden_table", 12.0, 12.0, rot=90, scale=0.75)  # 2,4 m: tapaba las dos puertas
