@@ -8,12 +8,12 @@
 background_mode = 1
 background_color = Color(0.01, 0.012, 0.016, 1)
 ambient_light_source = 2
-ambient_light_color = Color(0.14, 0.17, 0.24, 1)
+ambient_light_color = Color(0.22, 0.165, 0.11, 1)
 ambient_light_energy = 0.33
 tonemap_mode = 4
 tonemap_exposure = 1.0
 adjustment_enabled = true
-adjustment_saturation = 0.65
+adjustment_saturation = 0.9
 glow_levels/1 = 0.0
 glow_levels/2 = 0.6
 glow_levels/3 = 0.6
@@ -23,7 +23,7 @@ glow_intensity = 0.2
 glow_bloom = 0.0
 glow_hdr_threshold = 1.0
 volumetric_fog_density = 0.02
-volumetric_fog_albedo = Color(0.7, 0.76, 0.88, 1)
+volumetric_fog_albedo = Color(0.88, 0.8, 0.7, 1)
 
 [sub_resource type="BoxShape3D" id="Room_box"]
 size = Vector3(4.2, 2.8, 5.2)
@@ -61,7 +61,7 @@ metadata/ambient = {
 "energy": 0.08
 },
 &"normal": {
-"color": Color(0.14, 0.17, 0.24, 1),
+"color": Color(0.22, 0.165, 0.11, 1),
 "energy": 0.33
 }
 }
@@ -81,7 +81,7 @@ box_projection = true
 
 [node name="SconceL" type="OmniLight3D" parent="." groups=["mirror_transform", "room_lights"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.4, 1.66, 2.34)
-light_color = Color(1, 0.82, 0.64, 1)
+light_color = Color(1, 0.74, 0.48, 1)
 light_energy = 0.15
 light_size = 0.05
 light_specular = 0.0
@@ -92,7 +92,7 @@ metadata/base_dark = 0.0
 
 [node name="SconceR" type="OmniLight3D" parent="." groups=["mirror_transform", "room_lights"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.4, 1.66, 2.34)
-light_color = Color(1, 0.82, 0.64, 1)
+light_color = Color(1, 0.74, 0.48, 1)
 light_energy = 0.15
 light_size = 0.05
 light_specular = 0.0
@@ -103,7 +103,7 @@ metadata/base_dark = 0.0
 
 [node name="TableLamp" type="OmniLight3D" parent="." groups=["mirror_transform", "room_lights"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.78, 1.04, -2.25)
-light_color = Color(1, 0.8, 0.6, 1)
+light_color = Color(1, 0.72, 0.46, 1)
 light_energy = 0.12
 light_size = 0.05
 light_specular = 0.0

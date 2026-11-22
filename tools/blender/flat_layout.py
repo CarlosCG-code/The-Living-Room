@@ -84,7 +84,7 @@ CONNECTIONS = [
 FUSE_BOX_ZONE = "storage"
 PASSAGE_W = 1.4  # vano del recibidor
 
-LAMP = {"color": (1.0, 0.82, 0.64), "base_dark": 0.0}
+LAMP = {"color": (1.0, 0.74, 0.48), "base_dark": 0.0}
 # Luz como en Visage (usuario, 2026-11-20): islas de luz tenue y el resto casi a oscuras; la luz de una zona
 # encendida se cuela por las puertas a las vecinas. Energía por zona; las que no salen aquí no tienen lámpara.
 LIT_ZONES = {"corridor_main_m": 0.3, "entrance_hall": 0.25, "kitchen": 0.2, "bedroom_main": 0.18,

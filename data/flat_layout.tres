@@ -10,7 +10,7 @@ id = &"bedroom_main"
 name_key = "ZONE_BEDROOM_MAIN"
 rect = Rect2(-2, 2.65, 4, 4.275)
 floor_type = &"wood"
-lights = Array[Dictionary]([{"pos": Vector3(0, 2.3, 4.7875), "color": Color(1, 0.82, 0.64, 1), "energy": 0.18, "range": 4.2062, "base_normal": 0.18, "base_dark": 0}])
+lights = Array[Dictionary]([{"pos": Vector3(0, 2.3, 4.7875), "color": Color(1, 0.74, 0.48, 1), "energy": 0.18, "range": 4.2062, "base_normal": 0.18, "base_dark": 0}])
 
 [sub_resource type="Resource" id="z_living_room"]
 script = ExtResource("zone_script")
@@ -50,7 +50,7 @@ id = &"corridor_main_m"
 name_key = "ZONE_CORRIDOR"
 rect = Rect2(-3.35, -2.6, 1.2, 5)
 floor_type = &"wood"
-lights = Array[Dictionary]([{"pos": Vector3(-2.75, 2.3, -0.1), "color": Color(1, 0.82, 0.64, 1), "energy": 0.3, "range": 4.75, "base_normal": 0.3, "base_dark": 0}])
+lights = Array[Dictionary]([{"pos": Vector3(-2.75, 2.3, -0.1), "color": Color(1, 0.74, 0.48, 1), "energy": 0.3, "range": 4.75, "base_normal": 0.3, "base_dark": 0}])
 
 [sub_resource type="Resource" id="z_corridor_main_e"]
 script = ExtResource("zone_script")
@@ -82,7 +82,7 @@ id = &"bathroom"
 name_key = "ZONE_BATHROOM"
 rect = Rect2(-6.8, -0.175, 3.3, 2.25)
 floor_type = &"tile"
-lights = Array[Dictionary]([{"pos": Vector3(-5.15, 2.3, 0.95), "color": Color(1, 0.82, 0.64, 1), "energy": 0.15, "range": 3.475, "base_normal": 0.15, "base_dark": 0}])
+lights = Array[Dictionary]([{"pos": Vector3(-5.15, 2.3, 0.95), "color": Color(1, 0.74, 0.48, 1), "energy": 0.15, "range": 3.475, "base_normal": 0.15, "base_dark": 0}])
 
 [sub_resource type="Resource" id="z_bedroom_3"]
 script = ExtResource("zone_script")
@@ -122,7 +122,7 @@ id = &"corridor_service_e"
 name_key = "ZONE_CORRIDOR"
 rect = Rect2(-8.15, -10.5, 1.2, 5.9)
 floor_type = &"wood"
-lights = Array[Dictionary]([{"pos": Vector3(-7.55, 2.3, -7.55), "color": Color(1, 0.82, 0.64, 1), "energy": 0.12, "range": 5.425, "base_normal": 0.12, "base_dark": 0}])
+lights = Array[Dictionary]([{"pos": Vector3(-7.55, 2.3, -7.55), "color": Color(1, 0.74, 0.48, 1), "energy": 0.12, "range": 5.425, "base_normal": 0.12, "base_dark": 0}])
 
 [sub_resource type="Resource" id="z_gallery"]
 script = ExtResource("zone_script")
@@ -146,7 +146,7 @@ id = &"entrance_hall"
 name_key = "ZONE_ENTRANCE_HALL"
 rect = Rect2(-11.6, -1.525, 3.3, 3.85)
 floor_type = &"wood"
-lights = Array[Dictionary]([{"pos": Vector3(-9.95, 2.3, 0.4), "color": Color(1, 0.82, 0.64, 1), "energy": 0.25, "range": 3.8875, "base_normal": 0.25, "base_dark": 0}])
+lights = Array[Dictionary]([{"pos": Vector3(-9.95, 2.3, 0.4), "color": Color(1, 0.74, 0.48, 1), "energy": 0.25, "range": 3.8875, "base_normal": 0.25, "base_dark": 0}])
 
 [sub_resource type="Resource" id="z_larder"]
 script = ExtResource("zone_script")
@@ -162,7 +162,7 @@ id = &"kitchen"
 name_key = "ZONE_KITCHEN"
 rect = Rect2(-11.6, -7.425, 3.3, 4.15)
 floor_type = &"tile"
-lights = Array[Dictionary]([{"pos": Vector3(-9.95, 2.3, -5.35), "color": Color(1, 0.82, 0.64, 1), "energy": 0.2, "range": 4.1125, "base_normal": 0.2, "base_dark": 0}])
+lights = Array[Dictionary]([{"pos": Vector3(-9.95, 2.3, -5.35), "color": Color(1, 0.74, 0.48, 1), "energy": 0.2, "range": 4.1125, "base_normal": 0.2, "base_dark": 0}])
 
 [sub_resource type="Resource" id="z_service_toilet"]
 script = ExtResource("zone_script")
