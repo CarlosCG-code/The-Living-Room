@@ -120,12 +120,44 @@ func _build() -> void:
 		["Espejo y oscuras", _room.bind("1", "1")]])
 	_section("Partida")
 	_row([["Partida nueva", _new_game], ["Guardar ahora", func() -> void: Game._save()]])
+	# Para dar con fallos que solo se ven jugando (espejo que parpadea al moverse, 2026-11-22). Se pierde al cambiar
+	# ajustes o preset: GraphicsSettings los vuelve a aplicar.
+	_section("Diagnóstico de gráficos (alterna; se pierde al cambiar ajustes)")
+	var vp := get_viewport()
+	var env := func() -> Environment: return vp.find_world_3d().environment
+	_toggles([
+		["TAA", func() -> bool: return vp.use_taa, func(on: bool) -> void: vp.use_taa = on],
+		["Oclusión", func() -> bool: return vp.use_occlusion_culling, func(on: bool) -> void: vp.use_occlusion_culling = on],
+		["Niebla", func() -> bool: return env.call().volumetric_fog_enabled,
+			func(on: bool) -> void: env.call().volumetric_fog_enabled = on],
+		["Niebla temporal", func() -> bool: return env.call().volumetric_fog_temporal_reprojection_enabled,
+			func(on: bool) -> void: env.call().volumetric_fog_temporal_reprojection_enabled = on],
+		["SSIL", func() -> bool: return env.call().ssil_enabled, func(on: bool) -> void: env.call().ssil_enabled = on],
+		["SSAO", func() -> bool: return env.call().ssao_enabled, func(on: bool) -> void: env.call().ssao_enabled = on],
+		["Brillo (glow)", func() -> bool: return env.call().glow_enabled, func(on: bool) -> void: env.call().glow_enabled = on],
+	])
 
 
 func _section(title: String) -> void:
 	var l := Label.new()
 	l.text = "— " + title
 	_box.add_child(l)
+
+
+# Botones de sí/no: [nombre, leer: Callable -> bool, poner: Callable(bool)]; el texto dice el estado actual.
+func _toggles(items: Array) -> void:
+	var row := HFlowContainer.new()
+	for it: Array in items:
+		var button := Button.new()
+		button.focus_mode = Control.FOCUS_NONE
+		var label := func() -> void: button.text = "%s: %s" % [it[0], "sí" if it[1].call() else "no"]
+		button.pressed.connect(func() -> void:
+			it[2].call(not it[1].call())
+			label.call())
+		button.visibility_changed.connect(label)  # al abrir el menú, el estado real (los ajustes pueden haberlo cambiado)
+		label.call()
+		row.add_child(button)
+	_box.add_child(row)
 
 
 func _row(buttons: Array) -> void:
