@@ -12,6 +12,9 @@ rm -f build/TheLivingRoom.exe build/TheLivingRoom.pck build/check.zip "$LOG"
 
 # Comprobación 1. Importación. La primera genera el .translation; el criterio se aplica a la segunda.
 "$GODOT" --headless --path . --import >/dev/null 2>&1 || true
+# Texturas del piso a la medida de su uso (tools/texture_budget.gd); la segunda importación aplica lo que cambie.
+"$GODOT" --headless --path . -s tools/texture_budget.gd >build/budget.log 2>&1 || fail "texture_budget (build/budget.log)"
+grep -q 'BUDGET_CHANGED=' build/budget.log || fail "texture_budget no terminó (build/budget.log)"
 "$GODOT" --headless --path . --import >build/import.log 2>&1 || fail "importación (build/import.log)"
 ! grep -q 'ERROR' build/import.log || fail "líneas ERROR en build/import.log"
 

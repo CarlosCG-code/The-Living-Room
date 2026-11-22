@@ -23,6 +23,7 @@ locale/fallback="es"
 renderer/rendering_method="forward_plus"
 rendering_device/driver.windows="d3d12"
 occlusion_culling/use_occlusion_culling=true
+reflections/reflection_atlas/reflection_count=4
 
 [importer_defaults]
 

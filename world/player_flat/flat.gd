@@ -12,6 +12,8 @@ const LIVING_LAYER := 1 << 1
 const FACADE_WINDOWS: Array[StringName] = [&"bedroom_main", &"dining_room", &"workshop"]
 ## La farola por las ventanas que no son la del salón: más tenue, para que esos cuartos sigan casi a oscuras.
 const STREET_COPY := 0.6
+## Lo que el tapón de cada muro queda por dentro de sus bordes (m).
+const OCCLUDER_INSET := 0.05
 
 ## Se fija antes de añadir la escena al árbol.
 @export var mirrored := false
@@ -184,7 +186,8 @@ func _add_lamps(geometry: Node) -> void:
 			_lights.append(lamp)
 
 # Oclusión: los muros tapan lo que hay detrás y no se dibuja (las sombras y la GI no cambian: no la usan).
-# Se hace con la misma malla de los muros, así los vanos de puertas y ventanas quedan abiertos.
+# Cada muro (una caja) tapa con un rectángulo en su plano medio, algo más pequeño que él: en su cara, el cálculo
+# aproximado de Godot escondía a ratos lo colgado en la pared al moverse (el espejo salía sin reflejo, 2026-11-22).
 func _add_occluder(geometry: Node) -> void:
 	var walls := geometry.find_children("Wall_*", "MeshInstance3D", true, false)
 	walls.append_array(geometry.find_children("Lintel_*", "MeshInstance3D", true, false))
@@ -192,18 +195,20 @@ func _add_occluder(geometry: Node) -> void:
 	var vertices := PackedVector3Array()
 	var indices := PackedInt32Array()
 	for m: MeshInstance3D in walls:
-		var to_flat := global_transform.affine_inverse() * m.global_transform
-		for s in m.mesh.get_surface_count():
-			var arrays := m.mesh.surface_get_arrays(s)
-			var base := vertices.size()
-			var pos: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
-			for v in pos:
-				vertices.append(to_flat * v)
-			var idx = arrays[Mesh.ARRAY_INDEX]
-			if idx == null:
-				idx = range(pos.size())
-			for i in idx:
-				indices.append(base + i)
+		var box := global_transform.affine_inverse() * m.global_transform * m.get_aabb()
+		var along := 0 if box.size.z <= box.size.x else 2  # el eje largo en planta; el corto es el grosor
+		var half := Vector3.ZERO
+		half[along] = box.size[along] / 2.0 - OCCLUDER_INSET
+		half.y = box.size.y / 2.0 - OCCLUDER_INSET
+		if half[along] <= 0.0 or half.y <= 0.0:
+			continue
+		var c := box.get_center()
+		var base := vertices.size()
+		var side := Vector3.ZERO
+		side[along] = half[along]
+		vertices.append_array([c - side - Vector3(0, half.y, 0), c + side - Vector3(0, half.y, 0),
+				c + side + Vector3(0, half.y, 0), c - side + Vector3(0, half.y, 0)])
+		indices.append_array([base, base + 1, base + 2, base, base + 2, base + 3])
 	var occluder := ArrayOccluder3D.new()
 	occluder.set_arrays(vertices, indices)
 	var instance := OccluderInstance3D.new()

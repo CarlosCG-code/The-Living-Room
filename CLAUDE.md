@@ -37,7 +37,7 @@ Reglas:
 
 - GDScript con tipado estático; nombres en inglés; textos del juego en español mediante `tr()` y archivos de traducción CSV de Godot, nunca literales en el código.
 - Un archivo por clase (`class_name`). Sin lógica de juego en `_process()` salvo el reloj.
-- Texturas: por defecto se importan comprimidas en VRAM (BC7) y con mipmaps (`[importer_defaults]` de `project.godot`). Sin el editor, Godot no las detecta como 3D y las dejaría sin comprimir. Las de la interfaz de la tele llevan su propio `.import` sin compresión.
+- Texturas: por defecto se importan comprimidas en VRAM (BC7) y con mipmaps (`[importer_defaults]` de `project.godot`). Sin el editor, Godot no las detecta como 3D y las dejaría sin comprimir. Las de la interfaz de la tele llevan su propio `.import` sin compresión. `tools/texture_budget.gd` (lo ejecuta `verify.sh`) ajusta las del piso según su uso: 512 px en objetos de menos de 30 cm, tope de 2048 y rugosidad/metal en BC1.
 - Comentarios solo donde el *porqué* no sea evidente.
 
 ## Decisiones fijadas (no cambiar sin preguntar)

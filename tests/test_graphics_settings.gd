@@ -107,3 +107,10 @@ func test_brightness_survives_preset_change() -> void:
 	settings.apply_preset(&"low")
 	settings.apply_preset(&"ultra")
 	assert_almost_eq(env.tonemap_exposure, 1.3, 0.0001)
+
+
+func test_texture_budget_params() -> void:
+	var budget := load("res://tools/texture_budget.gd")
+	assert_eq(budget.params(0.2, true), {"process/size_limit": 512, "compress/high_quality": true}, "objeto pequeño: 512 px")
+	assert_eq(budget.params(1.5, true), {"process/size_limit": 2048, "compress/high_quality": true}, "grande: tope 2048")
+	assert_eq(budget.params(1.5, false)["compress/high_quality"], false, "rugosidad y metal: BC1")
