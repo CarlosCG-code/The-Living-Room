@@ -61,7 +61,8 @@ def cells(cols, rows, half_drop=True):
 
 
 def damask():
-    """Salón, comedor, dormitorio principal y recibidor: flor de cuatro pétalos con rombo, en ocre oliva."""
+    """Salón, comedor, dormitorio principal y recibidor: flor de cuatro pétalos con rombo, rojo viejo sobre crema
+    (usuario, 2026-11-22: papel claro de flores como en sus fotos de referencia)."""
     x, y = cells(8, 7)
     x = x * (2.5 / 8) / (2.5 / 7)  # celda casi cuadrada en metros
     r, th = np.hypot(x, y), np.arctan2(y, x)
@@ -71,8 +72,8 @@ def damask():
     outline = smooth(0.012, 0.0, np.abs(r - petals - 0.03)) * (1 - shape)
     motif = np.clip(shape - 0.6 * hole, 0, 1)
     pin = smooth(0.0016, 0.0, np.abs((u * 8 + 0.5) % 1 - 0.5) / 8 - 0.0)  # filete entre columnas
-    rgb = mix((0.34, 0.31, 0.22), (0.45, 0.4, 0.28), motif)
-    rgb = mix(rgb, (0.28, 0.25, 0.18), np.clip(outline * 0.7 + pin * 0.8, 0, 1))
+    rgb = mix((0.5, 0.42, 0.3), (0.38, 0.17, 0.12), motif * 0.7)  # crema con flor rojo viejo, desvaído
+    rgb = mix(rgb, (0.32, 0.2, 0.13), np.clip(outline * 0.7 + pin * 0.8, 0, 1))
     return rgb, motif * 0.2 + outline * 0.1, 0.8 - 0.12 * motif
 
 
@@ -82,8 +83,8 @@ def stripes():
     band = smooth(0.003, 0.0, np.abs(p - 0.25) - 0.25)
     pin = smooth(0.006, 0.0, np.abs(p - 0.75))
     dots = smooth(0.0015, 0.0, np.hypot((p - 0.62) * 2.5 / 20, ((v * 60) % 1 - 0.5) * 2.5 / 60) - 0.004)  # en metros
-    rgb = mix((0.44, 0.39, 0.3), (0.37, 0.32, 0.24), band)
-    rgb = mix(rgb, (0.27, 0.23, 0.17), np.clip(pin + dots, 0, 1))
+    rgb = mix((0.5, 0.44, 0.33), (0.44, 0.38, 0.28), band)
+    rgb = mix(rgb, (0.3, 0.22, 0.16), np.clip(pin + dots, 0, 1))
     return rgb, band * 0.1 + pin * 0.1, 0.83 - 0.05 * band
 
 
@@ -96,17 +97,17 @@ def sprig():
     leaf = lambda cx, cy, a: smooth(0.01, -0.01, np.hypot(((x - cx) * np.cos(a) + (y - cy) * np.sin(a)) / 0.13,
                                                           (-(x - cx) * np.sin(a) + (y - cy) * np.cos(a)) / 0.05) - 1)
     leaves = np.clip(leaf(0.17, -0.12, -0.6) + leaf(-0.17, -0.12, 0.6), 0, 1) * (1 - flower)
-    rgb = mix((0.47, 0.41, 0.36), (0.42, 0.27, 0.25), flower)
-    rgb = mix(rgb, (0.52, 0.42, 0.3), centre)
-    rgb = mix(rgb, (0.3, 0.33, 0.24), leaves)
+    rgb = mix((0.52, 0.45, 0.34), (0.5, 0.2, 0.18), flower)
+    rgb = mix(rgb, (0.55, 0.42, 0.22), centre)
+    rgb = mix(rgb, (0.25, 0.3, 0.18), leaves)
     return rgb, (flower + leaves) * 0.15, 0.82 - 0.05 * flower
 
 
 def paint():
-    """Cocina, baños, despensa, taller, trastero y galería: pintura al temple vieja, lisa, con brochazos."""
+    """Baños, despensa, taller, trastero y galería: pintura al temple crema, vieja, lisa, con brochazos."""
     strokes = np.repeat(rng.standard_normal((N // 64, N)), 64, axis=0)  # brochazos verticales
     brush = norm01(blur(strokes, 6) + 0.6 * blur(rng.standard_normal((N, N)), 14))
-    rgb = np.ones((N, N, 3)) * np.array((0.5, 0.48, 0.42)) * (0.95 + 0.08 * brush[..., None])
+    rgb = np.ones((N, N, 3)) * np.array((0.52, 0.47, 0.37)) * (0.95 + 0.08 * brush[..., None])
     return rgb, brush * 0.5, 0.88 + 0.0 * brush
 
 

@@ -38,7 +38,7 @@ FINISH = {"bedroom_main": ("damask", "wainscot"), "dining_room": ("damask", "wai
           "bedroom_2": ("sprig", "skirt"), "bedroom_3": ("sprig", "skirt"),
           "workshop": ("paint", "skirt"), "pantry_hall": ("paint", "skirt"), "gallery": ("paint", "skirt"),
           "storage": ("paint", "skirt"), "larder": ("paint", "skirt"),
-          "kitchen": ("paint", "tiles"), "bathroom": ("paint", "tiles"), "service_toilet": ("paint", "tiles")}
+          "kitchen": ("sprig", "tiles"), "bathroom": ("paint", "tiles"), "service_toilet": ("paint", "tiles")}
 WAINSCOT_H, TILE_H, SKIRT_H = 0.9, 1.37, 0.08  # el azulejo acaba justo encima de la cenefa (fila de 1,2-1,35 m)
 # Suelo de baldosa por zona (make_wallpapers.py); el taller y el trastero siguen con la de Poly Haven.
 FLOOR_TILE = {"kitchen": "floor_hydraulic", "bathroom": "floor_hydraulic", "service_toilet": "floor_hydraulic",
