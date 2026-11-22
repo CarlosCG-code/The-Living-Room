@@ -526,7 +526,7 @@ def furnish():
     window_curtain(z)
     fixture(z, "Chandelier_01")
 
-    # Comedor: mesa con mantel y cuatro sillas, aparador con el toro de bronce, jarrón de latón en su pie alto, reloj
+    # Comedor: mesa con mantel y cuatro sillas, aparador con la foto del abuelo, jarrón de latón en su pie alto, reloj
     # de pared pintado y araña de cristal.
     z = "dining_room"
     lo_x, lo_y, hi_x, hi_y = interior(z)
@@ -537,10 +537,9 @@ def furnish():
     rug("rug_persian_green", z, 2.6, 3.0, dpy=1.55 - 2.0)
     window_curtain(z)
     console = put("ClassicConsole_01", z, "px1", 2.0)
-    on("bull_head", console, rot=-90)
     on("brass_goblets", console, dpy=-0.5, scale=0.7)
     on("wooden_candlestick", console, dpy=0.5)
-    photo(285671, console, dpx=0.25, rot=ROT["px1"], h=0.24)  # el abuelo con su perro
+    photo(285671, console, dpx=0.25, rot=ROT["px1"], h=0.24)  # el abuelo con su perro; sin el toro (usuario, 2026-11-22)
     pic("cma:151555", z, "px0", 2.0, 1.6, 0.55)  # bodegón con pescado y pan
     pic("cma:150140", z, "py1", -1.2, 1.6, 0.4, "walnut")  # bodegón de dulces
     stand = put("side_table_tall_01", z, "py0", 0.45, gap=0.1)
