@@ -105,3 +105,16 @@ func test_wall_occluder_covers_flat_and_mirrors() -> void:
 func test_rain_casts_no_shadow() -> void:
 	var rain := _flat(false).living_room.get_node("Rain") as GeometryInstance3D
 	assert_eq(rain.cast_shadow, GeometryInstance3D.SHADOW_CASTING_SETTING_OFF)
+
+
+# Polvo: cubre todas las zonas (también en espejo) y no da sombra, por lo mismo que la lluvia.
+func test_dust_covers_every_zone_and_casts_no_shadow() -> void:
+	for mirrored in [false, true]:
+		var f: Node3D = _flat(mirrored)
+		var dust := f.get_node("Dust") as GPUParticles3D
+		assert_eq(dust.cast_shadow, GeometryInstance3D.SHADOW_CASTING_SETTING_OFF)
+		var half: Vector3 = (dust.process_material as ParticleProcessMaterial).emission_box_extents
+		for zone in (f.get_layout() as FlatLayout).zones:
+			var c := zone.rect.get_center()
+			var p := Vector3(-c.x if mirrored else c.x, 1.3, c.y) - dust.position
+			assert_true(absf(p.x) < half.x and absf(p.z) < half.z, "polvo en %s" % zone.id)

@@ -48,6 +48,7 @@ func _ready() -> void:
 	_keep_living_light_inside()
 	_add_mirrors(geometry)
 	_add_acoustics()
+	_fit_dust()
 	var backdrop := living_room.get_node("WindowBackdrop") as Node3D
 	for zone in FACADE_WINDOWS:
 		var marker := geometry.find_child("Window_" + zone, true, false) as Node3D
@@ -118,9 +119,7 @@ func get_lights() -> Array[Light3D]:
 # Eco de la casa: los sonidos 3D del piso (bus House) mandan parte al bus Room, la reverberación. El salón tiene
 # su propia área (RoomAcoustics), con más prioridad.
 func _add_acoustics() -> void:
-	var r: Rect2 = LAYOUT.zones[0].rect
-	for zone in LAYOUT.zones:
-		r = r.merge(zone.rect)
+	var r := _bounds()
 	var area := Area3D.new()
 	area.name = "FlatAcoustics"
 	area.monitoring = false
@@ -137,6 +136,24 @@ func _add_acoustics() -> void:
 	var c := r.get_center()
 	area.position = Vector3(-c.x if mirrored else c.x, 1.3, c.y)
 	add_child(area)
+
+
+# Polvo en suspensión por todo el piso (usuario, 2026-11-23). Lo alumbran las lámparas y la linterna: a oscuras no se ve.
+func _fit_dust() -> void:
+	var r := _bounds()
+	var half := Vector3(r.size.x / 2.0, 1.3, r.size.y / 2.0)
+	var c := r.get_center()
+	var dust := $Dust as GPUParticles3D
+	dust.position = Vector3(-c.x if mirrored else c.x, 1.3, c.y)
+	dust.visibility_aabb = AABB(-half, half * 2.0)
+	(dust.process_material as ParticleProcessMaterial).emission_box_extents = half
+
+
+func _bounds() -> Rect2:
+	var r: Rect2 = LAYOUT.zones[0].rect
+	for zone in LAYOUT.zones:
+		r = r.merge(zone.rect)
+	return r
 
 
 # La farola de la calle entra también por las otras ventanas de la fachada: luz fría que deja ver siluetas en los

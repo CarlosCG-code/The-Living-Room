@@ -183,9 +183,11 @@ Lo que lo hace difícil de memorizar (GDD §8, run 2):
 - `TLR_SPAWN=<id de zona>` pone al jugador de pie en el centro de esa zona. Con un id desconocido, avisa y sigue sentado (sin test: es un atajo de desarrollo). Solo en depuración.
 - El benchmark mide desde ese sitio si se usa `TLR_SPAWN`; `TLR_YAW`, `TLR_PITCH`, `TLR_FLASH` y `TLR_SHOT` sirven para las capturas.
 
-**D17 — Sondas de reflejo por zona: propuesta, no añadirlas (2026-11-23, lo decide el usuario).** Probado en la cocina y el baño, con y sin linterna: la sonda funciona (se ve en una bola cromada de prueba), pero en los objetos reales no hay diferencia visible ni a 10 veces su intensidad: esas zonas están demasiado oscuras para que haya algo que reflejar. De momento solo la tiene el salón.
+**D17 — Sin sondas de reflejo por zona (2026-11-23; el usuario lo dejó a la mejor opción para el rendimiento).** Probado en la cocina y el baño, con y sin linterna: la sonda funciona (se ve en una bola cromada de prueba), pero en los objetos reales no hay diferencia visible ni a 10 veces su intensidad: esas zonas están demasiado oscuras para que haya algo que reflejar. Solo la tiene el salón.
 
 **D18 — Sombras de las lámparas (2026-11-23).** Las lámparas de las zonas no llevan `light_size`: las sombras suaves por contacto salían dentadas (alacena, estante y radio de la cocina). El atlas de sombras reparte sus cuadrantes en 4/4/4/16 (`project.godot`) para que cada lámpara tenga un mapa más grande sin gastar más memoria.
+
+**D19 — Polvo en suspensión (usuario, 2026-11-23).** Un solo `GPUParticles3D` (`Dust`, en `flat.tscn`) cubre todo el piso y lo alumbran las lámparas y la linterna, así que a oscuras no se ve. Sin sombra ni GI. Medido: no cambia el tiempo de gráfica en ningún preset, por eso es igual en todos y no lleva ajuste.
 
 ## 4. Archivos
 
