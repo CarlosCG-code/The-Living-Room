@@ -1,6 +1,6 @@
 # Especificación — Hito 4a: el piso, andar y las puertas
 
-> Estado: **v2 aprobada por el usuario (2026-11-20)**, tras la revisión EGM (`reviews/hito4a/egm_report.md`). §10: P1-P4 y P6 aprobadas tal como se proponen; P5 resuelta el 2026-11-23: sin GI por zona (D9).
+> Estado: **implementada y aprobada por el usuario (hito 4a cerrado el 2026-11-23)**; v2 aprobada el 2026-11-20, tras la revisión EGM (`reviews/hito4a/egm_report.md`). §10: P1-P4 y P6 aprobadas tal como se proponen; P5 resuelta el 2026-11-23: sin GI por zona (D9).
 >
 > Fuentes: `GAME_DESIGN.md` §2-§4, §7, §8, §11 (hito 4) y §12; `CLAUDE.md`; `specs/hito2.md` (salón, D2, D9, D10, D12, espejo D14, presets D15, benchmark D16).
 
@@ -258,7 +258,7 @@ CLAUDE.md                                  cambiar (presentation/player/, si se 
 5. Muebles básicos y luces.
 6. Benchmark en los 4 presets, en normal y a oscuras con linterna, más la VRAM. Sin GI por zona (D9). **Hecho (2026-11-23).**
 7. Documentación: GDD, `CLAUDE.md` y `ASSETS.md`. **Hecho (2026-11-23).** Antes se repitió el benchmark con la versión actual: los 4 presets cumplen por tiempo de gráfica; en bajo y medio el tiempo total no se puede medir por debajo del tope del monitor.
-8. **Parada final:** capturas de cada zona; el usuario recorre el piso en la build de pruebas.
+8. **Parada final:** capturas de cada zona; el usuario recorre el piso en la build de pruebas. **Hecho y aprobado (2026-11-23).**
 
 Cada paso deja los tests en verde y hace commit y push.
 
