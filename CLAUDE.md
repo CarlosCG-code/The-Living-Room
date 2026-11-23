@@ -19,7 +19,7 @@ Separar siempre la lógica de la presentación:
 
 - `core/` — sin nodos ni escena (`RefCounted`/`Resource`): estado por run y meta-estado que persiste entre partidas completas (p. ej. el menú alterado tras un final), economía, prestigio (= reinicio), Evidencia, guardado. Testeable.
 - `presentation/` — TV (`SubViewport` + raycast → UV), cámara fija en la tele mientras se está sentado, jugador de pie (`presentation/player/`), UI.
-- `fear/` — director de eventos (presupuesto, cooldowns, comprobación de mirada: eventos que solo ocurren si el jugador no mira).
+- `fear/` — director de eventos (presupuesto, cooldowns, cambios del entorno fuera de cuadro o en apagones).
 - `audio/` — gestor de audio 3D y mezcla por run.
 - `world/` — piso del jugador, escalera, piso de la señora, menú principal (tele y silla). Variantes del piso: espejo y a oscuras (la run 2 combina ambas); su técnica se especifica y valida en el hito 2 junto al look-dev (candidatas: kit modular colocado en simetría, o reflejo de geometría en build con normales y textos corregidos).
 - `narrative/` — contenido de pistas y finales.
@@ -27,10 +27,10 @@ Separar siempre la lógica de la presentación:
 Ubicaciones (fijadas en el hito 0): autoloads en `autoload/`, datos `.tres` en `data/`, tests GUT en `tests/`, assets en `assets/` (`models/`, `textures/`, `audio/`, `fonts/`). `audio/` en la raíz es el código del gestor de audio; los sonidos van en `assets/audio/`. Cada carpeta se crea con su primer archivo. GUT está en `addons/gut/` y el addon de capturas en `addons/godot_mcp_runtime/` (solo build de depuración; lo carga `autoload/dev_boot.gd`, que añade el nodo `MCPRuntime`). `DevBoot` carga también los trucos de prueba (`tools/dev_cheats.gd`, F1), solo en depuración: el usuario los abre con `Jugar (pruebas).bat`, no con la build de `build/`. El addon se excluye de toda build exportada, y cada hito se comprueba con `tools/verify.sh`, que verifica además que la build arranca sin él.
 
 Reglas:
-- `core/` declara sus propias señales y no conoce el árbol. Un adaptador (autoload) reenvía al autoload `EventBus` solo los eventos discretos (compra, reinicio, pista hallada). El estado continuo (producción, mirada) no se emite: el director lo recibe del reloj en cada tick. Entre sistemas de escena: `EventBus`, no referencias directas.
+- `core/` declara sus propias señales y no conoce el árbol. Un adaptador (autoload) reenvía al autoload `EventBus` solo los eventos discretos (compra, reinicio, pista hallada). El estado continuo (producción, zona del jugador) no se emite: el director lo recibe del reloj en cada tick. Entre sistemas de escena: `EventBus`, no referencias directas.
 - Datos (mejoras, eventos, pistas) en recursos `.tres` (`Resource` con `class_name`), no hardcodeados.
 - Guardado en JSON con campo de versión; cada migrador con su test. Escritura atómica (`.tmp` y renombrar, conservando un `.bak`); el meta-estado va en un archivo aparte del de la run.
-- Un único reloj (autoload) hace avanzar `core/` y el director con el mismo delta; es el único `_process()` con lógica de juego. Los tests llaman a `tick()` con delta fijo. Cómo se arma el estado que recibe el director, la pausa del menú y la congelación parcial del final (el clicker sigue activo) se especifican en el hito que introduzca el director (candidatas: que el reloj construya el estado leyendo `core/` y un proveedor de mirada; `SceneTree.paused` con `process_mode` para el menú; escalas por canal para el final).
+- Un único reloj (autoload) hace avanzar `core/` y el director con el mismo delta; es el único `_process()` con lógica de juego. Los tests llaman a `tick()` con delta fijo. Cómo se arma el estado que recibe el director, la pausa del menú y la congelación parcial del final (el clicker sigue activo) se especifican en el hito que introduzca el director (candidatas: que el reloj construya el estado leyendo `core/` y un proveedor de la escena; `SceneTree.paused` con `process_mode` para el menú; escalas por canal para el final).
 - Tests (GUT, en headless) para todo `core/`, el planificador del director (`RefCounted`) y la conversión raycast → UV de la tele, extraída a una función pura.
 
 ## Convenciones

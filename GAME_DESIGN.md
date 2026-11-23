@@ -41,7 +41,7 @@ El ***Reiniciar*** del incremental es el disparador del bucle: al pulsarlo ocurr
 | 1 | ~35 min | Sonidos del incremental que derivan en toques en la puerta y objetos que caen. La vista queda fija en la tele, sin zoom out (usuario, 2026-11-24): el salón y el sofá se descubren al levantarse para abrir al repartidor | Llama a la puerta el **repartidor**. Animación de levantarse. Recoge la comida, la deja en la mesa. Puede **explorar el piso** (~15 min, opcional) o volver a la tele |
 | 2 | ~25 min | Luces y sonidos | **Apagón**. Solo linterna. La casa está **en espejo**. Hay que llegar a la caja de plomos y cambiar un fusible (~15 min) |
 | 3 | ~20 min | Más de lo anterior, más intenso; objetos que cambian de sitio | Llama la **señora del 3.º**. El protagonista vive en el 8.º. Ascensor roto: **escalera a oscuras** hasta su piso, repara la avería, café, y en el salón la **misma tele con el mismo progreso**. Evento ~25 min |
-| 4 | ~15 min | Juega en la tele de ella; su salón (3.º) se transforma objeto a objeto hasta ser idéntico al tuyo, solo cuando no miras. Quien va rápido no lo nota; quien observa sí (intencionado: premia la atención). Lo que falte por cambiar cambia durante la transición | Sonidos de la señora (pastillas, gafas, dentadura). Final |
+| 4 | ~15 min | Juega en la tele de ella; su salón (3.º) se transforma objeto a objeto hasta ser idéntico al tuyo, fuera de tu vista o en apagones (§5). Quien va rápido no lo nota; quien observa sí (intencionado: premia la atención). Lo que falte por cambiar cambia durante la transición | Sonidos de la señora (pastillas, gafas, dentadura). Final |
 | Final | ~20 min | Confesión de la señora, en su salón ya idéntico al tuyo, con ella delante | Ver sección 9 |
 
 Total estimado: ~2h35 sin la exploración opcional; ~2h50 con ella.
@@ -71,7 +71,11 @@ Sin enemigos ni estado de derrota. Toda la tensión sale de **anormalidad escalo
 **Director de eventos** (scheduler):
 - Presupuesto de eventos por run, cooldowns y nivel de tensión acumulada.
 - Los parpadeos de luz son eventos del director, nunca una respuesta a cada clic.
-- Algunos eventos solo se disparan **cuando el jugador no mira**. "Mirar" = el objeto está en pantalla y nada lo tapa; "no mirar" = fuera de pantalla o tapado (la técnica concreta se decide en el hito 3). Ningún avance depende de un evento de mirada: si el jugador lo observa demasiado tiempo, el cambio pasa a otro objeto que no esté mirando.
+- **Cambios del entorno, runs 3 y 4 (usuario, 2026-11-24; sustituye a la comprobación de mirada):**
+  - **Lo que el jugador no puede ver** (fuera de cuadro sentado, u otra habitación si está de pie) cambia sin más y más deprisa, pero de uno en uno y con lo siguiente ya cargado: nunca todo de golpe, por rendimiento.
+  - **Lo que ve** (algo de una estantería, la textura de la pared) cambia poco a poco, de uno en uno, en un apagón breve en que la pantalla de la tele también se apaga y no se ve nada. La mayoría de los apagones no cambian nada, para que no se busque la diferencia cada vez.
+  - Cada apagón es un solo bajón de luz (tope de 3 destellos por segundo); con «Intensidad de efectos» a 0, la luz se va despacio hasta el negro.
+  - Ningún avance depende de que el jugador note un cambio.
 - Silencios largos entre eventos; el vacío asusta más que el ruido.
 - Evitar la habituación: variar, retener, no repetir patrones.
 
@@ -148,10 +152,10 @@ Cada hito empieza con su **especificación de implementación** (archivos, pasos
    - **Look-dev** del salón del jugador en Forward+: iterar hacia el máximo fotorrealismo alcanzable con assets gratuitos, Blender y Godot, comprobándolo con capturas, hasta que el usuario lo apruebe. Su especificación elige la GI (SDFGI, VoxelGI o LightmapGI) y la niebla.
    - Validar en esa habitación la técnica del **espejo** y de la variante **a oscuras**.
    - Presupuesto de frame (fijado en `specs/hito2.md` D16) sobre el PC de desarrollo (`CLAUDE.md`), midiendo el look-dev con la GI activada y desactivada.
-3. **Audio de la run 1 + director de eventos** (presupuesto, cooldowns, tensión acumulada; la mirada se construye con su primer suceso, runs 3-4), con el tope de 3 destellos por segundo y el parámetro de intensidad de efectos implementados en este hito. Su especificación decide: la técnica de la mirada, cómo se arma el estado que recibe el director, la pausa del menú y la congelación parcial del final (`CLAUDE.md`), cómo leen la producción las luces y el zumbido, y dónde se guarda la intensidad de efectos. Cada evento de audio lleva su clave de subtítulo desde que se crea.
+3. **Audio de la run 1 + director de eventos** (presupuesto, cooldowns, tensión acumulada), con el tope de 3 destellos por segundo y el parámetro de intensidad de efectos implementados en este hito. Su especificación decide: cómo se arma el estado que recibe el director, la pausa del menú y la congelación parcial del final (`CLAUDE.md`), cómo leen la producción las luces y el zumbido, y dónde se guarda la intensidad de efectos. Cada evento de audio lleva su clave de subtítulo desde que se crea.
 4. **Corte vertical.** Se hace en dos partes (usuario, 2026-11-20): **4a** (cerrado el 2026-11-23), antes del hito 3: el piso, andar y las puertas (`specs/hito4a.md`); **4b**, después del hito 3: todo lo demás, más el piso en espejo. Alcance total: run 1 + repartidor + piso + apagón/espejo de la run 2 + Evidencia (registro de qué pistas se han encontrado) + 1-2 mejoras de prestigio (Carga). Controlador en primera persona (andar, mirar), interacciones (puerta, comida, linterna, caja de plomos, fusible), animación de levantarse y menú principal básico. Guardado ampliado con migración a la versión 2 y su test. Aviso de fotosensibilidad y ajuste de intensidad de efectos antes del playtest. **Playtest con ~5 personas.**
 5. Run 3 y escalera (incluye jumpscare 1 y su sustituto de audio) + mejoras de prestigio completas. Al cerrar el hito, un test de `core/` simula las runs 1-4 con `tick()` y comprueba que las duraciones caen en los rangos de la §3.
-6. Run 4 (transformación del salón de ella hasta ser idéntico al tuyo; usa la mirada del director), escalera hasta el portal, confesión con niveles según la Evidencia y sus voces, *Reiniciar (último)* con pulsación de 2 s, finales «Liberarla», «Ignorarla» e «Irte», variantes del menú y partida nueva. Final secreto: el usuario decide al cerrar el hito 6 si entra ahora o se pospone. Decidir el jumpscare 2.
+6. Run 4 (transformación del salón de ella hasta ser idéntico al tuyo; cambios del §5), escalera hasta el portal, confesión con niveles según la Evidencia y sus voces, *Reiniciar (último)* con pulsación de 2 s, finales «Liberarla», «Ignorarla» e «Irte», variantes del menú y partida nueva. Final secreto: el usuario decide al cerrar el hito 6 si entra ahora o se pospone. Decidir el jumpscare 2.
 7. Pulido, accesibilidad (menú de ajustes completo, subtítulos descriptivos, desactivar jumpscares, mando opcional), presets de calidad, optimización hasta el presupuesto de frame del hito 2.
 
 ## 12. Decisiones abiertas
@@ -168,7 +172,7 @@ Cada hito empieza con su **especificación de implementación** (archivos, pasos
 - Mando opcional (hito 7).
 - Minutos de diálogo de la confesión (antes del hito 6).
 - Jumpscare 2 (hito 6).
-- Cómo ve el jugador los cambios del salón de las runs 3 y 4 si sentado la vista es fija (§3, §5): propuesta, que desde la run 2 pueda levantarse cuando quiera (hito 4b).
+- Si desde la run 2 el jugador puede levantarse cuando quiera, para ver también los cambios que quedan fuera de cuadro sentado (§5): propuesta, sí (hito 4b).
 
 ## 13. Riesgos y mitigaciones
 
@@ -176,7 +180,7 @@ Cada hito empieza con su **especificación de implementación** (archivos, pasos
 - **Fotorrealismo solo con medios gratuitos:** el hito 2 itera el look-dev de una habitación hacia el máximo fotorrealismo alcanzable, hasta que el usuario lo apruebe, antes de construir el resto.
 - **Volumen de voz** (confesión de ~20 min con variantes según la Evidencia): se estima en minutos de diálogo antes del hito 6. Voces generadas con modelos libres (VoxCPM2/MOSS-TTS) o grabadas. Idiomas **[PENDIENTE]**.
 - **Activar el final sin querer:** *Reiniciar (último)* se mantiene pulsado 2 s.
-- **Bloqueo por la mirada:** ningún avance depende de un evento de mirada (§5).
+- **Bloqueo por los cambios del entorno:** ningún avance depende de que el jugador note uno (§5).
 - **Fotosensibilidad:** aviso, intensidad de efectos y límite de 3 destellos por segundo (§5).
 
 ## 14. Alternativas consideradas

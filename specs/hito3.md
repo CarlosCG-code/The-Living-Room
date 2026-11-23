@@ -8,7 +8,6 @@
 - **Run:** cada vuelta del incremental entre dos *Reiniciar*.
 - **Progreso (`p`):** de 0 a 1, cuánto ha avanzado la run (D1).
 - **Director:** el que decide qué suceso inquietante ocurre y cuándo.
-- **Mirada:** si algo está a la vista del jugador (D5).
 - **†:** dato que se confirma al implementar; si no coincide, se corrige esta especificación antes de seguir.
 
 ## 1. Objetivo
@@ -97,8 +96,7 @@ Cuenta esperada en 30 min: ~7 sueltos hasta `p` 0,6, ~7 en las tandas del final 
 
 Regla del sonido: nunca en la zona donde está el jugador (`LAYOUT.zone_at(punto)`), salvo `ceiling` y `wall`.
 
-**D5 — Mirada: decidida, sin construir (cambia el GDD §11).** Técnica: se ve si la caja del objeto cruza el encuadre (`get_frustum()`) y un rayo desde la cámara llega a alguna muestra (centro y 8 esquinas) sin muros ni puertas (`SoundOcclusion.obstacles`); los muebles y la oscuridad no tapan, y un objeto mayor que el encuadre se da por visto. No cuenta lo que se ve en un espejo.
-- Con la cámara fija no hay en la run 1 nada que cambie según se mire. Se construye con su primer suceso (runs 3-4), como un filtro más del director.
+**D5 — Sin comprobación de mirada (usuario, 2026-11-24; GDD §5).** Los cambios de las runs 3 y 4 ocurren fuera de cuadro o en apagones, y se construyen con su hito. En la run 1 no cambia nada a la vista.
 - Lo que sí hace falta, las **lámparas**: cuenta una encendida en la zona del jugador (se ve su luz en la pared; en la pose de juego ninguna entra en cuadro) o una que pase el `LightFlicker._visible_lamps` de hoy.
 
 **D6 — Audio.** `audio/house_audio.gd` (`Node`, lo monta `main.gd`): escucha `EventBus.fear_event` y reproduce los `SOUND` con **un solo** `AudioStreamPlayer3D` (van de uno en uno).
