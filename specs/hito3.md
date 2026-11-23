@@ -37,7 +37,7 @@ Jugando la run 1 sentado:
 
 **D2 — Luces.** `LightMixer.set_factor(lerp(1, LIGHT_MIN, production_level()))`, con `LIGHT_MIN` 0,55 (usuario, 2026-11-24), suavizado en ~3 s.
 - Multiplica las lámparas (`OmniLight3D`) y, a medias, la luz ambiente. **Deja de** multiplicar la pantalla de la tele (es la que consume) y las farolas.
-- Sin producción, el salón se ve exactamente como el aprobado en 4a.
+- Sin producción, el salón se ve exactamente como el aprobado en 4a. En el menú, la luz es la de la partida guardada.
 - Cada 10 % de cambio se recaptura la sonda (`_recapture_probe()`, ya existe): si no, los reflejos seguirían al 100 % (hito2 D12).
 - El coste de rehacer la GI se mide en el paso 2; si se nota, se aplica en saltos del 2 %.
 
@@ -61,14 +61,14 @@ var lamps: Array[StringName]             # lámparas a la vista
 ```
 
 - **Quién lo mueve:** `Game` lo crea y lo avanza en `tick` tras la economía, y emite `EventBus.fear_event(def, place)`. Lo de la escena sale de `Game.senses`, un objeto que pone `main.gd` y retira en `tree_exiting`. Sin él (tests): sentado y sin lámparas a la vista. `Game` llama a `reset` al crear la partida, al reiniciar y en partida nueva. Continuar desde el menú o salir de la pausa no reinicia nada.
-- **Ritmo:** silencio al azar de 90-240 s y después una **tanda**: 1 suceso con `p` < 0,6; 1-3 hasta 1; 2-4 con `p` = 1. Dentro de la tanda, 8-25 s entre el final de uno y el principio del siguiente. Los silencios no se acortan: crece la tanda (esa es la tensión acumulada del GDD). El director empieza siempre en silencio.
+- **Ritmo:** silencio al azar de 90-240 s y después una **tanda**: 1 suceso con `p` < 0,3; 1-2 hasta 0,6; 1-3 hasta 1; 2-4 con `p` = 1. Dentro de la tanda, 8-25 s entre el final de uno y el principio del siguiente. Los silencios no se acortan: crece la tanda (esa es la tensión acumulada del GDD). El director empieza siempre en silencio.
 - **Presupuesto:** 30 sucesos al azar por run mientras `p` < 1. Pasado el umbral no hay tope: quien espera oye un piso peor (GDD §4).
 - **Elegir:** uno al azar entre los posibles (`p` mínimo, máquina, enfriamiento y un lugar válido). No se repiten los últimos `min(2, posibles − 2)` sucesos (mínimo 0) ni el último lugar si hay otro. Si no hay ninguno posible, la tanda acaba y empieza otro silencio. El enfriamiento de los ligados a una máquina se divide por `1 + unidades / 25`.
-- **Obligatorios:** los que la historia necesita no quedan al azar. Salen una vez al cumplirse su condición, 4-10 s después y con `ui_idle`, aunque sea silencio; no gastan presupuesto y reinician el silencio. Son la primera unidad de cada máquina (menos la Antena, que es el zumbido), los tres de la señora al llegar a su `p`, `knocks` (Canal 3 o `p` ≥ 0,85) y el fotograma (D7). Hasta salir no entran en el sorteo; después sí (los de sonido), sin mirar ya `requires`.
+- **Obligatorios:** los que la historia necesita no quedan al azar. Salen una vez al cumplirse su condición, 4-10 s después y con `ui_idle`, aunque sea silencio; no gastan presupuesto y dejan al menos 40 s de silencio detrás, sin reiniciarlo. Entre dos obligatorios, 20 s como poco (si no, al cargar con trucos o comprar varias máquinas saldrían pegados). Son la primera unidad de cada máquina (menos la Antena, que es el zumbido), los tres de la señora al llegar a su `p`, `knocks` (Canal 3 o `p` ≥ 0,85) y el fotograma (D7). Hasta salir no entran en el sorteo; después sí (los de sonido), sin mirar ya `requires`.
 - **Uno a la vez:** nada empieza hasta que pasa la `duration` del anterior más 0,34 s, tampoco los obligatorios.
 - **Sin guardar:** al cargar, los contadores vuelven a cero. Se acepta.
 
-**Sucesos:** `fear/fear_event_def.gd` (`Resource`): `id`, `kind` (`SOUND`, `LAMP`, `TV_FRAME`), `min_progress`, `requires` (id de máquina o vacío), `mandatory` (`NONE`, `ON_PURCHASE`, `ON_PROGRESS`), `mandatory_progress`, `random: bool`, `cooldown`, `duration`, `places: Array[StringName]`, `sounds: Array[AudioStream]`, `volume_db`, `subtitle_key`. Todos en `data/fear_events.tres` (`FearEventSet`: `events`, `silence: Vector2`, `gap: Vector2`, `run_budget: int`). La `duration` de un sonido es la de su archivo más largo.
+**Sucesos:** `fear/fear_event_def.gd` (`Resource`): `id`, `kind` (`SOUND`, `LAMP`, `TV_FRAME`), `min_progress`, `requires` (id de máquina o vacío), `mandatory` (`NONE`, `ON_PURCHASE`, `ON_PROGRESS`), `mandatory_progress`, `random: bool`, `cooldown`, `duration`, `places: Array[StringName]`, `sounds: Array[AudioStream]`, `volume_db`, `subtitle_key`. Todos en `data/fear_events.tres` (`FearEventSet`: `events`, `silence: Vector2`, `gap: Vector2`, `run_budget: int`). La `duration` de un sonido es la de su archivo más largo más 1,5 s de preludio (D6). En un `LAMP`, el lugar (`place`) es el nombre de la lámpara, al azar entre `lamps`. Con *Tu memoria* la run empieza con máquinas: cuentan como ya cumplidas.
 
 | id | `requires` | `p` mín. | Obligatorio | Enfr. (s) | Lugares | Qué suena |
 |---|---|---|---|---|---|---|
@@ -87,7 +87,7 @@ var lamps: Array[StringName]             # lámparas a la vista
 | `lamp_flicker` | — | 0 | — | 180 | lámparas a la vista | parpadeo, sin sonido (2,4 s) |
 | `tv_frame` | — | 0,7 | interferencia | — | — | D7; no entra en el sorteo |
 
-Cuenta esperada en 30 min: ~7 sueltos hasta `p` 0,6, ~7 en las tandas del final y 9 obligatorios: **unos 23**. El usuario aprueba el ritmo (2026-11-24); se ajusta al probarlo.
+Simulado (300 semillas): **23 de media en 30 min** (18-28), 27 en los 40 min del jugador tranquilo y 36 si se espera hasta el minuto 45; nunca más de 4 min 20 s en silencio. El usuario aprueba el ritmo (2026-11-24); se ajusta al probarlo.
 
 **D4 — Lugares.** `flat.get_place(id) -> Vector3`, con el espejo ya resuelto:
 - zona: su centro, a 1 m;
@@ -142,7 +142,7 @@ locale/strings.csv                            cambiar (ajuste, subtítulos)
 assets/audio/house/*                          crear
 tools/dev_cheats.gd                           cambiar
 tests/test_event_director.gd                  crear
-tests/ test_economy, test_flat, test_light_mixer, test_user_settings, test_main_menu_ui, test_dev_cheats   cambiar
+tests/ test_economy, test_flat, test_light_mixer, test_user_settings, test_main_menu_ui, test_dev_cheats, test_smoke   cambiar
 tools/verify.sh                               cambiar (20 → 21 scripts)
 ASSETS.md, GAME_DESIGN.md, CLAUDE.md, specs/hito2.md   cambiar
 ```
@@ -161,7 +161,7 @@ Cada paso deja los tests en verde y hace commit y push.
 
 | Test | Qué comprueba |
 |---|---|
-| `test_event_director.gd` | Semilla fija. Nunca dos a la vez; silencios de 90-240 s; tandas según `p`; `min_progress`, `requires`, enfriamiento y presupuesto (solo con `p` < 1); 0, 1, 2 y 3 sucesos posibles sin bloquearse; no repetir; sin lámparas a la vista no hay `lamp_flicker`; sonido nunca en la zona del jugador salvo `ceiling`/`wall`; obligatorios a los 4-10 s, una vez, esperan a `ui_idle`, y al cargar no se repiten los ya cumplidos; `reset` lo borra todo. **30 min** con `p` y compras de D1: 18-30 sucesos, mediana del silencio ≥ 120 s, los 9 obligatorios salen; **10 min con `p` 1**: sigue habiendo |
+| `test_event_director.gd` | Semilla fija. Nunca dos a la vez; silencios de 90-240 s; tandas según `p`; `min_progress`, `requires`, enfriamiento y presupuesto (solo con `p` < 1); 0, 1, 2 y 3 sucesos posibles sin bloquearse; no repetir; sin lámparas a la vista no hay `lamp_flicker`; sonido nunca en la zona del jugador salvo `ceiling`/`wall`; obligatorios a los 4-10 s, una vez, esperan a `ui_idle`, y al cargar no se repiten los ya cumplidos; `reset` lo borra todo. **30 min** con `p` y compras de D1: 16-30 sucesos, silencios de 90-240 s, los 9 obligatorios salen; **10 min con `p` 1**: sigue habiendo |
 | `test_event_director.gd` (datos) | Ids únicos; lugares y máquinas existen; claves de subtítulo traducidas; parpadeos de 2,4 s o más. Desde el paso 3: cada `SOUND` con sonidos, `duration` correcta y mono (byte de canales de la cabecera Vorbis †) |
 | `test_economy.gd` | `run_progress` (0 con E ≤ 2000, 1 en el umbral, creciente, 0 al reiniciar) y `production_level` |
 | `test_light_mixer.gd` | El factor no toca pantalla ni farola (la de prueba pasa a `SpotLight3D`); ambiente a medias; parpadeo con intensidad 0, 0,5 y 1; linterna y lámpara nunca a la vez |
