@@ -1,12 +1,12 @@
 # Especificación — Hito 4a: el piso, andar y las puertas
 
-> Estado: **v2 aprobada por el usuario (2026-11-20)**, tras la revisión EGM (`reviews/hito4a/egm_report.md`). §10: P1-P4 y P6 aprobadas tal como se proponen; P5 se pregunta en el paso 6.
+> Estado: **v2 aprobada por el usuario (2026-11-20)**, tras la revisión EGM (`reviews/hito4a/egm_report.md`). §10: P1-P4 y P6 aprobadas tal como se proponen; P5 resuelta el 2026-11-23: sin GI por zona (D9).
 >
 > Fuentes: `GAME_DESIGN.md` §2-§4, §7, §8, §11 (hito 4) y §12; `CLAUDE.md`; `specs/hito2.md` (salón, D2, D9, D10, D12, espejo D14, presets D15, benchmark D16).
 
 **Por qué ahora:** el usuario pidió (2026-11-20, chat) hacer el piso, andar y las puertas **antes del hito 3**. Esto es una parte del hito 4 («4a»). El resto del hito 4 (repartidor, levantarse animado, apagón, linterna como mecánica, fusible, Evidencia, Carga ampliada, guardado v2, aviso de fotosensibilidad y playtest) queda para «4b», después del hito 3.
 
-**Ya decidido por el usuario (2026-11-20):** especificación antes de construir; un VoxelGI por zona, activo solo cerca del jugador; **solo andar lento**; 3-6 muebles básicos por habitación.
+**Ya decidido por el usuario (2026-11-20):** especificación antes de construir; GI solo en el salón (D9, cambiado el 2026-11-23); **solo andar lento**; 3-6 muebles básicos por habitación.
 
 **Términos:**
 - **Zona:** una habitación o un tramo de pasillo.
@@ -159,25 +159,10 @@ Lo que lo hace difícil de memorizar (GDD §8, run 2):
 - El disparo de verdad (el repartidor y la animación) llega en 4b y sustituye a la Q.
 - Descartado: una pausa propia de pie. Sería un tercer menú que esperar a 4b; ahora basta con reutilizar la de la tele.
 
-**D8 — Qué zonas van activas.** `RoomActivation.active(layout, zone, from: Vector2) -> Array[StringName]` es una función pura:
-- Devuelve la zona actual (siempre la primera) y sus vecinas por cualquier conexión (hoja o vano), **sin mirar si la puerta está abierta**.
-- Las ordena por distancia de `from` a su rectángulo y luego por id, y devuelve como mucho 8.
-- La zona la calcula el **jugador**: recibe de `main.gd` el `FlatLayout` y si el piso está en espejo (datos, no otro sistema), llama a `layout.zone_at(pos, mirrored)` y, si cambia, emite `EventBus.player_zone_changed(id)`. Fuera de toda zona (dentro de un muro) se queda la última.
-- `flat.gd` escucha esa señal y enciende o apaga solo **los contenedores de los VoxelGI**.
-- `GraphicsSettings` sigue encendiendo o apagando cada VoxelGI según el preset; el resultado es «zona activa y preset con GI».
-- Las luces y las sondas no se tocan aquí:
-  - **Luces:** todas pasan por el único `LightMixer` (hito2 D10), con desvanecimiento por distancia (empieza a 12 m y se apaga a 16 m †).
-  - **Sondas:** siempre visibles; al cambiar el estado de la luz se recapturan todas, repartidas en varios fotogramas.
-- Sombras: las que ya existían (luz de la calle, pantalla de la tele, linterna) y las lámparas del piso, que sin sombra atravesaban los muros (usuario, 2026-11-20); su sombra se apaga a 10 m.
-- Descartado:
-  - un `Area3D` por zona: más nodos y señales, para lo mismo que hace `zone_at`;
-  - activar según las puertas abiertas: una señal más para ahorrar poco;
-  - oclusores de pared: solo si el benchmark lo pide.
+**D8 — Anulada (usuario, 2026-11-23).** Activaba los VoxelGI por zona; sin GI por zona (D9) sobra `RoomActivation`. Se mantiene lo demás: las luces pasan por el único `LightMixer`, las sondas están siempre visibles y las sombras de las lámparas se apagan a 10 m. Los oclusores de pared, descartados aquí, sí se hicieron en el paso 6 por rendimiento.
 
-**D9 — GI por zona.** Un VoxelGI por zona, del tamaño de su rectángulo más 0,3 m de margen y `subdiv` 64 †.
-- Se hornea con `tools/bake_voxel_gi.gd`, ampliado, en normal y en espejo, a `world/player_flat/gi/<id>[_mirror].res`, fuera de git (`.gitignore`).
-- Si falta un archivo, esa zona va sin GI y sin errores.
-- Descartado: SDFGI y un único VoxelGI para todo el piso (§10, P5); LightmapGI (las luces cambian con la producción y con el apagón).
+**D9 — GI solo en el salón (usuario, 2026-11-23, sustituye a un VoxelGI por zona).** Medido: quitar la del salón ahorra poco y lo oscurece bastante, así que se queda. En las demás zonas no se añade: el usuario da por buena la iluminación tal como está. No se ha probado GI en ellas.
+- **Alcance:** donde el resto de este documento hable de un VoxelGI por zona, de activarlos o de hornear 42 volúmenes, manda esta decisión.
 
 **D10 — Ajustes.** Página **Controles** con una sola fila: sensibilidad del ratón, 10 pasos de 0,0006 a 0,0024 rad/px, por defecto 0,0012 (el de los trucos). Va en `settings.cfg`, sin cambiar de versión.
 
@@ -213,7 +198,6 @@ data/flat_layout.tres                      generado
 world/player_flat/flat_layout.gd           crear (class_name FlatLayout)
 world/player_flat/zone_def.gd              crear (class_name ZoneDef)
 world/player_flat/connection_def.gd        crear (class_name ConnectionDef)
-world/player_flat/room_activation.gd       crear (class_name RoomActivation)
 world/player_flat/door_math.gd             crear (class_name DoorMath)
 world/player_flat/door.gd, door.tscn       crear
 world/player_flat/flat.gd, flat.tscn       crear
@@ -236,11 +220,10 @@ project.godot                              cambiar (move_*, stand_up, flashlight
 assets/audio/flat/                         crear (pasos, puertas)
 locale/strings.csv, ASSETS.md              cambiar
 tests/test_flat_layout.gd                  crear
-tests/test_room_activation.gd              crear
 tests/test_door_math.gd                    crear
 tests/test_flat.gd                         crear
 tests/test_user_settings.gd, test_main_menu_ui.gd, test_light_mixer.gd, test_graphics_settings.gd   cambiar
-tools/verify.sh                            cambiar (21 scripts de test)
+tools/verify.sh                            cambiar (20 scripts de test)
 GAME_DESIGN.md                             cambiar (§8 plano, §11 4a/4b, §12 según P6)
 CLAUDE.md                                  cambiar (presentation/player/, si se aprueba P1)
 ```
@@ -258,7 +241,6 @@ CLAUDE.md                                  cambiar (presentation/player/, si se 
   - `id`, `zone_a`, `zone_b` (`&""` = rellano);
   - `kind` (`leaf` | `passage`), `hinge: Vector3`, `facing`, `width`;
   - `start` (`closed` | `ajar` | `locked`).
-- `RoomActivation.active(layout, zone, from) -> Array[StringName]` (D8).
 - `DoorMath.step(angle, velocity, drag, delta) -> Vector3` (D5).
 - `Door`: `try_grab(eye: Vector3) -> bool`, `drag(mouse_dy: float)`, `release()`; señal `closed_changed`.
 - `Player`:
@@ -274,7 +256,7 @@ CLAUDE.md                                  cambiar (presentation/player/, si se 
 3. Jugador, levantarse y sentarse, retícula y página Controles.
 4. Puertas y sus sonidos. **Parada: el usuario anda y abre puertas en el piso vacío** (tacto de las puertas, velocidad al andar, sensibilidad).
 5. Muebles básicos y luces.
-6. VoxelGI por zona, activación, horneado y benchmark en los 4 presets, en normal y a oscuras con linterna, más la VRAM.
+6. Benchmark en los 4 presets, en normal y a oscuras con linterna, más la VRAM. Sin GI por zona (D9). **Hecho (2026-11-23).**
 7. Documentación: GDD, `CLAUDE.md` y `ASSETS.md`.
 8. **Parada final:** capturas de cada zona; el usuario recorre el piso en la build de pruebas.
 
@@ -285,7 +267,6 @@ Cada paso deja los tests en verde y hace commit y push.
 | Test | Qué comprueba |
 |---|---|
 | `test_flat_layout.gd` | 21 zonas sin solaparse. Cada conexión une dos zonas separadas 0,15 ± 0,01 m y que se solapan al menos el ancho de la puerta (salvo la del rellano). Todo se alcanza desde el salón. Quitar el lateral, el oficio o el taller (uno cada vez) deja unidos los dos pasillos. La caja de plomos está en `storage`, a ≥ 5 pasos del salón. El salón mide 4 × 5 y su conexión coincide con la puerta actual (pared x = −2,075, z = −1,6, ancho 0,9). `zone_at` dentro, en bordes, en muros y reflejado |
-| `test_room_activation.gd` | La zona actual va siempre primera. Vecinas por hoja (cerrada o con llave) y por vano. Nunca más de 8. Orden por distancia y desempate por id |
 | `test_door_math.gd` | Arrastre rápido abre más deprisa que lento. Sin arrastre frena hasta parar. No pasa de 0 ni de `MAX_ANGLE`. A 0° despacio: pestillo (evento 1); deprisa: portazo y rebote (evento 2). Con dt de 1/30 y de 1/144, menos de 1° de diferencia tras 1 s |
 | `test_flat.gd` | Se monta en normal y en espejo, con 21 VoxelGI y una `Door` por hoja. En espejo, cada hoja a θ coincide con `MirrorMath.mirror_transform` de la normal a θ. Cambiar de preset o de estado de la tele no enciende zonas inactivas. Un `TLR_SPAWN` desconocido deja al jugador sentado |
 | `test_light_mixer.gd`, `test_graphics_settings.gd` | `set_flashlight_on`; varias GI y sondas |
@@ -297,15 +278,13 @@ Manual, en las paradas: tacto de andar y de las puertas (paso 4), aspecto (pasos
 
 - Paradas de los pasos 1, 4 y 8 aprobadas por el usuario.
 - Benchmark dentro de los objetivos de hito2 D16 en los 4 presets.
-- `VERIFY OK` con 21 scripts de test.
+- `VERIFY OK` con 20 scripts de test.
 - Documentación al día.
 - Commit y push.
 
 ## 9. Riesgos y límites
 
-- **Horneado:** 42 volúmenes. Tardará y ocupará espacio en disco y en el paquete exportado; se mide en el paso 6. Si no compensa, §10 P5.
 - **Pocos modelos de cocina y baño** en Poly Haven: se modelan formas simples.
-- **La luz se cuela entre zonas:** se ve en las capturas; se corrige con el margen de cada VoxelGI.
 - **La Q de levantarse** es provisional (D7).
 
 ## 10. Decisiones para el usuario
@@ -316,5 +295,5 @@ Manual, en las paradas: tacto de andar y de las puertas (paso 4), aspecto (pasos
 | P2 | ¿La Q de levantarse va solo en la build de pruebas? Así no se estropea en la normal la sorpresa del zoom out (hito2 D2). | Solo en pruebas | Solo en pruebas | Paso 3 |
 | P3 | ¿Quitamos la puerta entre el salón y el comedor? Estaba detrás del sofá. | Quitarla | Se quita | Paso 1 |
 | P4 | ¿Lámparas encendidas y tenues en todas las habitaciones, de noche? | Sí, como el salón | Encendidas | Paso 5 |
-| P5 | Si 42 horneados de GI pesan demasiado, ¿probamos un solo VoxelGI para todo el piso? | Preguntar entonces | Se pregunta en el paso 6 | Paso 6 |
+| P5 | Si 42 horneados de GI pesan demasiado, ¿probamos un solo VoxelGI para todo el piso? | Preguntar entonces | Resuelta (2026-11-23): GI solo en el salón (D9) | — |
 | P6 | ¿La tele sigue produciendo mientras andas (salvo en el apagón)? | Sí | Sí | — (va al GDD) |

@@ -18,12 +18,12 @@ grep -q 'BUDGET_CHANGED=' build/budget.log || fail "texture_budget no terminó (
 "$GODOT" --headless --path . --import >build/import.log 2>&1 || fail "importación (build/import.log)"
 ! grep -q 'ERROR' build/import.log || fail "líneas ERROR en build/import.log"
 
-# Comprobación 2. Tests GUT: deben ejecutarse los 21 scripts de test y pasar todos.
+# Comprobación 2. Tests GUT: deben ejecutarse los 20 scripts de test y pasar todos.
 # TLR_NO_SAVE=1: el autoload Game no toca la partida real (GUT rechaza argumentos que no conoce).
 TLR_NO_SAVE=1 "$GODOT" --headless --path . -s addons/gut/gut_cmdln.gd >build/gut.log 2>&1 \
 	|| fail "tests GUT (build/gut.log)"
 grep -q -F -- '---- All tests passed! ----' build/gut.log || fail "no pasaron todos los tests (build/gut.log)"
-grep -q -E 'Scripts +21$' build/gut.log || fail "GUT no ejecutó los 21 scripts de test (build/gut.log)"
+grep -q -E 'Scripts +20$' build/gut.log || fail "GUT no ejecutó los 20 scripts de test (build/gut.log)"
 ! grep -q -E 'SCRIPT ERROR|Parse Error' build/gut.log || fail "errores de script en build/gut.log"
 
 # Comprobación 3. Exportación release, y un .zip con el mismo preset para listar sus archivos.
