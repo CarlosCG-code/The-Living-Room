@@ -38,7 +38,7 @@ El ***Reiniciar*** del incremental es el disparador del bucle: al pulsarlo ocurr
 | Run | Duración aprox. | Qué escucha/ve el jugador | Evento tras el reinicio |
 |---|---|---|---|
 | Menú | — | Dentro del propio salón, a oscuras: la tele llena el encuadre y muestra *Jugar/Continuar*, *Ajustes* y *Salir*. *Jugar* cambia de canal (nieve un instante) al incremental, sin cambiar de escena; desde la pausa, *Menú principal* vuelve al canal del menú (2026-11-18). Las variantes de los finales serán estados de este mismo salón | — |
-| 1 | ~35 min | Sonidos del incremental que derivan en toques en la puerta y objetos que caen. Zoom out sutil: se revela que está sentado en un sofá | Llama a la puerta el **repartidor**. Animación de levantarse. Recoge la comida, la deja en la mesa. Puede **explorar el piso** (~15 min, opcional) o volver a la tele |
+| 1 | ~35 min | Sonidos del incremental que derivan en toques en la puerta y objetos que caen. La vista queda fija en la tele, sin zoom out (usuario, 2026-11-24): el salón y el sofá se descubren al levantarse para abrir al repartidor | Llama a la puerta el **repartidor**. Animación de levantarse. Recoge la comida, la deja en la mesa. Puede **explorar el piso** (~15 min, opcional) o volver a la tele |
 | 2 | ~25 min | Luces y sonidos | **Apagón**. Solo linterna. La casa está **en espejo**. Hay que llegar a la caja de plomos y cambiar un fusible (~15 min) |
 | 3 | ~20 min | Más de lo anterior, más intenso; objetos que cambian de sitio | Llama la **señora del 3.º**. El protagonista vive en el 8.º. Ascensor roto: **escalera a oscuras** hasta su piso, repara la avería, café, y en el salón la **misma tele con el mismo progreso**. Evento ~25 min |
 | 4 | ~15 min | Juega en la tele de ella; su salón (3.º) se transforma objeto a objeto hasta ser idéntico al tuyo, solo cuando no miras. Quien va rápido no lo nota; quien observa sí (intencionado: premia la atención). Lo que falte por cambiar cambia durante la transición | Sonidos de la señora (pastillas, gafas, dentadura). Final |
@@ -131,7 +131,7 @@ Las decisiones técnicas (motor, versión, arquitectura, verificación y licenci
 - PC (Windows), primera persona; mando opcional **[PENDIENTE]**, se decide en el hito 7.
 - **Visual:** el máximo fotorrealismo oscuro alcanzable con assets gratuitos, Blender y Godot (referencia *Visage*, videojuego de terror, 2020). En el hito 2 se itera el look-dev hacia el máximo fotorrealismo alcanzable, hasta que el usuario lo apruebe.
 - **Tele:** el clicker se ve en la pantalla de la tele, con dos botones (clic y *Reiniciar*); se juega apuntando a ella.
-- **Cámara:** un zoom out progresivo revela dónde está el jugador.
+- **Cámara:** sentado, fija en la tele; dónde está el jugador se descubre al levantarse (usuario, 2026-11-24).
 - **Assets y licencias:** según `CLAUDE.md` (todo gratuito y libre).
 
 ## 11. Plan de desarrollo (hitos)
@@ -148,7 +148,7 @@ Cada hito empieza con su **especificación de implementación** (archivos, pasos
    - **Look-dev** del salón del jugador en Forward+: iterar hacia el máximo fotorrealismo alcanzable con assets gratuitos, Blender y Godot, comprobándolo con capturas, hasta que el usuario lo apruebe. Su especificación elige la GI (SDFGI, VoxelGI o LightmapGI) y la niebla.
    - Validar en esa habitación la técnica del **espejo** y de la variante **a oscuras**.
    - Presupuesto de frame (fijado en `specs/hito2.md` D16) sobre el PC de desarrollo (`CLAUDE.md`), midiendo el look-dev con la GI activada y desactivada.
-3. **Zoom out + audio de la run 1 + director de eventos** (presupuesto, cooldowns, tensión acumulada, mirada), con el tope de 3 destellos por segundo y el parámetro de intensidad de efectos implementados en este hito. Su especificación decide: la técnica de la mirada, cómo se arma el estado que recibe el director, la pausa del menú y la congelación parcial del final (`CLAUDE.md`), cómo leen la producción las luces y el zumbido, qué controla el zoom out y dónde se guarda la intensidad de efectos. Cada evento de audio lleva su clave de subtítulo desde que se crea.
+3. **Audio de la run 1 + director de eventos** (presupuesto, cooldowns, tensión acumulada; la mirada se construye con su primer suceso, runs 3-4), con el tope de 3 destellos por segundo y el parámetro de intensidad de efectos implementados en este hito. Su especificación decide: la técnica de la mirada, cómo se arma el estado que recibe el director, la pausa del menú y la congelación parcial del final (`CLAUDE.md`), cómo leen la producción las luces y el zumbido, y dónde se guarda la intensidad de efectos. Cada evento de audio lleva su clave de subtítulo desde que se crea.
 4. **Corte vertical.** Se hace en dos partes (usuario, 2026-11-20): **4a** (cerrado el 2026-11-23), antes del hito 3: el piso, andar y las puertas (`specs/hito4a.md`); **4b**, después del hito 3: todo lo demás, más el piso en espejo. Alcance total: run 1 + repartidor + piso + apagón/espejo de la run 2 + Evidencia (registro de qué pistas se han encontrado) + 1-2 mejoras de prestigio (Carga). Controlador en primera persona (andar, mirar), interacciones (puerta, comida, linterna, caja de plomos, fusible), animación de levantarse y menú principal básico. Guardado ampliado con migración a la versión 2 y su test. Aviso de fotosensibilidad y ajuste de intensidad de efectos antes del playtest. **Playtest con ~5 personas.**
 5. Run 3 y escalera (incluye jumpscare 1 y su sustituto de audio) + mejoras de prestigio completas. Al cerrar el hito, un test de `core/` simula las runs 1-4 con `tick()` y comprueba que las duraciones caen en los rangos de la §3.
 6. Run 4 (transformación del salón de ella hasta ser idéntico al tuyo; usa la mirada del director), escalera hasta el portal, confesión con niveles según la Evidencia y sus voces, *Reiniciar (último)* con pulsación de 2 s, finales «Liberarla», «Ignorarla» e «Irte», variantes del menú y partida nueva. Final secreto: el usuario decide al cerrar el hito 6 si entra ahora o se pospone. Decidir el jumpscare 2.
@@ -168,10 +168,11 @@ Cada hito empieza con su **especificación de implementación** (archivos, pasos
 - Mando opcional (hito 7).
 - Minutos de diálogo de la confesión (antes del hito 6).
 - Jumpscare 2 (hito 6).
+- Cómo ve el jugador los cambios del salón de las runs 3 y 4 si sentado la vista es fija (§3, §5): propuesta, que desde la run 2 pueda levantarse cuando quiera (hito 4b).
 
 ## 13. Riesgos y mitigaciones
 
-- **Abandono en la run 1** (~35 min con solo audio): cada compra cambia el mundo con sonido desde la primera, el zoom out revela poco a poco dónde estás y el director sube la tensión del audio. Se mide en el playtest del hito 4.
+- **Abandono en la run 1** (~35 min con solo audio): cada compra cambia el mundo con sonido desde la primera y el director sube la tensión del audio. Se mide en el playtest del hito 4.
 - **Fotorrealismo solo con medios gratuitos:** el hito 2 itera el look-dev de una habitación hacia el máximo fotorrealismo alcanzable, hasta que el usuario lo apruebe, antes de construir el resto.
 - **Volumen de voz** (confesión de ~20 min con variantes según la Evidencia): se estima en minutos de diálogo antes del hito 6. Voces generadas con modelos libres (VoxCPM2/MOSS-TTS) o grabadas. Idiomas **[PENDIENTE]**.
 - **Activar el final sin querer:** *Reiniciar (último)* se mantiene pulsado 2 s.
@@ -180,7 +181,7 @@ Cada hito empieza con su **especificación de implementación** (archivos, pasos
 
 ## 14. Alternativas consideradas
 
-- **Clicker dentro de la tele, no como menú superpuesto:** es más inmersivo, y el zoom out revela dónde está el jugador; así puede notar el cambio de habitación en la run 4.
+- **Clicker dentro de la tele, no como menú superpuesto:** es más inmersivo y esconde dónde está el jugador hasta que se levanta; así puede notar el cambio de habitación en la run 4.
 - **Cuatro runs:** cada una sostiene un evento propio (repartidor y exploración, apagón y fusible, escalera hasta la señora, cambio de piso y confesión). No se buscaron más porque estas cuatro cubren la historia completa.
 - **Una sola rama de prestigio, no dos:** más sencilla de desarrollar y equilibrar. La atención se premia con la exploración y la Evidencia, no con una rama aparte.
 - **Final con una acción diegética, no con un botón de menú:** realizar una acción pesa más que elegir una opción.
