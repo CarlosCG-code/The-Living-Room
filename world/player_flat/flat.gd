@@ -149,6 +149,11 @@ func _fit_dust() -> void:
 	(dust.process_material as ParticleProcessMaterial).emission_box_extents = half
 
 
+## Posición de la luz de la tele: dust.gdshader la atenúa.
+func set_tv_light(position_3d: Vector3) -> void:
+	((($Dust as GPUParticles3D).draw_pass_1 as QuadMesh).material as ShaderMaterial).set_shader_parameter("tv_position", position_3d)
+
+
 func _bounds() -> Rect2:
 	var r: Rect2 = LAYOUT.zones[0].rect
 	for zone in LAYOUT.zones:

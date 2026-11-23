@@ -35,6 +35,7 @@ func _ready() -> void:
 	var tv := TV.instantiate()
 	add_child(tv)
 	tv.global_transform = room.get_anchor(&"TvAnchor").global_transform
+	flat.set_tv_light(tv.get_screen_light().global_position)
 	var camera := CAMERA.instantiate()
 	add_child(camera)
 	camera.setup(room.get_anchor(&"SeatAnchor"), tv.get_screen_node(), tv.get_screen_size(), tv.get_input())

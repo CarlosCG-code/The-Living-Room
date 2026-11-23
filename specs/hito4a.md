@@ -187,7 +187,7 @@ Lo que lo hace difícil de memorizar (GDD §8, run 2):
 
 **D18 — Sombras de las lámparas (2026-11-23).** Las lámparas de las zonas no llevan `light_size`: las sombras suaves por contacto salían dentadas (alacena, estante y radio de la cocina). El atlas de sombras reparte sus cuadrantes en 4/4/4/16 (`project.godot`) para que cada lámpara tenga un mapa más grande sin gastar más memoria.
 
-**D19 — Polvo en suspensión (usuario, 2026-11-23).** Un solo `GPUParticles3D` (`Dust`, en `flat.tscn`) cubre todo el piso y lo alumbran las lámparas y la linterna, así que a oscuras no se ve. La luz que sale de la cámara lo ilumina al 30 % (`dust.gdshader`): con la linterna se veían pelotas flotando (usuario). Sin sombra ni GI. Medido: no cambia el tiempo de gráfica en ningún preset, por eso es igual en todos y no lleva ajuste.
+**D19 — Polvo en suspensión (usuario, 2026-11-23).** Un solo `GPUParticles3D` (`Dust`, en `flat.tscn`) cubre todo el piso y lo alumbran las lámparas y la linterna, así que a oscuras no se ve. La luz que sale de la cámara lo ilumina al 30 % (`dust.gdshader`): con la linterna se veían pelotas flotando (usuario). La de la tele, al 10 %, por lo mismo. Sin sombra ni GI. Medido: no cambia el tiempo de gráfica en ningún preset, por eso es igual en todos y no lleva ajuste.
 
 ## 4. Archivos
 
