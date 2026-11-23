@@ -238,6 +238,9 @@ def faces(zid):
                                     (("v", px0), lo_x, 1, (lo_y, hi_y)), (("v", px1), hi_x, -1, (lo_y, hi_y))):
         for a, b in walls.get(key, []):
             a, b = max(a, span[0]), min(b, span[1])
+            if key[0] == "v":  # en una junta abierta los verticales se quedan medio muro antes: se forra también ese canto
+                a = span[0] if abs(a - (py0 + T / 2)) < 1e-6 else a
+                b = span[1] if abs(b - (py1 - T / 2)) < 1e-6 else b
             if b - a > 0.01:
                 out.append((key, face, inward, a, b))
     return out
