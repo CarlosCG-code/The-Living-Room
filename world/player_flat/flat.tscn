@@ -1,6 +1,7 @@
-[gd_scene load_steps=9 format=3]
+[gd_scene load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://world/player_flat/flat.gd" id="1_flat"]
+[ext_resource type="Shader" path="res://world/player_flat/dust.gdshader" id="2_dust"]
 
 [sub_resource type="Curve" id="Dust_fade"]
 _data = [Vector2(0, 0), 0.0, 0.0, 0, 0, Vector2(0.2, 1), 0.0, 0.0, 0, 0, Vector2(0.8, 1), 0.0, 0.0, 0, 0, Vector2(1, 0), 0.0, 0.0, 0, 0]
@@ -25,30 +26,9 @@ turbulence_influence_min = 0.02
 turbulence_influence_max = 0.06
 alpha_curve = SubResource("Dust_fade_tex")
 
-[sub_resource type="Gradient" id="Dust_dot"]
-colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0)
-
-[sub_resource type="GradientTexture2D" id="Dust_tex"]
-gradient = SubResource("Dust_dot")
-width = 32
-height = 32
-fill = 1
-fill_from = Vector2(0.5, 0.5)
-fill_to = Vector2(1, 0.5)
-
-[sub_resource type="StandardMaterial3D" id="Dust_mat"]
-transparency = 1
-shading_mode = 2
-specular_mode = 2
-vertex_color_use_as_albedo = true
-albedo_color = Color(1.2, 1.15, 1.08, 1)
-albedo_texture = SubResource("Dust_tex")
-backlight_enabled = true
-backlight = Color(1, 1, 1, 1)
-billboard_mode = 3
-distance_fade_mode = 1
-distance_fade_min_distance = 0.3
-distance_fade_max_distance = 0.9
+[sub_resource type="ShaderMaterial" id="Dust_mat"]
+shader = ExtResource("2_dust")
+shader_parameter/tint = Color(1.2, 1.15, 1.08, 1)
 
 [sub_resource type="QuadMesh" id="Dust_quad"]
 material = SubResource("Dust_mat")
