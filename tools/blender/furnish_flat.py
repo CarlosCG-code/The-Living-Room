@@ -158,7 +158,8 @@ def materials():
         "walnut": tex_mat("WornWalnut", "wood_table_worn", "1k", tint=(0.55, 0.42, 0.34)),
         "tile": tex_mat("WallTiles", "wall_tiles", "2k", root=GEN),
         "brass": bpy.data.materials.get("Brass") or mat("Brass", (0.6, 0.45, 0.22), 0.3, metallic=1.0),
-        "enamel_blue": mat("EnamelBlue", (0.02, 0.05, 0.16), 0.15),
+        # Latón viejo, solo medio metálico: con metallic 1 y a oscuras no refleja nada y los grifos salían negros (usuario, 2026-11-23).
+        "plumbing": half_metal(tex_mat("OldBrass", "porcelain_old", "2k", tint=(0.6, 0.5, 0.32), root=GEN)),
         "wool": tex_mat("CoatWool", "poly_wool_herringbone", "1k", tint=(0.2, 0.18, 0.17)),
         "linen": tex_mat("UsedLinen", "cloth_linen", "2k", root=GEN),  # la lisa parecía nueva (usuario, 2026-11-22)
         "soap": mat("Soap", (0.62, 0.58, 0.48), 0.6),
@@ -168,6 +169,11 @@ def materials():
         "fringe": mat("LampFringe", (0.42, 0.28, 0.14), 0.9),
         "bulb": glowing(mat("LampBulb", (1.0, 0.85, 0.65), 0.3), 4.0),
     }
+
+
+def half_metal(m):
+    next(n for n in m.node_tree.nodes if n.type == "BSDF_PRINCIPLED").inputs["Metallic"].default_value = 0.5
+    return m
 
 
 def glowing(m, strength):
@@ -245,15 +251,58 @@ def lathe(name, prof, loc=(0, 0, 0), sx=1.0, sy=1.0, e=2.0, verts=40):
     return o
 
 
-def tap(M, x, y, z, spout=0.09):
-    """Grifo de latón de cruceta, de los de antes: cuerpo torneado, cruz arriba y caño hacia delante."""
-    parts = [give(lathe("TapBody", [(0, 0), (0.018, 0), (0.016, 0.03), (0.012, 0.06), (0.016, 0.075), (0, 0.08)], (x, y, z), verts=16), M["brass"]),
-             give(cylinder("TapSpout", 0.008, spout, (x, y - spout / 2, z + 0.035), rot=(math.radians(100), 0, 0), verts=10), M["brass"])]
-    for a in (0, 90):
-        bar = give(box("TapCross", (0.07, 0.008, 0.008), (x, y, z + 0.09)), M["brass"])
-        bar.rotation_euler.z = math.radians(a + 45)
-        parts.append(bar)
+def pipe(name, pts, r):
+    """Tubo redondo que pasa por los puntos, con los codos suaves."""
+    cu = bpy.data.curves.new(name, "CURVE")
+    cu.dimensions, cu.bevel_depth, cu.bevel_resolution, cu.use_fill_caps, cu.resolution_u = "3D", r, 3, True, 8
+    sp = cu.splines.new("BEZIER")
+    sp.bezier_points.add(len(pts) - 1)
+    for bp, co in zip(sp.bezier_points, pts):
+        bp.co, bp.handle_left_type, bp.handle_right_type = co, "AUTO", "AUTO"
+    o = bpy.data.objects.new(name, cu)
+    bpy.context.collection.objects.link(o)
+    o = cast(o)
+    for p in o.data.polygons:
+        p.use_smooth = True
+    return o
+
+
+def cross_handle(M, x, y, z):
+    """Llave de latón: cuerpo torneado con cruceta y botón de loza (base en z, alto 0,11)."""
+    parts = [give(lathe("TapBody", [(0, 0), (0.026, 0), (0.026, 0.006), (0.017, 0.012), (0.015, 0.045), (0.019, 0.055),
+                                    (0.012, 0.07), (0.009, 0.09), (0.016, 0.096), (0.016, 0.104), (0, 0.106)], (x, y, z), verts=20), M["plumbing"]),
+             give(lathe("TapButton", [(0.012, 0), (0.012, 0.003), (0.007, 0.007), (0, 0.008)], (x, y, z + 0.104), verts=16), M["porcelain"])]
+    for a in (45, 135):
+        c, sn = 0.038 * math.cos(math.radians(a)), 0.038 * math.sin(math.radians(a))
+        parts.append(give(cylinder("TapCross", 0.006, 0.076, (x, y, z + 0.1), rot=(math.radians(90), 0, math.radians(a + 90)), verts=10), M["plumbing"]))
+        for k in (-1, 1):
+            bpy.ops.mesh.primitive_uv_sphere_add(radius=0.009, location=(x + k * c, y + k * sn, z + 0.1), segments=12, ring_count=8)
+            parts.append(give(bpy.context.active_object, M["plumbing"]))
     return parts
+
+
+def tap(M, x, y, z):
+    """Grifo de repisa, de los de antes: llave de cruceta y caño curvo hacia delante (-Y)."""
+    spout = [(x, y, z + 0.035), (x, y - 0.05, z + 0.06), (x, y - 0.09, z + 0.055), (x, y - 0.105, z + 0.02)]
+    return cross_handle(M, x, y, z) + [give(pipe("TapSpout", spout, 0.011), M["plumbing"])]
+
+
+def wall_mixer(M, x, wall, z, reach):
+    """Grifo de cocina de pared: dos llaves de cruceta unidas por un puente y caño de cuello de cisne."""
+    parts, y = [], wall - 0.075
+    for k in (-0.09, 0.09):
+        parts.append(give(cylinder("MixerRose", 0.032, 0.012, (x + k, wall - 0.006, z), rot=(math.radians(90), 0, 0), verts=20), M["plumbing"]))
+        parts.append(give(cylinder("MixerInlet", 0.014, 0.075, (x + k, wall - 0.0375, z), rot=(math.radians(90), 0, 0), verts=14), M["plumbing"]))
+        parts += cross_handle(M, x + k, y, z - 0.005)
+    parts.append(give(cylinder("MixerBridge", 0.013, 0.2, (x, y, z), rot=(0, math.radians(90), 0), verts=14), M["plumbing"]))
+    parts.append(give(lathe("MixerNut", [(0, 0), (0.02, 0), (0.02, 0.03), (0.013, 0.038), (0, 0.038)], (x, y, z), verts=12), M["plumbing"]))
+    spout = [(x, y, z + 0.03), (x, y - 0.005, z + 0.12), (x, y - reach * 0.4, z + 0.18), (x, y - reach * 0.85, z + 0.12), (x, y - reach, z + 0.03)]
+    parts.append(give(pipe("MixerSpout", spout, 0.011), M["plumbing"]))
+    return parts
+
+
+def drain(M, x, y, z):
+    return give(lathe("Drain", [(0.036, 0), (0.036, 0.004), (0.028, 0.005), (0.026, 0.001), (0, 0.001)], (x, y, z), verts=24), M["plumbing"])
 
 
 def bathtub(M):
@@ -269,8 +318,9 @@ def bathtub(M):
         for y in (-0.21, 0.21):
             parts.append(give(lathe("TubClaw", claw, (x, y, 0), verts=14), M["iron"]))
     for y in (-0.09, 0.09):
-        parts += tap(M, 0.74, y + 0.02, 0.69, spout=0.0)
-    parts.append(give(cylinder("TubSpout", 0.012, 0.16, (0.7, 0.02, 0.76), rot=(0, math.radians(-70), 0), verts=12), M["brass"]))
+        parts += cross_handle(M, 0.76, y, 0.685)
+    parts.append(give(cylinder("TubBridge", 0.013, 0.2, (0.76, 0, 0.73), rot=(math.radians(90), 0, 0), verts=14), M["plumbing"]))
+    parts.append(give(pipe("TubSpout", [(0.76, 0, 0.73), (0.755, 0, 0.8), (0.7, 0, 0.85), (0.63, 0, 0.81), (0.61, 0, 0.74)], 0.014), M["plumbing"]))
     return parts
 
 
@@ -295,41 +345,30 @@ def toilet(M, wooden_tank=False):
         brace = give(box("WcBrace", (0.02, 0.025, 0.24), (x, 0.17, tz - 0.22)), M["iron"])
         brace.rotation_euler.x = math.radians(35)
         parts.append(brace)
-    parts.append(give(cylinder("WcPipe", 0.018, tz - 0.48, (0, 0.2, (tz - 0.12 + 0.36) / 2), verts=12), M["brass"]))
-    parts.append(give(cylinder("WcChain", 0.003, 0.6, (0.2, 0.07, tz - 0.42), verts=6), M["brass"]))
+    parts.append(give(cylinder("WcPipe", 0.018, tz - 0.48, (0, 0.2, (tz - 0.12 + 0.36) / 2), verts=12), M["plumbing"]))
+    parts.append(give(cylinder("WcChain", 0.003, 0.6, (0.2, 0.07, tz - 0.42), verts=6), M["plumbing"]))
     parts.append(give(lathe("WcPull", [(0, 0), (0.014, 0.01), (0.018, 0.05), (0.008, 0.08), (0, 0.085)], (0.2, 0.07, tz - 0.8), verts=14), M["porcelain"]))
     return parts
 
 
-def basin(M):
-    """Lavabo de pie de loza: pie torneado, pila con reborde, peto trasero y dos grifos de cruceta."""
+def basin(M, pedestal=True):
+    """Lavabo de loza: pila con reborde, repisa y peto traseros. El del baño, de pie y con dos grifos de cruceta; el del
+    aseo de servicio (pedestal=False), sobre escuadras de hierro, con uno solo y el desagüe a la vista."""
     foot = [(0, 0), (0.15, 0), (0.15, 0.02), (0.1, 0.06), (0.065, 0.2), (0.06, 0.45), (0.08, 0.6), (0.12, 0.66), (0, 0.66)]
     bowl = [(0.2, 0.6), (0.55, 0.68), (0.9, 0.79), (1.0, 0.85), (0.98, 0.87), (0.9, 0.865), (0.7, 0.8), (0.35, 0.75), (0, 0.74)]
-    parts = [give(lathe("BasinFoot", foot, (0, 0.02, 0), verts=28), M["porcelain"]),
-             give(lathe("BasinBowl", bowl, (0, -0.02, 0), sx=0.3, sy=0.23, e=2.6, verts=40), M["porcelain"]),
-             give(box("BasinSplash", (0.6, 0.04, 0.16), (0, 0.19, 0.93)), M["porcelain"], bevel=0.015)]
-    for x in (-0.12, 0.12):
-        parts += tap(M, x, 0.15, 0.86)
-    return parts
-
-
-def washstand(M):
-    """Palangana de esmalte en su trípode de hierro, con la jarra abajo y una toalla en la barra (aseo de servicio)."""
-    parts = []
-    for a in (90, 210, 330):
-        x, y = 0.19 * math.cos(math.radians(a)), 0.19 * math.sin(math.radians(a))
-        parts.append(give(cylinder("StandLeg", 0.009, 0.82, (x, y, 0.41), verts=8), M["iron"]))
-    for z, r in ((0.8, 0.19), (0.3, 0.17)):
-        bpy.ops.mesh.primitive_torus_add(major_radius=r, minor_radius=0.008, location=(0, 0, z))
-        parts.append(give(bpy.context.active_object, M["iron"]))
-    bowl = [(0, 0.76), (0.09, 0.76), (0.17, 0.8), (0.22, 0.86), (0.225, 0.865), (0.215, 0.865), (0.16, 0.81), (0.08, 0.775), (0, 0.775)]
-    parts.append(give(lathe("WashBowl", bowl, verts=32), M["enamel"]))
-    bpy.ops.mesh.primitive_torus_add(major_radius=0.222, minor_radius=0.005, location=(0, 0, 0.865))
-    parts.append(give(bpy.context.active_object, M["enamel_blue"]))
-    jug = [(0, 0.3), (0.07, 0.3), (0.085, 0.36), (0.075, 0.44), (0.05, 0.5), (0.06, 0.55), (0.055, 0.555), (0.045, 0.505), (0, 0.5)]
-    parts.append(give(lathe("WashJug", jug, (0.02, -0.02, 0.01), verts=24), M["enamel"]))
-    parts.append(give(cylinder("StandBar", 0.007, 0.36, (0, 0.17, 0.62), rot=(0, math.radians(90), 0), verts=8), M["iron"]))
-    parts.append(give(box("StandTowel", (0.3, 0.012, 0.3), (0, 0.18, 0.48)), M["linen"]))
+    parts = [give(lathe("BasinBowl", bowl, (0, -0.02, 0), sx=0.3, sy=0.23, e=2.6, verts=40), M["porcelain"]),
+             give(box("BasinSplash", (0.6, 0.04, 0.16), (0, 0.19, 0.93)), M["porcelain"], bevel=0.015),
+             give(box("BasinDeck", (0.52, 0.1, 0.05), (0, 0.145, 0.855)), M["porcelain"], bevel=0.012),  # los grifos flotaban sobre la pila
+             drain(M, 0, -0.02, 0.741)]
+    if pedestal:
+        parts.append(give(lathe("BasinFoot", foot, (0, 0.02, 0), verts=28), M["porcelain"]))
+    else:
+        trap = [(0, -0.02, 0.62), (0, -0.02, 0.46), (0, 0.04, 0.42), (0, 0.09, 0.47), (0, 0.13, 0.4), (0, 0.13, 0.0)]
+        parts.append(give(pipe("BasinTrap", trap, 0.02), M["plumbing"]))
+        for x in (-0.18, 0.18):
+            parts.append(give(pipe("BasinBracket", [(x, 0.2, 0.44), (x, 0.15, 0.57), (x, 0.04, 0.66), (x, -0.06, 0.69)], 0.012), M["iron"]))
+    for x in (-0.14, 0.14) if pedestal else (0.0,):
+        parts += tap(M, x, 0.14, 0.88)
     return parts
 
 
@@ -357,13 +396,12 @@ def wall_slate(M):
 
 
 def kitchen_sink(M):
-    """Fregadero de loza vieja sobre obra alicatada, con grifo de pared (no hay ninguno CC0 de librería)."""
+    """Fregadero de loza vieja sobre obra alicatada, con grifo de pared (el 2026-11-23 no había ninguno CC0 que valiera)."""
     parts = [give(box("SinkBase", (1.0, 0.55, 0.8), (0, 0, 0.4)), M["tile"])]
     outer = cast(give(box("Sink", (1.0, 0.58, 0.2), (0, -0.01, 0.9)), M["porcelain"], bevel=0.02))
     inner = cast(give(box("SinkIn", (0.7, 0.42, 0.2), (-0.1, -0.02, 0.98)), M["porcelain"], bevel=0.02))
     parts.append(hollow(outer, inner))
-    parts.append(give(cylinder("SinkTap", 0.014, 0.2, (-0.1, 0.18, 1.12), rot=(math.radians(-70), 0, 0), verts=10), M["brass"]))
-    return parts
+    return parts + wall_mixer(M, -0.1, 0.275, 1.17, 0.2) + [drain(M, -0.1, -0.02, 0.881)]
 
 
 def workbench(M):
@@ -900,7 +938,7 @@ def furnish():
     shelf = made(wall_shelf(M, 0.6, 1.5), "KitchenShelf", z, "py0", 2.0, gap=0.0)
     on("brass_pot_01", shelf, top=1.5125, scale=0.7)
     table = free("painted_wooden_table", 12.1, 11.85, scale=0.75)  # 2,4 m: tapaba las dos puertas; a lo largo deja paso
-    chairs_around(table, "painted_wooden_chair_02", per_side=1, gap=0.25)
+    chairs_around(table, "painted_wooden_chair_02", per_side=1, gap=0.25, scale=0.72)  # el modelo mide 1,26 m de alto
     on("enamel_kettle", table, dpy=-0.25, rot=30)
     window_curtain(z)
     on("wooden_cutting_board", table, dpx=-0.2)
@@ -912,10 +950,10 @@ def furnish():
     pic("cma:147607", z, "px0", seg_mid(z, "px0", 0.6), 1.6, 0.38, "walnut")  # bodegón con arenques
     fixture(z)
 
-    # Aseo de servicio: retrete con cisterna de madera y palangana en su trípode con jarra y toalla.
+    # Aseo de servicio: retrete con cisterna de madera y lavabo de escuadras con un grifo (usuario, 2026-11-23).
     z = "service_toilet"
     made(toilet(M, wooden_tank=True), "ServiceToilet", z, "py1", 1.4)
-    made(washstand(M), "Washstand", z, "px1", 2.2, gap=0.05)
+    made(basin(M, pedestal=False), "ServiceBasin", z, "px1", 2.2, gap=0.0)
     pic("cma:151015", z, "px0", seg_mid(z, "px0", 1.0), 1.6, 0.3, "walnut")
     fixture(z)
 
