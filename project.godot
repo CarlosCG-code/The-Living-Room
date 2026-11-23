@@ -22,6 +22,8 @@ locale/fallback="es"
 [rendering]
 renderer/rendering_method="forward_plus"
 rendering_device/driver.windows="d3d12"
+lights_and_shadows/positional_shadow/atlas_quadrant_2_subdiv=2
+lights_and_shadows/positional_shadow/atlas_quadrant_3_subdiv=3
 occlusion_culling/use_occlusion_culling=true
 reflections/reflection_atlas/reflection_count=4
 

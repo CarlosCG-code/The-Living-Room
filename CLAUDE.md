@@ -18,7 +18,7 @@ Juego de terror psicológico con un incremental como mecánica central, hecho en
 Separar siempre la lógica de la presentación:
 
 - `core/` — sin nodos ni escena (`RefCounted`/`Resource`): estado por run y meta-estado que persiste entre partidas completas (p. ej. el menú alterado tras un final), economía, prestigio (= reinicio), Evidencia, guardado. Testeable.
-- `presentation/` — TV (`SubViewport` + raycast → UV), rig de cámara (`reveal` 0–1 interpola FOV/posición), UI.
+- `presentation/` — TV (`SubViewport` + raycast → UV), rig de cámara (`reveal` 0–1 interpola FOV/posición), jugador de pie (`presentation/player/`), UI.
 - `fear/` — director de eventos (presupuesto, cooldowns, comprobación de mirada: eventos que solo ocurren si el jugador no mira).
 - `audio/` — gestor de audio 3D y mezcla por run.
 - `world/` — piso del jugador, escalera, piso de la señora, menú principal (tele y silla). Variantes del piso: espejo y a oscuras (la run 2 combina ambas); su técnica se especifica y valida en el hito 2 junto al look-dev (candidatas: kit modular colocado en simetría, o reflejo de geometría en build con normales y textos corregidos).

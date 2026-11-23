@@ -12,7 +12,6 @@
 - **Zona:** una habitación o un tramo de pasillo.
 - **Hoja:** la parte de la puerta que gira.
 - **Vano:** un paso sin puerta.
-- **Activa:** zona con su VoxelGI encendido.
 - **Build de pruebas:** la que se abre con `Jugar (pruebas).bat`.
 - **Build normal:** `build/TheLivingRoom.exe`.
 
@@ -20,7 +19,7 @@
 
 ## 1. Objetivo
 
-En la build de pruebas, el jugador se levanta del sofá y recorre un piso de 14 habitaciones con muebles básicos. Abre y cierra las puertas arrastrándolas con el ratón como en *Visage* y vuelve a sentarse. Todo funciona igual en espejo y a oscuras, dentro de los objetivos de rendimiento de hito2 D16.
+En la build de pruebas, el jugador se levanta del sofá y recorre un piso de 14 habitaciones con muebles básicos. Abre y cierra las puertas arrastrándolas con el ratón como en *Visage* y vuelve a sentarse. Todo funciona igual a oscuras, dentro de los objetivos de rendimiento de hito2 D16. **El piso en espejo está aplazado** hasta que el usuario dé la casa por terminada: su glTF y sus tests existen, pero no cuenta para cerrar 4a.
 
 Fuera de 4a: todo lo de 4b, el look-dev fino de cada habitación, la pausa de pie, invertir el eje Y, los pasos según el suelo y guardar la posición.
 
@@ -112,23 +111,21 @@ Lo que lo hace difícil de memorizar (GDD §8, run 2):
 - Descartado: dibujar el plano en Godot. Blender necesita los mismos datos para construir.
 
 **D2 — Geometría.** `tools/blender/build_flat.py` construye todo menos el salón:
-- Paredes, suelos, techos, marcos y rodapiés, **partidos por zona**: ninguna malla cruza dos zonas, para que cada pixel mezcle como mucho 2 VoxelGI.
+- Paredes, suelos, techos, marcos y rodapiés, **partidos por zona**: ninguna malla cruza dos zonas.
 - Muros de 15 cm, con colisión `-colonly`.
-- Las funciones de ayuda (`box`, `tex_mat`, `import_model`, `mirror_all`…) pasan de `build_living_room.py` a `tools/blender/blender_common.py`, que usan los dos scripts.
 - Rotaciones aplicadas antes de `mirror_all`.
-- Salida: `assets/models/player_flat/flat.gltf` y `flat_mirror.gltf`, en la misma carpeta que el salón (que se muda de `living_room/`), para compartir texturas.
+- Salida: `assets/models/living_room/flat.gltf` y `flat_mirror.gltf`, en la misma carpeta que el salón (que no se movió), para compartir texturas.
 - Las hojas de las puertas no van en el glTF (D5).
 
 **D3 — El salón cambia solo en colisión.** `build_living_room.py` (modo final) deja de borrar las cajas de los muebles y las exporta como `-colonly`. El sofá va en su propia capa de colisión, para el clic de D7. La hoja `DoorLeaf` y `DoorHandle` siguen en su glTF, pero `flat.gd` las oculta y pone en su bisagra una `Door` de D5. El resto del salón no cambia. Su GI se hornea de nuevo dentro del piso (D9).
 
 **D4 — Montaje.** `world/player_flat/flat.tscn` (`flat.gd`):
 - Monta el salón (`living_room.tscn`, como ahora), la geometría del resto y una `Door` por hoja.
-- Por cada zona crea un contenedor `Zones/<id>` con su VoxelGI, una `ReflectionProbe` y sus luces.
+- Crea las luces de cada zona, los espejos (`PlanarMirror`), las farolas de las otras ventanas de la fachada y los tapones de oclusión de los muros. El VoxelGI y la `ReflectionProbe` son solo los del salón (D9, D17).
 - `main.gd` monta `flat.tscn` en vez del salón.
 - Un solo `WorldEnvironment`, el del salón: la misma luz en toda la casa (usuario, ronda 3).
-- `flat.gd` tiene `bake_mode`, que deja todas las zonas visibles para el horneado (D9).
 
-**D5 — Puertas como en Visage.** `world/player_flat/door.tscn`: la hoja es un `AnimatableBody3D` que gira en torno a la bisagra.
+**D5 — Puertas como en Visage.** `world/player_flat/door.gd` (`Door`): la hoja es un `AnimatableBody3D` que gira en torno a la bisagra.
 - **Agarrar:** con la hoja en el centro de la pantalla a ≤ 2 m, se mantiene el clic.
 - **Arrastrar:** mover el ratón **hacia arriba aleja la hoja de ti; hacia abajo, la acerca**, desde cualquier lado. La velocidad del ratón decide si se abre despacio o deprisa. Mientras se arrastra, la vista no gira.
 - **Soltar:** la hoja sigue con su inercia y frena con rozamiento.
@@ -183,40 +180,41 @@ Lo que lo hace difícil de memorizar (GDD §8, run 2):
 **D15 — Guardado sin cambios.** La posición no se guarda: al cargar, el jugador siempre está sentado.
 
 **D16 — Herramientas de desarrollo.**
-- `TLR_SPAWN=<id de zona>` pone al jugador de pie en el centro de esa zona. Con un id desconocido, avisa y sigue sentado. Solo en depuración.
-- El benchmark activa las zonas de la posición de cada cámara.
+- `TLR_SPAWN=<id de zona>` pone al jugador de pie en el centro de esa zona. Con un id desconocido, avisa y sigue sentado (sin test: es un atajo de desarrollo). Solo en depuración.
+- El benchmark mide desde ese sitio si se usa `TLR_SPAWN`; `TLR_YAW`, `TLR_PITCH`, `TLR_FLASH` y `TLR_SHOT` sirven para las capturas.
+
+**D17 — Sondas de reflejo por zona: propuesta, no añadirlas (2026-11-23, lo decide el usuario).** Probado en la cocina y el baño, con y sin linterna: la sonda funciona (se ve en una bola cromada de prueba), pero en los objetos reales no hay diferencia visible ni a 10 veces su intensidad: esas zonas están demasiado oscuras para que haya algo que reflejar. De momento solo la tiene el salón.
+
+**D18 — Sombras de las lámparas (2026-11-23).** Las lámparas de las zonas no llevan `light_size`: las sombras suaves por contacto salían dentadas (alacena, estante y radio de la cocina). El atlas de sombras reparte sus cuadrantes en 4/4/4/16 (`project.godot`) para que cada lámpara tenga un mapa más grande sin gastar más memoria.
 
 ## 4. Archivos
 
 ```
-tools/blender/blender_common.py            crear (funciones sacadas de build_living_room.py)
-tools/blender/build_living_room.py         cambiar (usa blender_common; colisión de muebles -colonly; nueva carpeta de salida)
+tools/blender/build_living_room.py         cambiar (colisión de muebles -colonly)
 tools/blender/flat_layout.py               crear
 tools/blender/build_flat.py                crear (glTF normal y espejo + data/flat_layout.tres)
-assets/models/player_flat/                 crear (salón movido aquí + piso; texturas compartidas)
+assets/models/living_room/                 cambiar (se añade el piso: flat.gltf y flat_mirror.gltf; texturas compartidas)
 data/flat_layout.tres                      generado
 world/player_flat/flat_layout.gd           crear (class_name FlatLayout)
 world/player_flat/zone_def.gd              crear (class_name ZoneDef)
 world/player_flat/connection_def.gd        crear (class_name ConnectionDef)
 world/player_flat/door_math.gd             crear (class_name DoorMath)
-world/player_flat/door.gd, door.tscn       crear
+world/player_flat/door.gd                  crear
 world/player_flat/flat.gd, flat.tscn       crear
-world/player_flat/living_room.gd           cambiar (rutas del glTF)
-world/player_flat/gi/                      generado, fuera de git
 presentation/player/player.gd, player.tscn crear
 presentation/ui/crosshair.gd               crear
 presentation/main.gd                       cambiar (monta flat; levantarse y sentarse; TLR_SPAWN)
 presentation/camera/game_camera.gd         cambiar (no reenvía a la tele de pie; cede la linterna)
 presentation/graphics/light_mixer.gd       cambiar (set_flashlight_on)
-presentation/graphics/graphics_settings.gd cambiar (Array de VoxelGI y de sondas)
-presentation/graphics/benchmark.gd         cambiar (activa zonas por cámara)
+presentation/graphics/graphics_settings.gd cambiar (presets)
+presentation/graphics/benchmark.gd         cambiar (mide también desde TLR_SPAWN)
+presentation/graphics/planar_mirror.gd     crear (espejos de verdad, usuario 2026-11-22)
 presentation/ui/main_menu_ui.gd            cambiar (página Controles)
 presentation/ui/tv_game_ui.gd              cambiar (abrir la pausa al sentarse con Esc)
 autoload/event_bus.gd                      cambiar (player_zone_changed)
 core/user_settings.gd                      cambiar (mouse_sensitivity)
-tools/bake_voxel_gi.gd                     cambiar (todas las zonas, normal y espejo)
 project.godot                              cambiar (move_*, stand_up, flashlight; physics_interpolation)
-.gitignore                                 cambiar (gi/, texturas y .bin del piso, art_source/flat.blend)
+.gitignore                                 cambiar (texturas y .bin del piso, art_source/flat.blend)
 assets/audio/flat/                         crear (pasos, puertas)
 locale/strings.csv, ASSETS.md              cambiar
 tests/test_flat_layout.gd                  crear
@@ -239,8 +237,8 @@ CLAUDE.md                                  cambiar (presentation/player/, si se 
   - `lights: Array[Dictionary]` (`pos`, `color`, `energy`, `range`, `base_normal`, `base_dark`).
 - `ConnectionDef`:
   - `id`, `zone_a`, `zone_b` (`&""` = rellano);
-  - `kind` (`leaf` | `passage`), `hinge: Vector3`, `facing`, `width`;
-  - `start` (`closed` | `ajar` | `locked`).
+  - `kind` (`leaf` | `passage`), `hinge: Vector3`, `direction`, `width`, `swing`;
+  - `start` (`closed` | `ajar` | `locked` | `open`).
 - `DoorMath.step(angle, velocity, drag, delta) -> Vector3` (D5).
 - `Door`: `try_grab(eye: Vector3) -> bool`, `drag(mouse_dy: float)`, `release()`; señal `closed_changed`.
 - `Player`:
@@ -257,7 +255,7 @@ CLAUDE.md                                  cambiar (presentation/player/, si se 
 4. Puertas y sus sonidos. **Parada: el usuario anda y abre puertas en el piso vacío** (tacto de las puertas, velocidad al andar, sensibilidad).
 5. Muebles básicos y luces.
 6. Benchmark en los 4 presets, en normal y a oscuras con linterna, más la VRAM. Sin GI por zona (D9). **Hecho (2026-11-23).**
-7. Documentación: GDD, `CLAUDE.md` y `ASSETS.md`.
+7. Documentación: GDD, `CLAUDE.md` y `ASSETS.md`. **Hecho (2026-11-23).** Antes se repitió el benchmark con la versión actual: los 4 presets cumplen por tiempo de gráfica; en bajo y medio el tiempo total no se puede medir por debajo del tope del monitor.
 8. **Parada final:** capturas de cada zona; el usuario recorre el piso en la build de pruebas.
 
 Cada paso deja los tests en verde y hace commit y push.
@@ -268,8 +266,8 @@ Cada paso deja los tests en verde y hace commit y push.
 |---|---|
 | `test_flat_layout.gd` | 21 zonas sin solaparse. Cada conexión une dos zonas separadas 0,15 ± 0,01 m y que se solapan al menos el ancho de la puerta (salvo la del rellano). Todo se alcanza desde el salón. Quitar el lateral, el oficio o el taller (uno cada vez) deja unidos los dos pasillos. La caja de plomos está en `storage`, a ≥ 5 pasos del salón. El salón mide 4 × 5 y su conexión coincide con la puerta actual (pared x = −2,075, z = −1,6, ancho 0,9). `zone_at` dentro, en bordes, en muros y reflejado |
 | `test_door_math.gd` | Arrastre rápido abre más deprisa que lento. Sin arrastre frena hasta parar. No pasa de 0 ni de `MAX_ANGLE`. A 0° despacio: pestillo (evento 1); deprisa: portazo y rebote (evento 2). Con dt de 1/30 y de 1/144, menos de 1° de diferencia tras 1 s |
-| `test_flat.gd` | Se monta en normal y en espejo, con 21 VoxelGI y una `Door` por hoja. En espejo, cada hoja a θ coincide con `MirrorMath.mirror_transform` de la normal a θ. Cambiar de preset o de estado de la tele no enciende zonas inactivas. Un `TLR_SPAWN` desconocido deja al jugador sentado |
-| `test_light_mixer.gd`, `test_graphics_settings.gd` | `set_flashlight_on`; varias GI y sondas |
+| `test_flat.gd` | Se monta en normal y en espejo, con una `Door` por hoja. En espejo, cada hoja a θ coincide con `MirrorMath.mirror_transform` de la normal a θ. Las hojas cerradas encajan en su hueco y se abren sin chocar con muebles; la del rellano no se agarra. Oclusión del sonido y de los muros; la lluvia no da sombra |
+| `test_light_mixer.gd`, `test_graphics_settings.gd` | `set_flashlight_on`; presets |
 | `test_user_settings.gd`, `test_main_menu_ui.gd` | `mouse_sensitivity` (ida y vuelta, valores malos, archivo antiguo); la página Controles cabe y tiene foco |
 
 Manual, en las paradas: tacto de andar y de las puertas (paso 4), aspecto (pasos 1 y 8), que la hoja no atraviese ni encaje al jugador (paso 4).

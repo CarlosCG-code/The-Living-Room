@@ -102,7 +102,7 @@ La Evidencia determina cuánto confiesa la señora (y por tanto cuánto sabe el 
 
 ## 8. Escenarios
 
-1. Piso del jugador (incluye la caja de plomos): normal, **en espejo**, **a oscuras** (la run 2 combina ambas; la técnica del espejo y de la variante a oscuras se valida en el hito 2). **Más de 10 habitaciones** (usuario, 2026-11-19): en el apagón en espejo de la run 2 el jugador tiene que poder perderse de verdad. La distribución se especifica en el hito 4.
+1. Piso del jugador (incluye la caja de plomos): normal, **en espejo**, **a oscuras** (la run 2 combina ambas; la técnica del espejo y de la variante a oscuras se valida en el hito 2). **Más de 10 habitaciones** (usuario, 2026-11-19): en el apagón en espejo de la run 2 el jugador tiene que poder perderse de verdad. **Plano construido (hito 4a, `specs/hito4a.md` §2):** 14 habitaciones y 7 tramos de pasillo, unos 17,5 × 13 m, con tres recorridos en círculo, dos dormitorios casi gemelos, puertas iguales y la caja de plomos en el trastero, lejos del salón. Luz como en *Visage*: islas tenues y cálidas con tramos a oscuras entre ellas; la farola entra fría por la fachada. El jugador anda despacio (1,3 m/s, sin correr) y abre las puertas arrastrándolas con el ratón. La versión en espejo está aplazada hasta terminar la casa (usuario, 2026-11-21).
 2. Escalera del 8.º a la planta baja (portal).
 3. Piso de la señora (salón y recibidor como mínimo).
 4. Portal / bajo del edificio, al pie de la escalera: **caja general** (final secreto).
@@ -147,9 +147,9 @@ Cada hito empieza con su **especificación de implementación** (archivos, pasos
 2. **Tele en el salón del jugador** + SubViewport; apuntar y clicar en la tele en primera persona.
    - **Look-dev** del salón del jugador en Forward+: iterar hacia el máximo fotorrealismo alcanzable con assets gratuitos, Blender y Godot, comprobándolo con capturas, hasta que el usuario lo apruebe. Su especificación elige la GI (SDFGI, VoxelGI o LightmapGI) y la niebla.
    - Validar en esa habitación la técnica del **espejo** y de la variante **a oscuras**.
-   - Presupuesto de frame **[PENDIENTE]** sobre el PC de desarrollo (`CLAUDE.md`), midiendo el look-dev con la GI activada y desactivada.
+   - Presupuesto de frame (fijado en `specs/hito2.md` D16) sobre el PC de desarrollo (`CLAUDE.md`), midiendo el look-dev con la GI activada y desactivada.
 3. **Zoom out + audio de la run 1 + director de eventos** (presupuesto, cooldowns, tensión acumulada, mirada), con el tope de 3 destellos por segundo y el parámetro de intensidad de efectos implementados en este hito. Su especificación decide: la técnica de la mirada, cómo se arma el estado que recibe el director, la pausa del menú y la congelación parcial del final (`CLAUDE.md`), cómo leen la producción las luces y el zumbido, qué controla el zoom out y dónde se guarda la intensidad de efectos. Cada evento de audio lleva su clave de subtítulo desde que se crea.
-4. **Corte vertical:** run 1 + repartidor + piso + apagón/espejo de la run 2 + Evidencia (registro de qué pistas se han encontrado) + 1-2 mejoras de prestigio (Carga). Controlador en primera persona (andar, mirar), interacciones (puerta, comida, linterna, caja de plomos, fusible), animación de levantarse y menú principal básico. Guardado ampliado con migración a la versión 2 y su test. Aviso de fotosensibilidad y ajuste de intensidad de efectos antes del playtest. **Playtest con ~5 personas.**
+4. **Corte vertical.** Se hace en dos partes (usuario, 2026-11-20): **4a**, antes del hito 3: el piso, andar y las puertas (`specs/hito4a.md`); **4b**, después del hito 3: todo lo demás, más el piso en espejo. Alcance total: run 1 + repartidor + piso + apagón/espejo de la run 2 + Evidencia (registro de qué pistas se han encontrado) + 1-2 mejoras de prestigio (Carga). Controlador en primera persona (andar, mirar), interacciones (puerta, comida, linterna, caja de plomos, fusible), animación de levantarse y menú principal básico. Guardado ampliado con migración a la versión 2 y su test. Aviso de fotosensibilidad y ajuste de intensidad de efectos antes del playtest. **Playtest con ~5 personas.**
 5. Run 3 y escalera (incluye jumpscare 1 y su sustituto de audio) + mejoras de prestigio completas. Al cerrar el hito, un test de `core/` simula las runs 1-4 con `tick()` y comprueba que las duraciones caen en los rangos de la §3.
 6. Run 4 (transformación del salón de ella hasta ser idéntico al tuyo; usa la mirada del director), escalera hasta el portal, confesión con niveles según la Evidencia y sus voces, *Reiniciar (último)* con pulsación de 2 s, finales «Liberarla», «Ignorarla» e «Irte», variantes del menú y partida nueva. Final secreto: el usuario decide al cerrar el hito 6 si entra ahora o se pospone. Decidir el jumpscare 2.
 7. Pulido, accesibilidad (menú de ajustes completo, subtítulos descriptivos, desactivar jumpscares, mando opcional), presets de calidad, optimización hasta el presupuesto de frame del hito 2.
@@ -163,7 +163,7 @@ Cada hito empieza con su **especificación de implementación** (archivos, pasos
 - Epílogos detallados de cada final.
 - Nombres y diseño de las pistas; niveles de confesión según la Evidencia.
 - Umbral de Evidencia del final secreto.
-- Técnica de GI y niebla; presupuesto de frame (hito 2).
+- ~~Técnica de GI y niebla; presupuesto de frame (hito 2)~~ **Decidido:** VoxelGI solo en el salón (`specs/hito4a.md` D9), niebla en todos los presets y presupuesto de `specs/hito2.md` D16.
 - Rangos de las mejoras de prestigio (hito 4).
 - Mando opcional (hito 7).
 - Minutos de diálogo de la confesión (antes del hito 6).

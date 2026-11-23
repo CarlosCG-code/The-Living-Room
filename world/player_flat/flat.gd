@@ -179,7 +179,7 @@ func _add_lamps(geometry: Node) -> void:
 			lamp.distance_fade_length = 4.0
 			lamp.shadow_enabled = true
 			lamp.distance_fade_shadow = 16.0  # sombra mientras haya luz: a 10 m se apagaba antes y la luz cruzaba los muros
-			lamp.light_size = 0.05  # como los apliques: LightMixer la usa para las sombras suaves
+			# Sin light_size: las sombras suaves por contacto (PCSS) salían dentadas con el mapa de sombra de cada lámpara.
 			lamp.set_meta(&"base_normal", l["base_normal"])
 			lamp.set_meta(&"base_dark", l["base_dark"])
 			add_child(lamp)
