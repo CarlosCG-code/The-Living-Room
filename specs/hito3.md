@@ -61,8 +61,8 @@ var lamps: Array[StringName]             # lámparas a la vista
 ```
 
 - **Quién lo mueve:** `Game` lo crea y lo avanza en `tick` tras la economía, y emite `EventBus.fear_event(def, place)`. Lo de la escena sale de `Game.senses`, un objeto que pone `main.gd` y retira en `tree_exiting`. Sin él (tests): sentado y sin lámparas a la vista. `Game` llama a `reset` al crear la partida, al reiniciar y en partida nueva. Continuar desde el menú o salir de la pausa no reinicia nada.
-- **Ritmo:** silencio al azar de 90-240 s y después una **tanda**: 1 suceso con `p` < 0,3; 1-2 hasta 0,6; 1-3 hasta 1; 2-4 con `p` = 1. Dentro de la tanda, 8-25 s entre el final de uno y el principio del siguiente. Los silencios no se acortan: crece la tanda (esa es la tensión acumulada del GDD). El director empieza siempre en silencio.
-- **Presupuesto:** 30 sucesos al azar por run mientras `p` < 1. Pasado el umbral no hay tope: quien espera oye un piso peor (GDD §4).
+- **Ritmo:** silencio al azar de 60-150 s y después una **tanda**: 1 suceso con `p` < 0,3; 1-2 hasta 0,6; 1-3 hasta 1; 2-4 con `p` = 1. Dentro de la tanda, 8-25 s entre el final de uno y el principio del siguiente. Los silencios no se acortan: crece la tanda (esa es la tensión acumulada del GDD). El director empieza siempre en silencio.
+- **Presupuesto:** 45 sucesos al azar por run mientras `p` < 1. Pasado el umbral no hay tope: quien espera oye un piso peor (GDD §4).
 - **Elegir:** uno al azar entre los posibles (`p` mínimo, máquina, enfriamiento y un lugar válido). No se repiten los últimos `min(2, posibles − 2)` sucesos (mínimo 0) ni el último lugar si hay otro. Si no hay ninguno posible, la tanda acaba y empieza otro silencio. El enfriamiento de los ligados a una máquina se divide por `1 + unidades / 25`.
 - **Obligatorios:** los que la historia necesita no quedan al azar. Salen una vez al cumplirse su condición, 4-10 s después y con `ui_idle`, aunque sea silencio; no gastan presupuesto y dejan al menos 40 s de silencio detrás, sin reiniciarlo. Entre dos obligatorios, 20 s como poco (si no, al cargar con trucos o comprar varias máquinas saldrían pegados). Son la primera unidad de cada máquina (menos la Antena, que es el zumbido), los tres de la señora al llegar a su `p`, `knocks` (Canal 3 o `p` ≥ 0,85) y el fotograma (D7). Hasta salir no entran en el sorteo; después sí (los de sonido), sin mirar ya `requires`.
 - **Uno a la vez:** nada empieza hasta que pasa la `duration` del anterior más 0,34 s, tampoco los obligatorios.
@@ -73,10 +73,13 @@ var lamps: Array[StringName]             # lámparas a la vista
 | id | `requires` | `p` mín. | Obligatorio | Enfr. (s) | Lugares | Qué suena |
 |---|---|---|---|---|---|---|
 | `wall_ticks` | `valves` | 0 | compra | 180 | `wall`, `corridor_main_m` | chasquidos en la pared |
-| `cry` | `audio_frequency` | 0 | compra | 300 | `kitchen` | llanto lejano |
-| `voices` | `tuner` | 0 | compra | 300 | `ceiling` | voces apagadas de otra tele |
-| `remote` | `remote` | 0 | compra | 300 | `dining_room`, `bedroom_main` | clic de un mando |
-| `fall` | `remote` | 0,5 | — | 360 | `workshop`, `bedroom_2`, `gallery` | algo cae al suelo |
+| `spoon` | `audio_frequency` | 0 | compra | 240 | `kitchen` | una cuchara cae |
+| `floor_creak` | `tuner` | 0 | compra | 240 | `behind_sofa` | la madera cruje detrás del sofá |
+| `remote` | `remote` | 0 | compra | 300 | `bedroom_main` | clic de un mando |
+| `tool` | — | 0,1 | — | 300 | `workshop` | una herramienta cae |
+| `book` | — | 0,15 | — | 300 | `bedroom_3` (la de enfrente) | un libro cae |
+| `bath_fall` | — | 0,2 | — | 300 | `bathroom` | algo cae |
+| `rocking` | — | 0,45 | — | 420 | `rocking_chair` | la mecedora se balancea |
 | `knocks` | `channel_3` | 0 | compra, o `p` ≥ 0,85 aunque no se compre | 300 | `door_front` | toques en la puerta |
 | `pipes` | — | 0,1 | — | 240 | `bathroom`, `service_toilet` | tuberías |
 | `steps_above` | — | 0,3 | — | 300 | `ceiling` | pasos en el piso de arriba |
@@ -87,21 +90,21 @@ var lamps: Array[StringName]             # lámparas a la vista
 | `lamp_flicker` | — | 0 | — | 180 | lámparas a la vista | parpadeo, sin sonido (2,4 s) |
 | `tv_frame` | — | 0,7 | interferencia | — | — | D7; no entra en el sorteo |
 
-Simulado (300 semillas): **23 de media en 30 min** (18-28), 27 en los 40 min del jugador tranquilo y 36 si se espera hasta el minuto 45; nunca más de 4 min 20 s en silencio. El usuario aprueba el ritmo (2026-11-24); se ajusta al probarlo.
+Con el ritmo de la parada 1 (usuario, 2026-11-24: «terror psicológico constante»): 28 de media en 30 min (23-32) y 35 en 40 min; nunca más de 3 min 5 s en silencio (100 semillas).
 
 **D4 — Lugares.** `flat.get_place(id) -> Vector3`, con el espejo ya resuelto:
 - zona: su centro, a 1 m;
 - puerta (solo `kind == leaf`): el centro de la hoja, a 1 m, movido 0,4 m hacia `zone_a`;
-- `ceiling`: centro del techo del salón; `wall`: pared del salón frente al sofá.
+- sitios del salón: `ceiling` (techo), `wall` (pared frente al sofá), `behind_sofa` (suelo detrás) y `rocking_chair` (mecedora).
 
-Regla del sonido: nunca en la zona donde está el jugador (`LAYOUT.zone_at(punto)`), salvo `ceiling` y `wall`.
+Regla del sonido: nunca en la zona donde está el jugador (`LAYOUT.zone_at(punto)`), salvo los sitios del salón.
 
 **D5 — Sin comprobación de mirada (usuario, 2026-11-24; GDD §5).** Los cambios de las runs 3 y 4 ocurren fuera de cuadro o en apagones, y se construyen con su hito. En la run 1 no cambia nada a la vista.
 - Lo que sí hace falta, las **lámparas**: cuenta una encendida en la zona del jugador (se ve su luz en la pared; en la pose de juego ninguna entra en cuadro) o una que pase el `LightFlicker._visible_lamps` de hoy.
 
 **D6 — Audio.** `audio/house_audio.gd` (`Node`, lo monta `main.gd`): escucha `EventBus.fear_event` y reproduce los `SOUND` con **un solo** `AudioStreamPlayer3D` (van de uno en uno).
 - **Bus nuevo `HouseEvents`** (paso bajo, envía a `House`): filtrar `House` apagaría también pasos y puertas. El eco del piso se mantiene.
-- **Muros:** como mucho cuenta uno: sin muro, 0 dB y 20 kHz; con muro, −5 dB y 2,5 kHz. Con la tabla de la tele (−24 dB y 300 Hz) unas pastillas no se reconocerían, y el final depende de reconocerlas. La lejanía va en `volume_db` y `unit_size`.
+- **Muros:** como mucho cuenta uno: sin muro, 0 dB y 20 kHz; con muro, −6 dB y 5 kHz. Con la tabla de la tele (−24 dB y 300 Hz) unas pastillas no se reconocerían, y el final depende de reconocerlas. La lejanía va en `volume_db` y `unit_size`.
 - **Preludio:** en la mitad de los sonidos, al azar, el zumbido de la tele y el de la casa se cortan 1,5 s antes y siguen cortados hasta el final (`EventBus.house_silence(seconds)`). Sustituye a los cortes al azar de `tv.gd`.
 - **Capas continuas:** ambiente del edificio (muy bajo) y zumbido eléctrico en la pared del salón desde la primera Antena: de −30 a −18 dB según `production_level()`. Con la partida parada, se quedan en su nivel.
 - **Parpadeos:** `LightFlicker` pierde el temporizador de las lámparas y ejecuta `lamp_flicker`. El de la linterna sigue como está (en la build normal no se usa hasta 4b), pero espera si hay una lámpara parpadeando.
@@ -201,6 +204,7 @@ Manual, en las paradas: sonidos, luces y ritmo (1), la run entera (2).
 - **D3:** `Game.senses` es una función `(DirectorState)` y `DirectorState.lamps`, otra que se llama solo al sortear: mirar las lámparas cuesta un rayo por cada una. El director se reinicia solo cuando la partida cambia de `RunState` (crear, reiniciar, partida nueva y trucos), sin llamarlo desde cada sitio.
 - **D2:** rehacer la GI al cambiar las luces no cuesta nada medible: sin saltos del 2 %.
 - **D6:** el eco va en el propio bus `HouseEvents` (`Reverb`). El de las áreas (`FlatAcoustics`, `RoomAcoustics`) no suena: en Godot 4.7 `area_mask` empieza en 0 y las ignora, y con un área de eco Godot deja de mandar el sonido directo a su bus. Sin filtro por distancia en los sucesos: con el del muro basta.
-- **D6, archivos:** 21 de sucesos y 2 capas. `remote`, `glasses` y `denture`, con uno solo. Todos igualados por sus 400 ms más fuertes y medidos desde el sofá (−30 a −40 dB; la tele, −48).
+- **D6, archivos:** 28 de sucesos y 2 capas. `remote` y `denture`, con uno solo. Todos igualados por sus 400 ms más fuertes y medidos desde el sofá (−30 a −40 dB; la tele, −48).
 - **D7:** la cámara mira 14° hacia abajo con 80° de campo: si no, el sofá no se veía. El `SubViewport` se crea y se borra cada vez; el tirón no se nota.
 - **D10:** además, «Mitad de la run 1» para la parada 1.
+- **Parada 1, primera vuelta (usuario, 2026-11-24):** fuera el llanto y las voces; en su lugar, objetos, cada uno desde su habitación (cocina, taller, la de enfrente, baño y el propio salón), y más seguidos.

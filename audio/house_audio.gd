@@ -10,9 +10,9 @@ const HUM := preload("res://assets/audio/house/wall_hum.ogg")
 const HUM_DB := Vector2(-30.0, -18.0)  # según la producción
 const OFF_DB := -80.0
 const FADE := 120.0  # dB/s, como el zumbido de la tele
-## Como mucho cuenta un muro: con la tabla de la tele unas pastillas no se reconocerían. Corte del paso bajo y ganancia.
+## Como mucho cuenta un muro: con la tabla de la tele una cuchara o unas pastillas no se reconocerían. Corte del paso bajo y ganancia.
 const OPEN := Vector2(20000.0, 0.0)
-const WALLED := Vector2(2500.0, -5.0)
+const WALLED := Vector2(5000.0, -6.0)
 
 var _flat: Node3D
 var _event := AudioStreamPlayer3D.new()

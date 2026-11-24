@@ -5,7 +5,8 @@ extends GutTest
 const EVENTS: FearEventSet = preload("res://data/fear_events.tres")
 const LAYOUT: FlatLayout = preload("res://data/flat_layout.tres")
 const DT := 0.1
-const MANDATORY: Array[StringName] = [&"wall_ticks", &"cry", &"voices", &"remote", &"knocks", &"pills", &"glasses", &"denture"]
+const LIVING: Array[StringName] = [&"ceiling", &"wall", &"behind_sofa", &"rocking_chair"]  # suenan con el jugador en el salón
+const MANDATORY: Array[StringName] = [&"wall_ticks", &"spoon", &"floor_creak", &"remote", &"knocks", &"pills", &"glasses", &"denture"]
 
 var director: EventDirector
 var state: DirectorState
@@ -59,7 +60,7 @@ func test_starts_in_silence_and_never_two_at_once() -> void:
 	state.progress = 1.0
 	_run(3600.0)
 	assert_gt(log.size(), 20)
-	assert_between(log[0]["t"], 4.0, 240.5)
+	assert_between(log[0]["t"], 4.0, 150.5)
 	for i in range(1, log.size()):
 		assert_gte(log[i]["t"] - log[i - 1]["t"], log[i - 1]["duration"] + 0.33)
 
@@ -80,8 +81,8 @@ func test_bursts_grow_with_progress_and_silences_do_not_shrink() -> void:
 				silences.append(pause)
 				sizes.append(1)
 		sizes.pop_back()  # la última tanda puede quedar a medias
-		assert_between(silences.min(), 89.9, 240.1)
-		assert_between(silences.max(), 89.9, 240.1)
+		assert_between(silences.min(), 59.9, 150.1)
+		assert_between(silences.max(), 59.9, 150.1)
 		var expected: Array = {0.0: [1, 1], 0.5: [1, 2], 0.9: [1, 3], 1.0: [2, 4]}[p]
 		assert_eq([sizes.min(), sizes.max()], expected, "tandas con p = %s" % p)
 
@@ -123,10 +124,10 @@ func test_budget_only_below_the_threshold() -> void:
 	_make(_set_of([_def(&"a"), _def(&"b"), _def(&"c")]), 5)
 	state.progress = 0.9
 	_run(20000.0)
-	assert_eq(log.size(), 30)
+	assert_eq(log.size(), 45)
 	state.progress = 1.0
 	_run(3000.0)
-	assert_gt(log.size(), 35)
+	assert_gt(log.size(), 50)
 
 
 func test_lamps_only_if_seen() -> void:
@@ -154,17 +155,17 @@ func test_mandatory_on_purchase_once_and_spaced() -> void:
 	state.owned = {&"valves": 1, &"tuner": 1}
 	var bought := now
 	_run(60.0)
-	assert_eq(_ids(), [&"wall_ticks", &"voices"])
+	assert_eq(_ids(), [&"wall_ticks", &"floor_creak"])
 	assert_between(log[0]["t"] - bought, 4.0, 10.2)
 	assert_between(log[1]["t"] - log[0]["t"], 20.0, 20.3)
-	_run(30.0)
+	_run(25.0)
 	assert_eq(log.size(), 2)
 
 
 func test_mandatory_leaves_silence_behind() -> void:
 	for n in 20:
 		_make(EVENTS, n)
-		_run(85.0)
+		_run(55.0)
 		state.owned = {&"valves": 1}
 		_run(200.0)
 		var i := _ids().find(&"wall_ticks")
@@ -218,9 +219,9 @@ func test_reset_forgets_everything_and_takes_the_past_as_done() -> void:
 	state.owned = {&"valves": 1}
 	state.progress = 0.6
 	director.reset(state)
-	_run(80.0)
+	_run(55.0)
 	assert_true(log.is_empty(), "empieza en silencio y lo ya comprado no se repite")
-	director.force(&"fall")
+	director.force(&"tool")
 	_run(0.2)
 	assert_true(director.busy())
 	director.reset(DirectorState.new())
@@ -247,18 +248,18 @@ func test_thirty_minutes_of_run_one() -> void:
 	for n in 20:
 		_make(EVENTS, n)
 		state.lamps = func() -> Array[StringName]: return [&"SconceL", &"SconceR"] as Array[StringName]
-		state.place_zone = func(place: StringName) -> StringName: return &"" if place in [&"ceiling", &"wall"] else place
+		state.place_zone = func(place: StringName) -> StringName: return &"" if place in LIVING else place
 		_run(1800.0, func() -> void:
 			state.progress = _active(now / 60.0)
 			state.tv_event = &"interference" if fmod(now, 180.0) < 8.0 else &""
 			for id: StringName in buys:
 				if now / 60.0 >= buys[id] and not state.owned.has(id):
 					state.owned[id] = 1)
-		assert_between(log.size(), 16, 31, "semilla %d" % n)
+		assert_between(log.size(), 22, 45, "semilla %d" % n)
 		for id in MANDATORY + ([&"tv_frame"] as Array[StringName]):
 			assert_true(id in _ids(), "%s con la semilla %d" % [id, n])
 		for i in range(1, log.size()):
-			assert_lt(log[i]["t"] - log[i - 1]["t"], 285.0, "silencio con la semilla %d" % n)
+			assert_lt(log[i]["t"] - log[i - 1]["t"], 200.0, "silencio con la semilla %d" % n)
 
 
 # --- Datos ---
@@ -283,7 +284,7 @@ func test_data() -> void:
 			assert_not_null(config.find_generator(def.requires), "%s: máquina" % def.id)
 		for place in def.places:
 			var leaf := LAYOUT.connections.any(func(c: ConnectionDef) -> bool: return c.id == place and c.kind == &"leaf")
-			assert_true(place in [&"ceiling", &"wall"] or leaf or LAYOUT.find_zone(place) != null, "%s: %s" % [def.id, place])
+			assert_true(place in LIVING or leaf or LAYOUT.find_zone(place) != null, "%s: %s" % [def.id, place])
 		if def.kind == FearEventDef.Kind.SOUND:
 			assert_ne(tr(def.subtitle_key), def.subtitle_key, "%s: subtítulo" % def.id)
 			assert_false(def.places.is_empty(), String(def.id))

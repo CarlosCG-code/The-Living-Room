@@ -10,7 +10,7 @@ var tv_event: StringName = &""
 ## false con el árbol, la carta o la Carga en pantalla.
 var ui_idle := true
 var player_zone: StringName = &"living_room"
-## (place: StringName) -> StringName: la zona del lugar; &"" si vale con el jugador dentro (techo y pared).
+## (place: StringName) -> StringName: la zona del lugar; &"" si vale con el jugador dentro (los del salón).
 var place_zone := func(place: StringName) -> StringName: return place
 ## () -> Array[StringName]: lámparas a la vista. Se pregunta solo al sortear: mirar cada una cuesta un rayo.
 var lamps := func() -> Array[StringName]: return [] as Array[StringName]

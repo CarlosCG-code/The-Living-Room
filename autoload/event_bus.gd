@@ -9,7 +9,7 @@ signal settings_changed
 ## El jugador de pie entra en otra zona del piso (specs/hito4a.md D8).
 @warning_ignore("unused_signal")
 signal player_zone_changed(zone: StringName)
-## El director suelta un suceso (specs/hito3.md D3). place: zona, puerta, lámpara, «ceiling» o «wall».
+## El director suelta un suceso (specs/hito3.md D3). place: zona, puerta, lámpara o un sitio del salón (flat.gd).
 @warning_ignore("unused_signal")
 signal fear_event(def: FearEventDef, place: StringName)
 ## Los zumbidos de la tele y de la casa se cortan: el preludio de un sonido (specs/hito3.md D6).

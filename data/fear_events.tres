@@ -4,24 +4,31 @@
 [ext_resource type="Script" path="res://fear/fear_event_def.gd" id="def"]
 [ext_resource type="AudioStream" path="res://assets/audio/house/wall_ticks_1.ogg" id="wall_ticks_1"]
 [ext_resource type="AudioStream" path="res://assets/audio/house/wall_ticks_2.ogg" id="wall_ticks_2"]
-[ext_resource type="AudioStream" path="res://assets/audio/house/cry_1.ogg" id="cry_1"]
-[ext_resource type="AudioStream" path="res://assets/audio/house/cry_2.ogg" id="cry_2"]
-[ext_resource type="AudioStream" path="res://assets/audio/house/voices_1.ogg" id="voices_1"]
-[ext_resource type="AudioStream" path="res://assets/audio/house/voices_2.ogg" id="voices_2"]
+[ext_resource type="AudioStream" path="res://assets/audio/house/spoon_1.ogg" id="spoon_1"]
+[ext_resource type="AudioStream" path="res://assets/audio/house/spoon_2.ogg" id="spoon_2"]
+[ext_resource type="AudioStream" path="res://assets/audio/house/floor_creak_1.ogg" id="floor_creak_1"]
+[ext_resource type="AudioStream" path="res://assets/audio/house/floor_creak_2.ogg" id="floor_creak_2"]
 [ext_resource type="AudioStream" path="res://assets/audio/house/remote_1.ogg" id="remote_1"]
-[ext_resource type="AudioStream" path="res://assets/audio/house/fall_1.ogg" id="fall_1"]
-[ext_resource type="AudioStream" path="res://assets/audio/house/fall_2.ogg" id="fall_2"]
 [ext_resource type="AudioStream" path="res://assets/audio/house/knocks_1.ogg" id="knocks_1"]
 [ext_resource type="AudioStream" path="res://assets/audio/house/knocks_2.ogg" id="knocks_2"]
+[ext_resource type="AudioStream" path="res://assets/audio/house/tool_1.ogg" id="tool_1"]
+[ext_resource type="AudioStream" path="res://assets/audio/house/tool_2.ogg" id="tool_2"]
 [ext_resource type="AudioStream" path="res://assets/audio/house/pipes_1.ogg" id="pipes_1"]
 [ext_resource type="AudioStream" path="res://assets/audio/house/pipes_2.ogg" id="pipes_2"]
+[ext_resource type="AudioStream" path="res://assets/audio/house/book_1.ogg" id="book_1"]
+[ext_resource type="AudioStream" path="res://assets/audio/house/book_2.ogg" id="book_2"]
+[ext_resource type="AudioStream" path="res://assets/audio/house/bath_fall_1.ogg" id="bath_fall_1"]
+[ext_resource type="AudioStream" path="res://assets/audio/house/bath_fall_2.ogg" id="bath_fall_2"]
 [ext_resource type="AudioStream" path="res://assets/audio/house/steps_above_1.ogg" id="steps_above_1"]
 [ext_resource type="AudioStream" path="res://assets/audio/house/steps_above_2.ogg" id="steps_above_2"]
-[ext_resource type="AudioStream" path="res://assets/audio/house/creak_1.ogg" id="creak_1"]
-[ext_resource type="AudioStream" path="res://assets/audio/house/creak_2.ogg" id="creak_2"]
 [ext_resource type="AudioStream" path="res://assets/audio/house/pills_1.ogg" id="pills_1"]
 [ext_resource type="AudioStream" path="res://assets/audio/house/pills_2.ogg" id="pills_2"]
+[ext_resource type="AudioStream" path="res://assets/audio/house/creak_1.ogg" id="creak_1"]
+[ext_resource type="AudioStream" path="res://assets/audio/house/creak_2.ogg" id="creak_2"]
+[ext_resource type="AudioStream" path="res://assets/audio/house/rocking_1.ogg" id="rocking_1"]
+[ext_resource type="AudioStream" path="res://assets/audio/house/rocking_2.ogg" id="rocking_2"]
 [ext_resource type="AudioStream" path="res://assets/audio/house/glasses_1.ogg" id="glasses_1"]
+[ext_resource type="AudioStream" path="res://assets/audio/house/glasses_2.ogg" id="glasses_2"]
 [ext_resource type="AudioStream" path="res://assets/audio/house/denture_1.ogg" id="denture_1"]
 
 [sub_resource type="Resource" id="wall_ticks"]
@@ -36,29 +43,29 @@ sounds = Array[AudioStream]([ExtResource("wall_ticks_1"), ExtResource("wall_tick
 volume_db = -5.0
 subtitle_key = "SUB_WALL_TICKS"
 
-[sub_resource type="Resource" id="cry"]
+[sub_resource type="Resource" id="spoon"]
 script = ExtResource("def")
-id = &"cry"
+id = &"spoon"
 requires = &"audio_frequency"
 mandatory = 1
-cooldown = 300.0
-duration = 9.5
+cooldown = 240.0
+duration = 2.9
 places = Array[StringName]([&"kitchen"])
-sounds = Array[AudioStream]([ExtResource("cry_1"), ExtResource("cry_2")])
-volume_db = 2.0
-subtitle_key = "SUB_CRY"
+sounds = Array[AudioStream]([ExtResource("spoon_1"), ExtResource("spoon_2")])
+volume_db = 11.0
+subtitle_key = "SUB_SPOON"
 
-[sub_resource type="Resource" id="voices"]
+[sub_resource type="Resource" id="floor_creak"]
 script = ExtResource("def")
-id = &"voices"
+id = &"floor_creak"
 requires = &"tuner"
 mandatory = 1
-cooldown = 300.0
-duration = 10.5
-places = Array[StringName]([&"ceiling"])
-sounds = Array[AudioStream]([ExtResource("voices_1"), ExtResource("voices_2")])
-volume_db = -8.0
-subtitle_key = "SUB_VOICES"
+cooldown = 240.0
+duration = 4.5
+places = Array[StringName]([&"behind_sofa"])
+sounds = Array[AudioStream]([ExtResource("floor_creak_1"), ExtResource("floor_creak_2")])
+volume_db = -15.0
+subtitle_key = "SUB_FLOOR_CREAK"
 
 [sub_resource type="Resource" id="remote"]
 script = ExtResource("def")
@@ -67,22 +74,10 @@ requires = &"remote"
 mandatory = 1
 cooldown = 300.0
 duration = 2.0
-places = Array[StringName]([&"dining_room", &"bedroom_main"])
+places = Array[StringName]([&"bedroom_main"])
 sounds = Array[AudioStream]([ExtResource("remote_1")])
-volume_db = 3.0
+volume_db = 6.0
 subtitle_key = "SUB_REMOTE"
-
-[sub_resource type="Resource" id="fall"]
-script = ExtResource("def")
-id = &"fall"
-min_progress = 0.5
-requires = &"remote"
-cooldown = 360.0
-duration = 4.2
-places = Array[StringName]([&"workshop", &"bedroom_2", &"gallery"])
-sounds = Array[AudioStream]([ExtResource("fall_1"), ExtResource("fall_2")])
-volume_db = 8.0
-subtitle_key = "SUB_FALL"
 
 [sub_resource type="Resource" id="knocks"]
 script = ExtResource("def")
@@ -97,6 +92,17 @@ sounds = Array[AudioStream]([ExtResource("knocks_1"), ExtResource("knocks_2")])
 volume_db = 11.0
 subtitle_key = "SUB_KNOCKS"
 
+[sub_resource type="Resource" id="tool"]
+script = ExtResource("def")
+id = &"tool"
+min_progress = 0.1
+cooldown = 300.0
+duration = 4.0
+places = Array[StringName]([&"workshop"])
+sounds = Array[AudioStream]([ExtResource("tool_1"), ExtResource("tool_2")])
+volume_db = 8.0
+subtitle_key = "SUB_TOOL"
+
 [sub_resource type="Resource" id="pipes"]
 script = ExtResource("def")
 id = &"pipes"
@@ -108,6 +114,28 @@ sounds = Array[AudioStream]([ExtResource("pipes_1"), ExtResource("pipes_2")])
 volume_db = 2.0
 subtitle_key = "SUB_PIPES"
 
+[sub_resource type="Resource" id="book"]
+script = ExtResource("def")
+id = &"book"
+min_progress = 0.15
+cooldown = 300.0
+duration = 2.7
+places = Array[StringName]([&"bedroom_3"])
+sounds = Array[AudioStream]([ExtResource("book_1"), ExtResource("book_2")])
+volume_db = 6.0
+subtitle_key = "SUB_BOOK"
+
+[sub_resource type="Resource" id="bath_fall"]
+script = ExtResource("def")
+id = &"bath_fall"
+min_progress = 0.2
+cooldown = 300.0
+duration = 3.5
+places = Array[StringName]([&"bathroom"])
+sounds = Array[AudioStream]([ExtResource("bath_fall_1"), ExtResource("bath_fall_2")])
+volume_db = 4.0
+subtitle_key = "SUB_BATH_FALL"
+
 [sub_resource type="Resource" id="steps_above"]
 script = ExtResource("def")
 id = &"steps_above"
@@ -118,17 +146,6 @@ places = Array[StringName]([&"ceiling"])
 sounds = Array[AudioStream]([ExtResource("steps_above_1"), ExtResource("steps_above_2")])
 volume_db = -8.0
 subtitle_key = "SUB_STEPS_ABOVE"
-
-[sub_resource type="Resource" id="creak"]
-script = ExtResource("def")
-id = &"creak"
-min_progress = 0.4
-cooldown = 360.0
-duration = 5.0
-places = Array[StringName]([&"door_bedroom_3", &"door_gallery"])
-sounds = Array[AudioStream]([ExtResource("creak_1"), ExtResource("creak_2")])
-volume_db = 6.0
-subtitle_key = "SUB_CREAK"
 
 [sub_resource type="Resource" id="pills"]
 script = ExtResource("def")
@@ -143,6 +160,28 @@ sounds = Array[AudioStream]([ExtResource("pills_1"), ExtResource("pills_2")])
 volume_db = 9.0
 subtitle_key = "SUB_PILLS"
 
+[sub_resource type="Resource" id="creak"]
+script = ExtResource("def")
+id = &"creak"
+min_progress = 0.4
+cooldown = 360.0
+duration = 5.0
+places = Array[StringName]([&"door_bedroom_3", &"door_gallery"])
+sounds = Array[AudioStream]([ExtResource("creak_1"), ExtResource("creak_2")])
+volume_db = 6.0
+subtitle_key = "SUB_CREAK"
+
+[sub_resource type="Resource" id="rocking"]
+script = ExtResource("def")
+id = &"rocking"
+min_progress = 0.45
+cooldown = 420.0
+duration = 12.5
+places = Array[StringName]([&"rocking_chair"])
+sounds = Array[AudioStream]([ExtResource("rocking_1"), ExtResource("rocking_2")])
+volume_db = -8.0
+subtitle_key = "SUB_ROCKING"
+
 [sub_resource type="Resource" id="glasses"]
 script = ExtResource("def")
 id = &"glasses"
@@ -150,9 +189,9 @@ min_progress = 0.55
 mandatory = 2
 mandatory_progress = 0.55
 cooldown = 420.0
-duration = 1.97
+duration = 4.1
 places = Array[StringName]([&"dining_room", &"bedroom_main"])
-sounds = Array[AudioStream]([ExtResource("glasses_1")])
+sounds = Array[AudioStream]([ExtResource("glasses_1"), ExtResource("glasses_2")])
 volume_db = 3.0
 subtitle_key = "SUB_GLASSES"
 
@@ -189,4 +228,4 @@ duration = 1.0
 
 [resource]
 script = ExtResource("set")
-events = Array[ExtResource("def")]([SubResource("wall_ticks"), SubResource("cry"), SubResource("voices"), SubResource("remote"), SubResource("fall"), SubResource("knocks"), SubResource("pipes"), SubResource("steps_above"), SubResource("creak"), SubResource("pills"), SubResource("glasses"), SubResource("denture"), SubResource("lamp_flicker"), SubResource("tv_frame")])
+events = Array[ExtResource("def")]([SubResource("wall_ticks"), SubResource("spoon"), SubResource("floor_creak"), SubResource("remote"), SubResource("knocks"), SubResource("tool"), SubResource("pipes"), SubResource("book"), SubResource("bath_fall"), SubResource("steps_above"), SubResource("pills"), SubResource("creak"), SubResource("rocking"), SubResource("glasses"), SubResource("denture"), SubResource("lamp_flicker"), SubResource("tv_frame")])

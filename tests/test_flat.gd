@@ -259,7 +259,7 @@ func test_places_of_the_director() -> void:
 	for conn in layout.connections:
 		if conn.kind == &"leaf":
 			assert_eq(normal.get_place_zone(conn.id), conn.zone_a, String(conn.id))
-	for id: StringName in [&"kitchen", &"door_front", &"door_gallery", &"wall", &"ceiling"]:
+	for id: StringName in [&"kitchen", &"door_front", &"door_gallery", &"wall", &"ceiling", &"behind_sofa", &"rocking_chair"]:
 		var p: Vector3 = normal.get_place(id)
 		assert_almost_eq(mirror.get_place(id), Vector3(-p.x, p.y, p.z), Vector3.ONE * 0.0001)
 		assert_eq(mirror.get_place_zone(id), normal.get_place_zone(id))
