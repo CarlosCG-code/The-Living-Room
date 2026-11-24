@@ -26,12 +26,12 @@ Lo que falta para terminar *The Living Room*, en el orden en que se hará. Se ac
 - [ ] Especificación, con las preguntas de arriba.
 - [ ] Repartidor: llaman a la puerta, levantarse animado (sustituye a la Q), recoger la comida y dejarla en la mesa.
 - [ ] Run 2: apagón, linterna como mecánica, caja de plomos (modelarla) y fusible, en el piso en espejo.
-- [x] Piso en espejo al día con el normal (2026-11-24); normales, ciudad, lluvia, puertas y tele (con su pantalla) también reflejadas; comparado en las 21 zonas; desde ahora se cambian los dos a la vez.
+- [x] Piso en espejo al día con el normal (2026-11-24); normales, ciudad, lluvia, puertas y tele (salvo la imagen de la pantalla) también reflejadas; comparado en las 21 zonas; desde ahora se cambian los dos a la vez.
 - [ ] Evidencia: pistas del piso del jugador (GDD §7) y su registro.
 - [ ] Guardado ampliado, con migración y test; guardar la posición.
 - [ ] Pausa de pie e invertir el eje Y.
 - [ ] Pasos según el suelo y mezcla de sonido por run.
-- [ ] Incremental en la run 2: la tele ya se ve y se pulsa en espejo en el piso en espejo (falta decidir si en el apagón se lee así); aviso previo de «Tus ojos».
+- [ ] Incremental en la run 2: la tele se ve como en el piso normal (usuario, 2026-11-24); aviso previo de «Tus ojos».
 - [ ] Aviso de fotosensibilidad al arrancar.
 - [ ] **Playtest con ~5 personas** (Claude propone las preguntas).
 

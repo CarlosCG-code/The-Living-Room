@@ -166,7 +166,7 @@ Pasos 1-7 hechos (commits 7201eb0 → este). Ajustes respecto a la propuesta, me
 - Permanentes: Tu memoria (15 Antenas, 10 Válvulas, 5 Frecuencias y las primeras mejoras), Tus manos
   (racha 3 s, crítico llena un 3 % de la barra), Tu costumbre −35 %, Tu pulso ×1,4, Tu nombre ×1,2.
   Cada una acorta la run 2 un 5-25 %; con las seis dura ~11 min (test).
-- Pendiente para más adelante: espejo del mundo de la tele en la run 2, árboles que desaparecen, cifras de
+- Pendiente para más adelante: árboles que desaparecen, cifras de
   runs anteriores en la run 4 y el aviso previo de «Tus ojos».
 
 ## 11. Árbol que crece con los reinicios (aprobado por el usuario, 2026-11-19)
