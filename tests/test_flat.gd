@@ -36,6 +36,34 @@ func test_mirrored_leaf_is_reflection_of_normal_leaf() -> void:
 				assert_almost_eq(i_b, Vector3(-p.x, p.y, p.z), Vector3.ONE * 0.001, "%s a %d°" % [a.id, deg])
 
 
+## Cada malla y cada colisión del piso en espejo ocupa el sitio reflejado de la normal (un objeto girado se reflejaba
+## sobre su propio eje y acababa dentro del muro: repisas, alacena, retrete).
+func test_mirrored_geometry_is_reflection_of_normal() -> void:
+	var normal: Node3D = _flat(false)
+	var mirror: Node3D = _flat(true)
+	var checked := 0
+	for path: NodePath in [^"FlatGeometry", ^"LivingRoom/Geometry"]:
+		for type: String in ["MeshInstance3D", "CollisionShape3D"]:
+			for a: Node3D in normal.get_node(path).find_children("*", type, true, false):
+				var b := mirror.get_node_or_null(String(path) + "/" + String(normal.get_node(path).get_path_to(a))) as Node3D
+				if b == null:
+					fail_test("falta %s en el espejo" % a.name)
+					continue
+				var box_a := _world_box(a)
+				var box_b := _world_box(b)
+				var c := box_a.get_center()
+				checked += 1
+				if box_b.get_center().distance_to(Vector3(-c.x, c.y, c.z)) > 0.01 or (box_b.size - box_a.size).length() > 0.02:
+					fail_test("%s: %s frente a %s" % [a.name, box_b, box_a])
+	assert_gt(checked, 500)
+
+
+func _world_box(n: Node3D) -> AABB:
+	if n is MeshInstance3D:
+		return n.global_transform * (n as MeshInstance3D).get_aabb()
+	return n.global_transform * (n as CollisionShape3D).shape.get_debug_mesh().get_aabb()
+
+
 func _leaf_center(d: Door) -> Vector3:
 	var col := d.get_node("Leaf").find_children("*", "CollisionShape3D", true, false)[0] as CollisionShape3D
 	return col.global_position

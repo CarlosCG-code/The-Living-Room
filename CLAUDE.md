@@ -21,7 +21,7 @@ Separar siempre la lógica de la presentación:
 - `presentation/` — TV (`SubViewport` + raycast → UV), cámara fija en la tele mientras se está sentado, jugador de pie (`presentation/player/`), UI.
 - `fear/` — director de eventos (presupuesto, cooldowns, cambios del entorno fuera de cuadro o en apagones).
 - `audio/` — gestor de audio 3D y mezcla por run.
-- `world/` — piso del jugador, escalera, piso de la señora, menú principal (tele y silla). Variantes del piso: espejo y a oscuras (la run 2 combina ambas); su técnica se especifica y valida en el hito 2 junto al look-dev (candidatas: kit modular colocado en simetría, o reflejo de geometría en build con normales y textos corregidos).
+- `world/` — piso del jugador, escalera, piso de la señora, menú principal (tele y silla). Variantes del piso: espejo y a oscuras (la run 2 combina ambas); el espejo es la misma geometría reflejada en el build de Blender (`mirror_all`), y los dos pisos se cambian siempre a la vez: geometría, código, GI y pruebas (usuario, 2026-11-24).
 - `narrative/` — contenido de pistas y finales.
 
 Ubicaciones (fijadas en el hito 0): autoloads en `autoload/`, datos `.tres` en `data/`, tests GUT en `tests/`, assets en `assets/` (`models/`, `textures/`, `audio/`, `fonts/`). `audio/` en la raíz es el código del gestor de audio; los sonidos van en `assets/audio/`. Cada carpeta se crea con su primer archivo. GUT está en `addons/gut/` y el addon de capturas en `addons/godot_mcp_runtime/` (solo build de depuración; lo carga `autoload/dev_boot.gd`, que añade el nodo `MCPRuntime`). `DevBoot` carga también los trucos de prueba (`tools/dev_cheats.gd`, F1), solo en depuración: el usuario los abre con `Jugar (pruebas).bat`, no con la build de `build/`. El addon se excluye de toda build exportada, y cada hito se comprueba con `tools/verify.sh`, que verifica además que la build arranca sin él.
@@ -35,6 +35,7 @@ Reglas:
 
 ## Convenciones
 
+- `PENDIENTES.md` lleva todo lo que falta del proyecto; se actualiza en el mismo commit que cierra o abre algo.
 - GDScript con tipado estático; nombres en inglés; textos del juego en español mediante `tr()` y archivos de traducción CSV de Godot, nunca literales en el código.
 - Un archivo por clase (`class_name`). Sin lógica de juego en `_process()` salvo el reloj.
 - Texturas: por defecto se importan comprimidas en VRAM (BC7) y con mipmaps (`[importer_defaults]` de `project.godot`). Sin el editor, Godot no las detecta como 3D y las dejaría sin comprimir. Las de la interfaz de la tele llevan su propio `.import` sin compresión. `tools/texture_budget.gd` (lo ejecuta `verify.sh`) ajusta las del piso según su uso: 512 px en objetos de menos de 30 cm, tope de 2048 y rugosidad/metal en BC1.

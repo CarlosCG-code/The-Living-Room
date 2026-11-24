@@ -73,6 +73,10 @@ def mirror_all(recalc_normals=True):
     for o in bpy.context.scene.objects:
         o.select_set(True)
         o.location.x = -o.location.x
+        # El giro también se refleja (S·R·S): si no, un objeto girado se reflejaba sobre su propio eje y quedaba dentro del muro.
+        q = o.matrix_basis.to_quaternion()
+        o.rotation_mode = "QUATERNION"
+        o.rotation_quaternion = (q.w, q.x, -q.y, -q.z)
         o.scale.x = -o.scale.x
     bpy.context.view_layer.objects.active = bpy.context.scene.objects[0]
     # Tras exportar, las mallas con modificadores (biselado) quedan con dos usuarios y no se dejaría aplicar.

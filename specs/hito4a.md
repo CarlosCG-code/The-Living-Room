@@ -19,7 +19,7 @@
 
 ## 1. Objetivo
 
-En la build de pruebas, el jugador se levanta del sofá y recorre un piso de 14 habitaciones con muebles básicos. Abre y cierra las puertas arrastrándolas con el ratón como en *Visage* y vuelve a sentarse. Todo funciona igual a oscuras, dentro de los objetivos de rendimiento de hito2 D16. **El piso en espejo está aplazado** hasta que el usuario dé la casa por terminada: su glTF y sus tests existen, pero no cuenta para cerrar 4a.
+En la build de pruebas, el jugador se levanta del sofá y recorre un piso de 14 habitaciones con muebles básicos. Abre y cierra las puertas arrastrándolas con el ratón como en *Visage* y vuelve a sentarse. Todo funciona igual a oscuras, dentro de los objetivos de rendimiento de hito2 D16. **El piso en espejo** no contó para cerrar 4a (aplazado el 2026-11-21); se puso al día el 2026-11-24 y desde entonces se cambian los dos a la vez.
 
 Fuera de 4a: todo lo de 4b, el look-dev fino de cada habitación, la pausa de pie, invertir el eje Y, los pasos según el suelo y guardar la posición.
 
