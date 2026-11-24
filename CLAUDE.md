@@ -10,6 +10,7 @@ Juego de terror psicológico con un incremental como mecánica central, hecho en
 - Si algo exige el editor, da al usuario pasos concretos y numerados.
 - Verifica sin el usuario: importación y tests GUT con el ejecutable de la variable de entorno `GODOT` en modo `--headless`; errores de GDScript con el LSP del editor headless (`--editor --lsp-port 6005`); el aspecto visual solo con capturas del juego ejecutado con renderer real (MCP `godot`, servidor GoPeak, que usa el addon `godot_mcp_runtime`). Headless no renderiza.
 - Herramientas: modelado y props en Blender (MCP `blender`, sin su generación por IA de pago) exportados a glTF; escenas y verificación con el MCP `godot`; documentación de Godot 4.7.2 con el MCP `context7`.
+- **Copias de seguridad:** `bash tools/backup.sh <hito>` antes de empezar y al cerrar cada hito, y antes de algo arriesgado; van a `../backups/<hito>/<fecha>`. No se borra ninguna sin que el usuario lo diga.
 - PC de desarrollo: referencia de rendimiento, no requisito mínimo. Sus datos no se escriben en el repositorio.
 - **Privacidad:** nada del usuario ni de su PC va a GitHub: nombre, correo, rutas locales de su usuario, hardware, cifras de benchmark, capturas o partidas. Los commits usan el correo noreply de GitHub; el hook `tools/hooks/pre-commit` bloquea lo demás.
 

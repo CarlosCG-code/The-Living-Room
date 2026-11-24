@@ -11,7 +11,7 @@ Lo que falta para terminar *The Living Room*, en el orden en que se hará. Se ac
 - [x] Textos en el piso en espejo: al revés, como todo lo demás (usuario, 2026-11-24).
 - [ ] Desde la run 2, ¿levantarse cuando se quiera? (GDD §12; 4b)
 - [ ] Zoom out al pulsar *Reiniciar*, antes de que llamen a la puerta: ¿sí o no? (4b; hoy, no)
-- [ ] Copia de seguridad: texturas, geometría y descargas solo están en el PC (fuera de git desde el 2026-11-19).
+- [x] Copia de seguridad: `tools/backup.sh <hito>` la deja en `../backups/<hito>/<fecha>` y la comprueba (2026-11-24). Falta una copia en otro disco.
 
 ## Hito 3 — Audio de la run 1 y director de eventos
 
