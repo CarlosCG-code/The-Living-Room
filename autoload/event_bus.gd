@@ -12,3 +12,6 @@ signal player_zone_changed(zone: StringName)
 ## El director suelta un suceso (specs/hito3.md D3). place: zona, puerta, lámpara, «ceiling» o «wall».
 @warning_ignore("unused_signal")
 signal fear_event(def: FearEventDef, place: StringName)
+## Los zumbidos de la tele y de la casa se cortan: el preludio de un sonido (specs/hito3.md D6).
+@warning_ignore("unused_signal")
+signal house_silence(seconds: float)

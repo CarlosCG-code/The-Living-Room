@@ -77,9 +77,9 @@ func _process(delta: float) -> void:
 		return
 	var eco := Game.economy
 	var s := eco.state
-	_status.text = "TRUCOS (F1)\nRun %d · Energía %s · producida %s / %s (%.0f %%)\nCarga %d · permanentes %s\nMejoras %d · evento: %s · cintas %d · tiempo ×%s · partida %s\nSensibilidad del ratón: %.1f" % [
+	_status.text = "TRUCOS (F1)\nRun %d · Energía %s · producida %s / %s (%.0f %%) · progreso %.2f\nCarga %d · permanentes %s\nMejoras %d · evento: %s · cintas %d · tiempo ×%s · partida %s\nSensibilidad del ratón: %.1f" % [
 		s.run_index, NumberFormat.energy(s.energy), NumberFormat.energy(s.energy_produced_run),
-		NumberFormat.energy(eco.threshold()), 100.0 * s.energy_produced_run / eco.threshold(), s.carga,
+		NumberFormat.energy(eco.threshold()), 100.0 * s.energy_produced_run / eco.threshold(), eco.run_progress(), s.carga,
 		", ".join(PackedStringArray(s.perks)), s.upgrades.size(),
 		String(s.event_id) if s.event_id != &"" else "-", eco.packages().size(), Engine.time_scale,
 		"en marcha" if Game.running else "parada", look_sens * 1000.0]
@@ -93,7 +93,7 @@ func _build() -> void:
 	_row([["Jugar ya (sin menú)", _play], ["Abrir árbol", _open_tree]])
 	_row([["Desbloquear todo el árbol", _reveal_all], ["Comprarlo todo", _buy_everything]])
 	_section("Empezar una run (con las permanentes que tengas)")
-	_row([["Run 1", _start_run.bind(1)], ["Run 2", _start_run.bind(2)], ["Run 3", _start_run.bind(3)], ["Run 4", _start_run.bind(4)]])
+	_row([["Mitad de la run 1", _half_run], ["Run 1", _start_run.bind(1)], ["Run 2", _start_run.bind(2)], ["Run 3", _start_run.bind(3)], ["Run 4", _start_run.bind(4)]])
 	_section("Energía")
 	_row([["+1 min de ingresos", func() -> void: _give(maxf(eco_income(), 10.0) * 60.0)],
 		["+10 min", func() -> void: _give(maxf(eco_income(), 10.0) * 600.0)]])
@@ -237,6 +237,16 @@ func _start_run(value) -> void:
 	eco._recalc()
 	EventBus.run_restarted.emit(run)
 	_play()
+
+
+## La mitad de la run 1, con sus máquinas ya compradas (el director las da por hechas).
+func _half_run() -> void:
+	_start_run(1)
+	var eco := Game.economy
+	for g in eco.config.generators.slice(0, 5):
+		eco.state.generators[g.id] = 5
+	_give(sqrt(Economy.PROGRESS_FROM * eco.threshold()))
+	eco._recalc()
 
 
 ## Cumple los requisitos de todo el árbol (clics, cintas, eventos, máquinas, permanentes) sin comprar nada.

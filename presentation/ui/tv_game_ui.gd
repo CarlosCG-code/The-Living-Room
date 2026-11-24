@@ -9,6 +9,7 @@ extends Control
 # flechas e Intro se mueven por el árbol y compran.
 
 const CHANNEL_CHANGE := 0.4  # segundos de nieve al cambiar de canal
+const FRAME_TIME := 0.12
 
 @onready var _osd: TvOsd = $Osd
 @onready var _factory: FactoryView = $FactoryView
@@ -260,6 +261,19 @@ func shake(px: int) -> void:
 	for i in 3:
 		_shake.tween_property(self, "position", Vector2(randi_range(-px, px), randi_range(-px, px)), 0.04)
 	_shake.tween_property(self, "position", Vector2.ZERO, 0.04)
+
+
+## Enseña un instante el fotograma del director (specs/hito3.md D7).
+func show_frame(texture: Texture2D) -> void:
+	var frame := TextureRect.new()
+	frame.name = "Frame"
+	frame.texture = texture
+	frame.mouse_filter = MOUSE_FILTER_IGNORE
+	frame.modulate.a = Game.settings.effects_intensity
+	add_child(frame)
+	_factory.still_left = 1.0
+	await get_tree().create_timer(FRAME_TIME).timeout
+	frame.queue_free()
 
 
 ## Esc durante la partida: la partida se para y la tele muestra el menú de pausa.

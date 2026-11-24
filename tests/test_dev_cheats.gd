@@ -25,6 +25,12 @@ func test_threshold_and_restart() -> void:
 	assert_gt(Game.economy.state.carga, 0)
 
 
+func test_half_run() -> void:
+	cheats._half_run()
+	assert_almost_eq(Game.economy.run_progress(), 0.5, 0.001)
+	assert_gt(Game.economy.production_per_second(), 0.0)
+
+
 func test_runs_open_their_branches() -> void:
 	cheats._set_run(3)
 	cheats._give(1e9)

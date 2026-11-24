@@ -79,6 +79,8 @@ var _event_at := Vector2.ZERO
 var _faulty: FactoryCable
 var _auto_acc := 0.0
 var _flicker_left := 0.0
+## Mientras el fotograma está en pantalla no hay otro destello: se paran el marcador y el fallo de la luz.
+var still_left := 0.0
 
 
 func _ready() -> void:
@@ -208,7 +210,9 @@ func _process(delta: float) -> void:
 		_snow.speed_scale = 0.0
 	elif _run >= 3 and _dread > 0.5 and randf() < delta / 40.0:
 		_freeze_left = 1.0  # la nieve se para en el aire un segundo
-	_flicker(delta)
+	still_left -= delta
+	if still_left <= 0.0:
+		_flicker(delta)
 	# Dial solo (y mantener pulsado): las máquinas dan saltitos solas, uno por clic automático (en pausa o en el
 	# menú la economía está parada y no saltan).
 	if Game.running:
@@ -257,7 +261,8 @@ func show_event(e: TvEventDef, t: float) -> void:
 	# Por debajo de y = 46: más arriba pisaba el «/s · /clic» del OSD.
 	_hint.position = (_event_at + Vector2(-hint_size.x / 2, 10)).round().clamp(Vector2(0, 46), size - hint_size)
 	_event_layer.queue_redraw()
-	_marker.queue_redraw()
+	if still_left <= 0.0:
+		_marker.queue_redraw()
 
 
 ## Centro de lo que hay que clicar.

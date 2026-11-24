@@ -2,6 +2,27 @@
 
 [ext_resource type="Script" path="res://fear/fear_event_set.gd" id="set"]
 [ext_resource type="Script" path="res://fear/fear_event_def.gd" id="def"]
+[ext_resource type="AudioStream" path="res://assets/audio/house/wall_ticks_1.ogg" id="wall_ticks_1"]
+[ext_resource type="AudioStream" path="res://assets/audio/house/wall_ticks_2.ogg" id="wall_ticks_2"]
+[ext_resource type="AudioStream" path="res://assets/audio/house/cry_1.ogg" id="cry_1"]
+[ext_resource type="AudioStream" path="res://assets/audio/house/cry_2.ogg" id="cry_2"]
+[ext_resource type="AudioStream" path="res://assets/audio/house/voices_1.ogg" id="voices_1"]
+[ext_resource type="AudioStream" path="res://assets/audio/house/voices_2.ogg" id="voices_2"]
+[ext_resource type="AudioStream" path="res://assets/audio/house/remote_1.ogg" id="remote_1"]
+[ext_resource type="AudioStream" path="res://assets/audio/house/fall_1.ogg" id="fall_1"]
+[ext_resource type="AudioStream" path="res://assets/audio/house/fall_2.ogg" id="fall_2"]
+[ext_resource type="AudioStream" path="res://assets/audio/house/knocks_1.ogg" id="knocks_1"]
+[ext_resource type="AudioStream" path="res://assets/audio/house/knocks_2.ogg" id="knocks_2"]
+[ext_resource type="AudioStream" path="res://assets/audio/house/pipes_1.ogg" id="pipes_1"]
+[ext_resource type="AudioStream" path="res://assets/audio/house/pipes_2.ogg" id="pipes_2"]
+[ext_resource type="AudioStream" path="res://assets/audio/house/steps_above_1.ogg" id="steps_above_1"]
+[ext_resource type="AudioStream" path="res://assets/audio/house/steps_above_2.ogg" id="steps_above_2"]
+[ext_resource type="AudioStream" path="res://assets/audio/house/creak_1.ogg" id="creak_1"]
+[ext_resource type="AudioStream" path="res://assets/audio/house/creak_2.ogg" id="creak_2"]
+[ext_resource type="AudioStream" path="res://assets/audio/house/pills_1.ogg" id="pills_1"]
+[ext_resource type="AudioStream" path="res://assets/audio/house/pills_2.ogg" id="pills_2"]
+[ext_resource type="AudioStream" path="res://assets/audio/house/glasses_1.ogg" id="glasses_1"]
+[ext_resource type="AudioStream" path="res://assets/audio/house/denture_1.ogg" id="denture_1"]
 
 [sub_resource type="Resource" id="wall_ticks"]
 script = ExtResource("def")
@@ -9,8 +30,10 @@ id = &"wall_ticks"
 requires = &"valves"
 mandatory = 1
 cooldown = 180.0
-duration = 6.0
+duration = 3.9
 places = Array[StringName]([&"wall", &"corridor_main_m"])
+sounds = Array[AudioStream]([ExtResource("wall_ticks_1"), ExtResource("wall_ticks_2")])
+volume_db = -5.0
 subtitle_key = "SUB_WALL_TICKS"
 
 [sub_resource type="Resource" id="cry"]
@@ -19,8 +42,10 @@ id = &"cry"
 requires = &"audio_frequency"
 mandatory = 1
 cooldown = 300.0
-duration = 6.0
+duration = 9.5
 places = Array[StringName]([&"kitchen"])
+sounds = Array[AudioStream]([ExtResource("cry_1"), ExtResource("cry_2")])
+volume_db = 2.0
 subtitle_key = "SUB_CRY"
 
 [sub_resource type="Resource" id="voices"]
@@ -29,8 +54,10 @@ id = &"voices"
 requires = &"tuner"
 mandatory = 1
 cooldown = 300.0
-duration = 6.0
+duration = 10.5
 places = Array[StringName]([&"ceiling"])
+sounds = Array[AudioStream]([ExtResource("voices_1"), ExtResource("voices_2")])
+volume_db = -8.0
 subtitle_key = "SUB_VOICES"
 
 [sub_resource type="Resource" id="remote"]
@@ -39,8 +66,10 @@ id = &"remote"
 requires = &"remote"
 mandatory = 1
 cooldown = 300.0
-duration = 6.0
+duration = 2.0
 places = Array[StringName]([&"dining_room", &"bedroom_main"])
+sounds = Array[AudioStream]([ExtResource("remote_1")])
+volume_db = 3.0
 subtitle_key = "SUB_REMOTE"
 
 [sub_resource type="Resource" id="fall"]
@@ -49,8 +78,10 @@ id = &"fall"
 min_progress = 0.5
 requires = &"remote"
 cooldown = 360.0
-duration = 6.0
+duration = 4.2
 places = Array[StringName]([&"workshop", &"bedroom_2", &"gallery"])
+sounds = Array[AudioStream]([ExtResource("fall_1"), ExtResource("fall_2")])
+volume_db = 8.0
 subtitle_key = "SUB_FALL"
 
 [sub_resource type="Resource" id="knocks"]
@@ -60,8 +91,10 @@ requires = &"channel_3"
 mandatory = 1
 mandatory_progress = 0.85
 cooldown = 300.0
-duration = 6.0
+duration = 4.55
 places = Array[StringName]([&"door_front"])
+sounds = Array[AudioStream]([ExtResource("knocks_1"), ExtResource("knocks_2")])
+volume_db = 11.0
 subtitle_key = "SUB_KNOCKS"
 
 [sub_resource type="Resource" id="pipes"]
@@ -69,8 +102,10 @@ script = ExtResource("def")
 id = &"pipes"
 min_progress = 0.1
 cooldown = 240.0
-duration = 6.0
+duration = 7.5
 places = Array[StringName]([&"bathroom", &"service_toilet"])
+sounds = Array[AudioStream]([ExtResource("pipes_1"), ExtResource("pipes_2")])
+volume_db = 2.0
 subtitle_key = "SUB_PIPES"
 
 [sub_resource type="Resource" id="steps_above"]
@@ -78,8 +113,10 @@ script = ExtResource("def")
 id = &"steps_above"
 min_progress = 0.3
 cooldown = 300.0
-duration = 6.0
+duration = 7.5
 places = Array[StringName]([&"ceiling"])
+sounds = Array[AudioStream]([ExtResource("steps_above_1"), ExtResource("steps_above_2")])
+volume_db = -8.0
 subtitle_key = "SUB_STEPS_ABOVE"
 
 [sub_resource type="Resource" id="creak"]
@@ -87,8 +124,10 @@ script = ExtResource("def")
 id = &"creak"
 min_progress = 0.4
 cooldown = 360.0
-duration = 6.0
+duration = 5.0
 places = Array[StringName]([&"door_bedroom_3", &"door_gallery"])
+sounds = Array[AudioStream]([ExtResource("creak_1"), ExtResource("creak_2")])
+volume_db = 6.0
 subtitle_key = "SUB_CREAK"
 
 [sub_resource type="Resource" id="pills"]
@@ -98,8 +137,10 @@ min_progress = 0.35
 mandatory = 2
 mandatory_progress = 0.35
 cooldown = 420.0
-duration = 6.0
+duration = 4.8
 places = Array[StringName]([&"bedroom_main", &"bathroom"])
+sounds = Array[AudioStream]([ExtResource("pills_1"), ExtResource("pills_2")])
+volume_db = 9.0
 subtitle_key = "SUB_PILLS"
 
 [sub_resource type="Resource" id="glasses"]
@@ -109,8 +150,10 @@ min_progress = 0.55
 mandatory = 2
 mandatory_progress = 0.55
 cooldown = 420.0
-duration = 6.0
+duration = 1.97
 places = Array[StringName]([&"dining_room", &"bedroom_main"])
+sounds = Array[AudioStream]([ExtResource("glasses_1")])
+volume_db = 3.0
 subtitle_key = "SUB_GLASSES"
 
 [sub_resource type="Resource" id="denture"]
@@ -120,8 +163,10 @@ min_progress = 0.7
 mandatory = 2
 mandatory_progress = 0.7
 cooldown = 420.0
-duration = 6.0
+duration = 3.0
 places = Array[StringName]([&"bathroom"])
+sounds = Array[AudioStream]([ExtResource("denture_1")])
+volume_db = 6.0
 subtitle_key = "SUB_DENTURE"
 
 [sub_resource type="Resource" id="lamp_flicker"]

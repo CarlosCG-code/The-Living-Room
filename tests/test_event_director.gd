@@ -263,6 +263,16 @@ func test_thirty_minutes_of_run_one() -> void:
 
 # --- Datos ---
 
+# Byte de canales de la cabecera de identificación Vorbis: tipo 1, «vorbis», versión (4 bytes), canales.
+func _channels(path: String) -> int:
+	var head := FileAccess.get_file_as_bytes(path).slice(0, 200)
+	for i in head.size() - 12:
+		if head[i] == 1 and head.slice(i + 1, i + 7).get_string_from_ascii() == "vorbis":
+			return head[i + 11]
+	return -1
+
+
+
 func test_data() -> void:
 	var config: EconomyConfig = load(Game.CONFIG_PATH)
 	var ids := {}
@@ -277,5 +287,11 @@ func test_data() -> void:
 		if def.kind == FearEventDef.Kind.SOUND:
 			assert_ne(tr(def.subtitle_key), def.subtitle_key, "%s: subtítulo" % def.id)
 			assert_false(def.places.is_empty(), String(def.id))
+			assert_false(def.sounds.is_empty(), "%s: sin sonidos" % def.id)
+			var longest := 0.0
+			for sound in def.sounds:
+				longest = maxf(longest, sound.get_length())
+				assert_eq(_channels(sound.resource_path), 1, "%s: en 3D, mono" % sound.resource_path)
+			assert_almost_eq(def.duration, longest + HouseAudio.PRELUDE, 0.06, "%s: duración" % def.id)
 		elif def.kind == FearEventDef.Kind.LAMP:
 			assert_gte(def.duration, 2.4)

@@ -15,6 +15,9 @@ const LIGHT_MIN := 0.55
 const LIGHT_MIN_SOFT := 0.8
 const LIGHT_FADE := 1.0  # 1/s: un cambio se nota en unos 3 s
 const PROBE_STEP := 0.1  # cambio de luz con el que se recaptura la sonda
+const FRAME_SIZE := Vector2i(320, 240)
+const FRAME_EYE := Vector3(0.0, 1.3, -2.35)  # detrás del sofá
+const FRAME_EXPOSURE := 2.5  # la paleta de la tele es para una imagen más clara que el salón
 const VIEWS: Array[StringName] = [&"game", &"sofa", &"window", &"door", &"corner"]
 
 var mixer: LightMixer
@@ -88,6 +91,13 @@ func _ready() -> void:
 	flicker.name = "LightFlicker"
 	add_child(flicker)
 	flicker.setup(mixer, flat.get_lights(), camera.get_flashlight(), flat.get_layout(), flat.mirrored)
+	var house := HouseAudio.new()
+	house.name = "HouseAudio"
+	add_child(house)
+	house.setup(flat)
+	EventBus.fear_event.connect(func(def: FearEventDef, _place: StringName) -> void:
+		if def.kind == FearEventDef.Kind.TV_FRAME and Game.settings.effects_intensity > 0.0:
+			_show_frame())
 	_add_film_grain()
 	_apply_user_settings()
 	var preset_now := func() -> StringName: return dev_preset if dev_preset in GraphicsSettings.PRESETS else Game.settings.quality
@@ -166,6 +176,28 @@ func _process(delta: float) -> void:
 
 func _light_goal() -> float:
 	return lerpf(1.0, lerpf(LIGHT_MIN_SOFT, LIGHT_MIN, Game.settings.effects_intensity), Game.economy.production_level())
+
+
+# El salón en directo, visto desde detrás del sofá, un instante en la tele (specs/hito3.md D7). Se dibuja una sola vez
+# y con la paleta de la tele ya puesta.
+func _show_frame() -> void:
+	var viewport := SubViewport.new()
+	viewport.size = FRAME_SIZE
+	viewport.render_target_update_mode = SubViewport.UPDATE_ONCE
+	var eye := Camera3D.new()
+	eye.transform = Transform3D(Basis.from_euler(Vector3(deg_to_rad(-14.0), PI, 0.0)), FRAME_EYE)
+	eye.fov = 80.0
+	viewport.add_child(eye)
+	var palette := ColorRect.new()
+	palette.size = FRAME_SIZE
+	palette.material = ShaderMaterial.new()
+	(palette.material as ShaderMaterial).shader = preload("res://presentation/ui/palette.gdshader")
+	(palette.material as ShaderMaterial).set_shader_parameter(&"exposure", FRAME_EXPOSURE)
+	viewport.add_child(palette)
+	add_child(viewport)
+	await RenderingServer.frame_post_draw
+	await _ui.show_frame(viewport.get_texture())
+	viewport.queue_free()
 
 
 func _sense(s: DirectorState) -> void:

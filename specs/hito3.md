@@ -1,6 +1,6 @@
 # Especificación — Hito 3: audio de la run 1 y director de eventos
 
-> Estado: **v3, con las decisiones del usuario (2026-11-24, §8); pendiente de su aprobación**. v2 tras la revisión EGM (`reviews/hito3/egm_report.md`); la v3 quita el zoom out y no se ha vuelto a revisar. No se escribe código hasta que la apruebe.
+> Estado: **v3 aprobada por el usuario (2026-11-24); pasos 1 a 3 hechos, espera la parada 1**. Lo que cambió al construirlo, en §9. v2 tras la revisión EGM (`reviews/hito3/egm_report.md`); la v3 quita el zoom out y no se ha vuelto a revisar.
 >
 > Fuentes: `GAME_DESIGN.md` §3-§6, §11 (hito 3) y §12; `CLAUDE.md`; `specs/hito2.md` (D2, D10, D12), `specs/hito4a.md` (D12, D13), `specs/incremental.md` §3 y §4.
 
@@ -195,3 +195,12 @@ Manual, en las paradas: sonidos, luces y ritmo (1), la run entera (2).
 | P4 | ¿Cuánto bajan las luces al máximo de producción? | Hasta el 55 % |
 | P5 | ¿Unos 23 sucesos en media hora? | Sí; se ajusta al probarlo |
 | P6 | ¿Pasos según el suelo y mezcla por run? | En el 4b |
+
+## 9. Cambios al construirlo (2026-11-24)
+
+- **D3:** `Game.senses` es una función `(DirectorState)` y `DirectorState.lamps`, otra que se llama solo al sortear: mirar las lámparas cuesta un rayo por cada una. El director se reinicia solo cuando la partida cambia de `RunState` (crear, reiniciar, partida nueva y trucos), sin llamarlo desde cada sitio.
+- **D2:** rehacer la GI al cambiar las luces no cuesta nada medible: sin saltos del 2 %.
+- **D6:** el eco va en el propio bus `HouseEvents` (`Reverb`). El de las áreas (`FlatAcoustics`, `RoomAcoustics`) no suena: en Godot 4.7 `area_mask` empieza en 0 y las ignora, y con un área de eco Godot deja de mandar el sonido directo a su bus. Sin filtro por distancia en los sucesos: con el del muro basta.
+- **D6, archivos:** 21 de sucesos y 2 capas. `remote`, `glasses` y `denture`, con uno solo. Todos igualados por sus 400 ms más fuertes y medidos desde el sofá (−30 a −40 dB; la tele, −48).
+- **D7:** la cámara mira 14° hacia abajo con 80° de campo: si no, el sofá no se veía. El `SubViewport` se crea y se borra cada vez; el tirón no se nota.
+- **D10:** además, «Mitad de la run 1» para la parada 1.

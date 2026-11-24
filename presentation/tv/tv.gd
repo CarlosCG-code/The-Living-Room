@@ -19,7 +19,7 @@ var power := true:
 
 var _state: StringName = &""
 var _material: ShaderMaterial
-# Ambiente: zumbido de la tele (siempre) y dron grave al final de la run; silencios cada vez más largos.
+# Ambiente: zumbido de la tele (siempre) y dron grave al final de la run; HouseAudio los corta antes de algunos sonidos.
 var _hum: AudioStreamPlayer3D
 var _drone: AudioStreamPlayer3D
 var _silence_left := 0.0
@@ -65,6 +65,7 @@ func _ready() -> void:
 	_occlusion_lp = AudioServer.get_bus_effect(bus, 2) as AudioEffectLowPassFilter
 	_occlusion_gain = AudioServer.get_bus_effect(bus, 3) as AudioEffectAmplify
 	EventBus.settings_changed.connect(_apply_settings)
+	EventBus.house_silence.connect(func(seconds: float) -> void: _silence_left = seconds)
 	_apply_settings()
 	_update_power()
 
@@ -132,18 +133,14 @@ func _loop_player(path: String, volume_db: float) -> AudioStreamPlayer3D:
 	return p
 
 
-# Cuanto más avanza la run (f), más dron y más silencios: el zumbido se corta 2-4 s de vez en cuando, y esos
-# cortes son más frecuentes y largos al final.
+# Cuanto más avanza la run (f), más dron. En los silencios (EventBus.house_silence) se corta el zumbido.
 func _ambience(delta: float) -> void:
 	var f := 0.0
 	if Game.running:
 		f = clampf(Game.economy.state.energy_produced_run / Game.economy.threshold(), 0.0, 1.0)
 	var drone := clampf(inverse_lerp(0.5, 1.0, f), 0.0, 1.0)
 	_drone.volume_db = lerpf(-80.0, -12.0, sqrt(drone))
-	if _silence_left > 0.0:
-		_silence_left -= delta
-	elif f > 0.6 and randf() < delta * f / 45.0:
-		_silence_left = randf_range(2.0, 2.0 + 2.0 * f)
+	_silence_left -= delta
 	var target := -80.0 if (_silence_left > 0.0 or not power) else HUM_DB
 	_hum.volume_db = move_toward(_hum.volume_db, target, delta * 120.0)
 

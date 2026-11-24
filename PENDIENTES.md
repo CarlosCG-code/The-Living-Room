@@ -2,11 +2,13 @@
 
 Lo que falta para terminar *The Living Room*, en el orden en que se hará. Se actualiza en el mismo commit que cierra o abre algo. El porqué de cada cosa está en `GAME_DESIGN.md` (§11, el plan) y en `specs/`.
 
-**Estado (2026-11-24):** hitos 0, 1 y 4a cerrados; el 2 hecho, falta cerrarlo en el papel. Siguiente: **hito 3**.
+**Estado (2026-11-24):** hitos 0, 1 y 4a cerrados; el 2 hecho, falta cerrarlo en el papel. En marcha: **hito 3**, en la parada 1.
 
 ## Espera una respuesta del usuario
 
-- [ ] Empezar el hito 3 (`specs/hito3.md`, v3 con sus decisiones).
+- [ ] **Parada 1 del hito 3:** 10 minutos desde la mitad de la run 1; ¿valen sonidos, mezcla, luces y ritmo?
+- [ ] Eco de pasos y puertas: no suena (`specs/hito3.md` §9, D6); ¿se recupera?
+- [ ] Lluvia del salón: mide −64 dB, casi no se oye (la tele, −48); ¿se sube?
 - [ ] Dar por cerrado el hito 2 (todo aprobado sobre la marcha; `specs/hito2.md` dice que falta la parada).
 - [x] Textos en el piso en espejo: al revés, como todo lo demás (usuario, 2026-11-24).
 - [ ] Desde la run 2, ¿levantarse cuando se quiera? (GDD §12; 4b)
@@ -15,9 +17,9 @@ Lo que falta para terminar *The Living Room*, en el orden en que se hará. Se ac
 
 ## Hito 3 — Audio de la run 1 y director de eventos
 
-- [ ] 1. Director de eventos, sin sonido.
-- [ ] 2. Luces que bajan con la producción y ajuste «Intensidad de efectos».
-- [ ] 3. Sonidos, preludio y fotograma de la tele. **Prueba del usuario: 10 minutos.**
+- [x] 1. Director de eventos, sin sonido.
+- [x] 2. Luces que bajan con la producción y ajuste «Intensidad de efectos».
+- [ ] 3. Sonidos, preludio y fotograma de la tele: hechos. Falta la **prueba del usuario: 10 minutos.**
 - [ ] 4. Benchmark y documentación (de paso: umbral de la run 1 en el GDD §4 y estado de `specs/hito2.md`).
 - [ ] 5. **Prueba del usuario: la run 1 entera.**
 

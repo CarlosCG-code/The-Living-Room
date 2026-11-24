@@ -19,6 +19,11 @@ func test_devboot_skips_without_addon() -> void:
 	parent.free()
 
 
+func test_layers_of_the_house_loop() -> void:
+	for stream: AudioStreamOggVorbis in [HouseAudio.AMBIENCE, HouseAudio.HUM]:
+		assert_true(stream.loop, stream.resource_path)
+
+
 func test_autosave_waits_for_the_end_of_an_event() -> void:
 	Game.running = true
 	Game.economy.state = RunState.new_run(Game.economy.config, 1, RandomNumberGenerator.new())
