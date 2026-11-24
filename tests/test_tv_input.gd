@@ -77,3 +77,14 @@ func test_press_outside_is_ignored() -> void:
 	_click(true, false)
 	_click(false, false)
 	assert_signal_emit_count(button, "button_down", 0)
+
+
+## En el piso en espejo el plano de los clics va reflejado: lo de la derecha de la imagen se pulsa a la izquierda.
+func test_mirrored_plane_flips_clicks() -> void:
+	button.position.x = 700
+	screen.scale.x = -1.0
+	var ev := InputEventMouseButton.new()
+	ev.button_index = MOUSE_BUTTON_LEFT
+	ev.pressed = true
+	tv_input.forward(CAMERA, (Vector3(-0.13, 0, 0) - CAMERA).normalized(), ev)
+	assert_signal_emit_count(button, "button_down", 1)

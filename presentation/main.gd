@@ -36,10 +36,12 @@ func _ready() -> void:
 	add_child(tv)
 	tv.global_transform = room.get_anchor(&"TvAnchor").global_transform
 	if flat.mirrored:
-		# El aparato se refleja (antena, mandos); la pantalla se sigue leyendo (el mundo de la tele en espejo es del 4b).
-		(tv.get_node(^"Model") as Node3D).scale.x = -1.0
-		MirrorMath.single_sided(tv.get_node(^"Model"))
-		tv.get_screen_node().scale.x = -1.0
+		# La tele entera, también la imagen; el plano de los clics va reflejado con ella.
+		MirrorMath.reflect_meshes(tv.get_node(^"Model"), Vector3.AXIS_X)
+		var plane := Node3D.new()
+		plane.scale.x = -1.0
+		tv.get_screen_node().add_child(plane)
+		tv.get_input().setup(tv.get_subviewport(), plane, tv.get_screen_size())
 	flat.set_tv_light(tv.get_screen_light().global_position)
 	var camera := CAMERA.instantiate()
 	add_child(camera)

@@ -59,3 +59,22 @@ func test_planar_mirror_camera_not_interpolated() -> void:
 	mirror.setup(Vector3(0, 1.5, 0), Vector3.RIGHT, Vector2(0.5, 0.7))
 	var cam := mirror.find_children("*", "Camera3D", true, false)[0] as Camera3D
 	assert_eq(cam.physics_interpolation_mode, Node.PHYSICS_INTERPOLATION_MODE_OFF)
+
+
+func test_reflect_mesh_reflects_points_normals_and_winding() -> void:
+	var box := PrismMesh.new()
+	box.left_to_right = 0.2
+	var out := MirrorMath.reflect_mesh(box, Vector3.AXIS_X)
+	var a := box.surface_get_arrays(0)
+	var b := out.surface_get_arrays(0)
+	assert_almost_eq(out.get_aabb().get_center().x, -box.get_aabb().get_center().x, 0.001)
+	var i: PackedInt32Array = b[Mesh.ARRAY_INDEX]
+	var v: PackedVector3Array = b[Mesh.ARRAY_VERTEX]
+	var n: PackedVector3Array = b[Mesh.ARRAY_NORMAL]
+	assert_eq(i.size(), (a[Mesh.ARRAY_INDEX] as PackedInt32Array).size())
+	for t in range(0, i.size(), 3):
+		var face := (v[i[t + 2]] - v[i[t]]).cross(v[i[t + 1]] - v[i[t]])
+		assert_gt(face.dot(n[i[t]]), 0.0, "la cara da hacia su normal")
+	for k in (a[Mesh.ARRAY_VERTEX] as PackedVector3Array).size():
+		var p: Vector3 = a[Mesh.ARRAY_VERTEX][k]
+		assert_almost_eq(v[k], Vector3(-p.x, p.y, p.z), Vector3.ONE * 0.001)

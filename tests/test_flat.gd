@@ -16,9 +16,9 @@ func test_one_door_per_leaf() -> void:
 	var f: Node3D = _flat(false)
 	var leaves: Array = f.get_layout().connections.filter(func(c: ConnectionDef) -> bool: return c.kind == &"leaf")
 	assert_eq(f.doors.size(), leaves.size())
-	for m: MeshInstance3D in f.doors[0].find_children("*", "MeshInstance3D", true, false):
-		for s in m.mesh.get_surface_count():
-			assert_eq((m.mesh.surface_get_material(s) as BaseMaterial3D).cull_mode, BaseMaterial3D.CULL_BACK, "luz invertida al reflejar la hoja")
+	for m: MeshInstance3D in f.find_children("*", "MeshInstance3D", true, false):
+		if m.name != &"WindowBackdrop":  # sin luz: le da igual
+			assert_gt(m.global_basis.determinant(), 0.0, "%s: la escala negativa invierte su luz" % m.name)
 	assert_null(f.living_room.find_child("DoorLeaf", true, false), "la hoja horneada del salón ya no está")
 
 
@@ -104,6 +104,34 @@ func _vertices(m: MeshInstance3D, surface: int, x_sign: float) -> Dictionary:
 			out[key] = []
 		out[key].append(((m.global_basis * arrays[Mesh.ARRAY_NORMAL][i]).normalized()) * flip)
 	return out
+
+
+## Luces, sonidos, zonas de eco, sondas, partículas y anclas: todo lo que no es malla, también en su sitio reflejado.
+func test_mirrored_nodes_are_reflection_of_normal() -> void:
+	var normal: Node3D = _flat(false)
+	var mirror: Node3D = _flat(true)
+	var checked := 0
+	for type: String in ["Light3D", "AudioStreamPlayer3D", "Area3D", "ReflectionProbe", "VoxelGI", "GPUParticles3D", "Marker3D", "Camera3D"]:
+		# Por orden y no por ruta: los nombres automáticos no coinciden.
+		var all_a := normal.find_children("*", type, true, false)
+		var all_b := mirror.find_children("*", type, true, false)
+		assert_eq(all_b.size(), all_a.size(), type)
+		for i in mini(all_a.size(), all_b.size()):
+			var a: Node3D = all_a[i]
+			var b: Node3D = all_b[i]
+			checked += 1
+			var p := a.global_position
+			assert_almost_eq(b.global_position, Vector3(-p.x, p.y, p.z), Vector3.ONE * 0.001, a.name)
+			var forward := a.global_basis.z
+			if a is AudioStreamPlayer3D:  # suenan igual hacia todos lados
+				continue
+			assert_almost_eq(b.global_basis.z, Vector3(-forward.x, forward.y, forward.z), Vector3.ONE * 0.001, "%s: hacia dónde mira" % a.name)
+			if a is Light3D:
+				assert_eq((b as Light3D).light_energy, (a as Light3D).light_energy, a.name)
+				assert_eq((b as Light3D).light_cull_mask, (a as Light3D).light_cull_mask, a.name)
+	assert_gt(checked, 50)
+	var wind: Array = [normal, mirror].map(func(f: Node3D) -> Vector3: return (f.living_room.get_node("Rain").process_material as ParticleProcessMaterial).gravity)
+	assert_almost_eq(wind[1], Vector3(-wind[0].x, wind[0].y, wind[0].z), Vector3.ONE * 0.001, "viento de la lluvia")
 
 
 ## La ciudad de las ventanas también: cada punto del plano queda en su sitio reflejado.

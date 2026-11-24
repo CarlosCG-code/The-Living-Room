@@ -10,6 +10,7 @@ Los objetos con sufijo -col generan colisión al importar en Godot.
 import math
 import os
 
+import bmesh
 import bpy
 from mathutils import Matrix, Vector
 
@@ -69,6 +70,26 @@ def build_room():
     box("Shelf-col", (0.35, 1.0, 1.8), (-W / 2 + 0.2, -0.8, 0.9))
 
 
+def open_flat_uvs():
+    """Caras con la textura aplastada (área cero en UV): sin tangente posible, su relieve salía arbitrario, distinto en
+    cada piso (franjas negras en las cortinas). Se les da un área mínima, menos de un píxel."""
+    for me in {o.data for o in bpy.context.scene.objects if o.type == "MESH"}:
+        bm = bmesh.new()
+        bm.from_mesh(me)
+        fixed = False
+        for layer in bm.loops.layers.uv.values():
+            flat = {a.face for a, b, c in bm.calc_loop_triangles()
+                    if abs((b[layer].uv - a[layer].uv).cross(c[layer].uv - a[layer].uv)) < 1e-9}
+            fixed = fixed or bool(flat)
+            for face in flat:
+                for i, loop in enumerate(face.loops):
+                    angle = 2 * math.pi * i / len(face.loops)
+                    loop[layer].uv += Vector((math.cos(angle), math.sin(angle))) * 2e-4
+        if fixed:
+            bm.to_mesh(me)
+        bm.free()
+
+
 def mirror_all(recalc_normals=True):
     for o in bpy.context.scene.objects:
         o.select_set(True)
@@ -81,18 +102,28 @@ def mirror_all(recalc_normals=True):
     bpy.context.view_layer.objects.active = bpy.context.scene.objects[0]
     # Tras exportar, las mallas con modificadores (biselado) quedan con dos usuarios y no se dejaría aplicar.
     bpy.ops.object.make_single_user(object=True, obdata=True)
-    # Aplicar la escala negativa estropea las normales propias de los modelos importados: se guardan y se reponen reflejadas.
-    kept = {o: (o.scale.copy(), [{me.loops[i].vertex_index: me.corner_normals[i].vector.copy() for i in p.loop_indices} for p in me.polygons])
-            for o in bpy.context.scene.objects if o.type == "MESH" for me in [o.data] if me.has_custom_normals}
+    bpy.context.view_layer.objects.active = next(o for o in bpy.context.scene.objects if o.type == "MESH")
+    bpy.ops.object.convert(target="MESH")  # modificadores aplicados antes: reflejados, redondeaban distinto
+    # Aplicar la escala negativa estropea las normales: se guardan y se reponen reflejadas. Y se triangula antes, como
+    # lo hace el exportador: reflejados, los polígonos grandes se partían de otra forma (cortinas, fregadero).
+    meshes = list({o.data: o.scale.copy() for o in bpy.context.scene.objects if o.type == "MESH"}.items())
+    for me, _ in meshes:
+        kept = me.attributes.new("kept_normal", "FLOAT_VECTOR", "CORNER")
+        kept.data.foreach_set("vector", [c for n in me.corner_normals for c in n.vector])
+        bm = bmesh.new()
+        bm.from_mesh(me)
+        bmesh.ops.triangulate(bm, faces=bm.faces[:], quad_method="FIXED", ngon_method="EAR_CLIP")
+        bm.to_mesh(me)
+        bm.free()
     bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
-    for o, (sc, polys) in kept.items():
-        me = o.data
-        normals = [None] * len(me.loops)
-        for p in me.polygons:
-            for i in p.loop_indices:
-                n = polys[p.index][me.loops[i].vertex_index]
-                normals[i] = Vector((n.x / sc.x, n.y / sc.y, n.z / sc.z)).normalized()
-        me.normals_split_custom_set(normals)
+    for me, sc in meshes:
+        normals = [Vector((d.vector.x / sc.x, d.vector.y / sc.y, d.vector.z / sc.z)).normalized() for d in me.attributes["kept_normal"].data]
+        for name in ("kept_normal", "custom_normal"):
+            if name in me.attributes:
+                me.attributes.remove(me.attributes[name])
+        # Normales libres (Blender 4.5+): normals_split_custom_set promediaba las de alrededor de un mismo vértice.
+        free = me.attributes.new("custom_normal", "FLOAT_VECTOR", "CORNER")
+        free.data.foreach_set("vector", [c for n in normals for c in n])
     # Blender 5.3 ya deja las normales hacia fuera al aplicar la escala negativa (comprobado 2026-11-19);
     # recalcularlas estropearía mallas abiertas importadas (hojas de la planta, pantalla de la lámpara).
     if not recalc_normals:
@@ -794,6 +825,7 @@ def main():
         os.makedirs(SRC, exist_ok=True)
         reset()
         build_final()
+        open_flat_uvs()
         bpy.ops.wm.save_as_mainfile(filepath=os.path.join(SRC, "living_room.blend"))
         export_final(os.path.join(OUT, "living_room", "living_room.gltf"))
         mirror_all(recalc_normals=False)

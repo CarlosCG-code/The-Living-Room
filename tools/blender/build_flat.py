@@ -22,6 +22,7 @@ _helpers = {"ROOT": ROOT, "MODE": "final", "RUN_MAIN": False, "__file__": os.pat
 exec(open(_helpers["__file__"], encoding="utf-8").read(), _helpers)
 box, give, tex_mat, uv_world, mat = _helpers["box"], _helpers["give"], _helpers["tex_mat"], _helpers["uv_world"], _helpers["mat"]
 reset, mirror_all, export_final, join = _helpers["reset"], _helpers["mirror_all"], _helpers["export_final"], _helpers["join"]
+open_flat_uvs = _helpers["open_flat_uvs"]
 GEN = _helpers["GEN"]
 
 T, H = L.T, L.H
@@ -294,6 +295,7 @@ def main():
     build()
     finish_zones()
     exec(open(os.path.join(ROOT, "tools", "blender", "furnish_flat.py"), encoding="utf-8").read(), globals())
+    open_flat_uvs()
     os.makedirs(os.path.join(ROOT, "art_source"), exist_ok=True)
     bpy.ops.wm.save_as_mainfile(filepath=os.path.join(ROOT, "art_source", "flat.blend"))
     export_final(os.path.join(OUT, "flat.gltf"))

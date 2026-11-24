@@ -61,6 +61,7 @@ void fragment() {
 	vec2 offset = a.xy + b.xy + c.xy;
 	float mask = clamp(max(a.z, max(b.z, c.z)), 0.0, 1.0);
 	// Una gota invierte lo que hay detrás, como una lente: por eso se resta el desvío.
+	offset.x *= sign(world_pos.x - CAMERA_POSITION_WORLD.x); // hacia +z es la derecha mirando a +X y la izquierda mirando a -X (espejo)
 	vec3 behind = textureLod(screen_tex, SCREEN_UV - offset * refraction, 0.0).rgb;
 	float rim = smoothstep(0.6, 1.0, length(offset)) * mask;
 	vec3 drop_col = behind * 1.1 + vec3(0.04, 0.05, 0.06) * rim;

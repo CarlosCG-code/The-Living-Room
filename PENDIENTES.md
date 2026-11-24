@@ -8,7 +8,7 @@ Lo que falta para terminar *The Living Room*, en el orden en que se hará. Se ac
 
 - [ ] Empezar el hito 3 (`specs/hito3.md`, v3 con sus decisiones).
 - [ ] Dar por cerrado el hito 2 (todo aprobado sobre la marcha; `specs/hito2.md` dice que falta la parada).
-- [ ] Textos en el piso en espejo: hoy salen al revés, como todo lo demás. ¿Se dejan o se enderezan? (4b)
+- [x] Textos en el piso en espejo: al revés, como todo lo demás (usuario, 2026-11-24).
 - [ ] Desde la run 2, ¿levantarse cuando se quiera? (GDD §12; 4b)
 - [ ] Zoom out al pulsar *Reiniciar*, antes de que llamen a la puerta: ¿sí o no? (4b; hoy, no)
 - [ ] Copia de seguridad: texturas, geometría y descargas solo están en el PC (fuera de git desde el 2026-11-19).
@@ -26,12 +26,12 @@ Lo que falta para terminar *The Living Room*, en el orden en que se hará. Se ac
 - [ ] Especificación, con las preguntas de arriba.
 - [ ] Repartidor: llaman a la puerta, levantarse animado (sustituye a la Q), recoger la comida y dejarla en la mesa.
 - [ ] Run 2: apagón, linterna como mecánica, caja de plomos (modelarla) y fusible, en el piso en espejo.
-- [x] Piso en espejo al día con el normal (2026-11-24); normales, ciudad, lluvia, puertas y tele también reflejadas (la pantalla, no); desde ahora se cambian los dos a la vez.
+- [x] Piso en espejo al día con el normal (2026-11-24); normales, ciudad, lluvia, puertas y tele (con su pantalla) también reflejadas; comparado en las 21 zonas; desde ahora se cambian los dos a la vez.
 - [ ] Evidencia: pistas del piso del jugador (GDD §7) y su registro.
 - [ ] Guardado ampliado, con migración y test; guardar la posición.
 - [ ] Pausa de pie e invertir el eje Y.
 - [ ] Pasos según el suelo y mezcla de sonido por run.
-- [ ] Incremental en la run 2: mundo de la tele en espejo y aviso previo de «Tus ojos».
+- [ ] Incremental en la run 2: la tele ya se ve y se pulsa en espejo en el piso en espejo (falta decidir si en el apagón se lee así); aviso previo de «Tus ojos».
 - [ ] Aviso de fotosensibilidad al arrancar.
 - [ ] **Playtest con ~5 personas** (Claude propone las preguntas).
 

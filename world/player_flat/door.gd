@@ -87,8 +87,8 @@ func _build() -> void:
 	# El modelo va con la cara de los pernios en su -Z; del otro lado de la puerta se refleja.
 	var model := LEAF_SCENE.instantiate() as Node3D
 	model.position = Vector3(0.0, 0.02, _sign * THICKNESS / 2.0)  # rendija de 2 cm bajo la hoja, como en el salón
-	model.scale.z = _sign
-	MirrorMath.single_sided(model)
+	if _sign < 0.0:
+		MirrorMath.reflect_meshes(model, Vector3.AXIS_Z)
 	_leaf.add_child(model)
 	for m: MeshInstance3D in model.find_children("*", "MeshInstance3D", true, false):
 		m.gi_mode = GeometryInstance3D.GI_MODE_DYNAMIC  # no deja su sombra horneada al abrirse

@@ -56,6 +56,8 @@ func _ready() -> void:
 			var copy := backdrop.duplicate() as Node3D
 			add_child(copy)
 			copy.position.z = marker.position.z  # misma fachada que la ventana del salón: solo cambia a lo largo
+			# Se solapan: en el mismo plano ganaba uno u otro según el orden de dibujo.
+			copy.position.x += signf(copy.position.x) * 0.01 * (FACADE_WINDOWS.find(zone) + 1)
 			_add_street_light(marker.position.z)
 
 
