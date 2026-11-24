@@ -30,6 +30,9 @@ const VOLUME_DB := -6.0  # el directo; antes solo sonaba el eco, a media potenci
 const CREAK_SEGMENTS: Array[Vector2] = [Vector2(3.2, 5.05), Vector2(8.5, 12.0), Vector2(18.5, 20.65),
 		Vector2(23.4, 24.95), Vector2(36.1, 37.45)]
 
+## Hasta dónde la abre sola un suceso.
+const CREEP_ANGLE := deg_to_rad(35.0)
+
 var id: StringName
 var locked := false
 var angle := 0.0
@@ -133,6 +136,21 @@ func drag(mouse_dy: float) -> void:
 
 func release() -> void:
 	_held = false
+
+
+## Se mueve sola y despacio (un suceso, que pone el crujido): se abre un poco o, si ya lo está, se entorna. Con llave, no.
+func creep(seconds: float) -> void:
+	if locked or is_physics_processing():  # con llave, o en la mano del jugador
+		return
+	var tween := create_tween().set_process_mode(Tween.TWEEN_PROCESS_PHYSICS)
+	var step := func(a: float) -> void:
+		if _held or _blocked(a):
+			tween.kill()
+			return
+		angle = a
+		_apply_angle()
+	var to := DoorMath.AJAR_ANGLE if angle > CREEP_ANGLE / 2.0 else CREEP_ANGLE
+	tween.tween_method(step, angle, to, seconds).set_trans(Tween.TRANS_SINE)
 
 
 func _physics_process(delta: float) -> void:

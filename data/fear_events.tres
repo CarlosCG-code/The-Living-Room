@@ -18,7 +18,6 @@
 [ext_resource type="AudioStream" path="res://assets/audio/house/book_1.ogg" id="book_1"]
 [ext_resource type="AudioStream" path="res://assets/audio/house/book_2.ogg" id="book_2"]
 [ext_resource type="AudioStream" path="res://assets/audio/house/bath_fall_1.ogg" id="bath_fall_1"]
-[ext_resource type="AudioStream" path="res://assets/audio/house/bath_fall_2.ogg" id="bath_fall_2"]
 [ext_resource type="AudioStream" path="res://assets/audio/house/steps_above_1.ogg" id="steps_above_1"]
 [ext_resource type="AudioStream" path="res://assets/audio/house/steps_above_2.ogg" id="steps_above_2"]
 [ext_resource type="AudioStream" path="res://assets/audio/house/pills_1.ogg" id="pills_1"]
@@ -49,7 +48,7 @@ id = &"spoon"
 requires = &"audio_frequency"
 mandatory = 1
 cooldown = 240.0
-duration = 2.9
+duration = 2.75
 places = Array[StringName]([&"kitchen"])
 sounds = Array[AudioStream]([ExtResource("spoon_1"), ExtResource("spoon_2")])
 volume_db = 11.0
@@ -119,7 +118,7 @@ script = ExtResource("def")
 id = &"book"
 min_progress = 0.15
 cooldown = 300.0
-duration = 2.7
+duration = 2.55
 places = Array[StringName]([&"bedroom_3"])
 sounds = Array[AudioStream]([ExtResource("book_1"), ExtResource("book_2")])
 volume_db = 6.0
@@ -130,9 +129,9 @@ script = ExtResource("def")
 id = &"bath_fall"
 min_progress = 0.2
 cooldown = 300.0
-duration = 3.5
+duration = 2.45
 places = Array[StringName]([&"bathroom"])
-sounds = Array[AudioStream]([ExtResource("bath_fall_1"), ExtResource("bath_fall_2")])
+sounds = Array[AudioStream]([ExtResource("bath_fall_1")])
 volume_db = 4.0
 subtitle_key = "SUB_BATH_FALL"
 

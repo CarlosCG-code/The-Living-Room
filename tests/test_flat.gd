@@ -263,3 +263,87 @@ func test_places_of_the_director() -> void:
 		var p: Vector3 = normal.get_place(id)
 		assert_almost_eq(mirror.get_place(id), Vector3(-p.x, p.y, p.z), Vector3.ONE * 0.0001)
 		assert_eq(mirror.get_place_zone(id), normal.get_place_zone(id))
+
+
+func test_props_fall_to_free_floor_in_their_room() -> void:
+	var zones := {&"spoon": &"kitchen", &"tool": &"workshop", &"book": &"bedroom_3", &"bath_fall": &"bathroom"}
+	var homes := {}
+	for mirrored: bool in [false, true]:
+		var f: Node3D = _flat(mirrored)
+		await wait_physics_frames(2)
+		var zone_at := func(p: Vector3) -> StringName: return f.get_layout().zone_at(Vector2(p.x, p.z), mirrored)
+		for event: StringName in f.PROPS:
+			for prop: FallingProp in f.props[event]:
+				var home := prop.position
+				var label := "%s espejo=%s" % [prop.name, mirrored]
+				assert_gt(prop.get_child_count(), 0, label)
+				assert_eq(zone_at.call(home), zones[event], label)
+				assert_eq(zone_at.call(prop.landing), zones[event], label)
+				assert_between(prop.lead(), 0.8, HouseAudio.PRELUDE, label)
+				if mirrored:
+					assert_almost_eq(home, Vector3(-homes[prop.name].x, homes[prop.name].y, homes[prop.name].z), Vector3.ONE * 0.01, label)
+				homes[prop.name] = home
+				prop._pose(prop.lead())
+				assert_almost_eq(prop.position, prop.landing, Vector3.ONE * 0.001, label)
+				prop._pose(0.0)
+				assert_almost_eq(prop.position, home, Vector3.ONE * 0.001, label)
+				var q := PhysicsShapeQueryParameters3D.new()
+				q.shape = BoxShape3D.new()
+				(q.shape as BoxShape3D).size = Vector3(0.24, 0.1, 0.24)
+				q.transform.origin = prop.landing + Vector3.UP * 0.1
+				assert_true(f.get_world_3d().direct_space_state.intersect_shape(q).is_empty(), "%s: cae dentro de algo" % label)
+		f.free()
+
+
+func test_pick_prop_leaves_the_fallen_for_last() -> void:
+	var f: Node3D = _flat(false)
+	assert_null(f.pick_prop(&"pipes"))
+	for i in f.props[&"tool"].size():
+		var prop: FallingProp = f.pick_prop(&"tool")
+		assert_false(prop.fallen)
+		prop.fallen = true
+	assert_not_null(f.pick_prop(&"tool"), "sin nadie mirando, uno vuelve a su sitio")
+
+
+func test_a_door_creeps_open_and_back_unless_locked() -> void:
+	var f: Node3D = _flat(false)
+	await wait_physics_frames(2)
+	for id: StringName in [&"door_bedroom_3", &"door_gallery", &"door_front"]:
+		var door: Door = f.doors.filter(func(d: Door) -> bool: return d.id == id)[0]
+		var before := door.angle
+		f.stir(id, 0.1)
+		await wait_seconds(0.3)
+		if door.locked:
+			assert_eq(door.angle, before)
+			continue
+		assert_almost_eq(door.angle, Door.CREEP_ANGLE, 0.001, String(id))
+		f.stir(id, 0.1)
+		await wait_seconds(0.3)
+		assert_almost_eq(door.angle, DoorMath.AJAR_ANGLE, 0.001, String(id))
+
+
+func test_the_rocking_chair_rolls_and_ends_at_rest() -> void:
+	for mirrored: bool in [false, true]:
+		var f: Node3D = _flat(mirrored)
+		var rest: Transform3D = f._chair.transform
+		f._rock(f.ROCK_PERIOD * 1.25, 10.0)
+		var lean: Vector3 = f._chair.basis.y
+		assert_almost_eq(lean.angle_to(Vector3.UP), f.ROCK_ANGLE, 0.001)
+		assert_lt(lean.z, 0.0, "hacia el salón")
+		assert_gt(lean.x * (1.0 if mirrored else -1.0), 0.0)
+		f._rock(10.0, 10.0)
+		assert_almost_eq(f._chair.transform.origin, rest.origin, Vector3.ONE * 0.0001)
+
+
+func test_each_ear_hears_where_an_event_comes_from() -> void:
+	assert_eq(HouseAudio.ears(Vector3(0, 0, -3)), Vector3.ZERO)
+	var right := HouseAudio.ears(Vector3(2, 0, 0))
+	assert_between(right.x, 0.6, 0.7, "ms")
+	assert_eq(right.y, HouseAudio.FAR_EAR_DB)
+	var left := HouseAudio.ears(Vector3(-2, 0, 0))
+	assert_almost_eq(left, Vector3(-right.x, -right.y, 0.0), Vector3.ONE * 0.0001)
+	assert_almost_eq(HouseAudio.ears(Vector3(0, 0, 4)), Vector3(0, 0, 1), Vector3.ONE * 0.0001)
+	var ahead := HouseAudio.ears(Vector3(3, 0, -2))
+	var behind := HouseAudio.ears(Vector3(3, 0, 2))
+	assert_eq(ahead.x, behind.x)
+	assert_gt(behind.z, ahead.z)

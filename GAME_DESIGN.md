@@ -90,7 +90,7 @@ Ninguno mata ni penaliza. Si el jugador los desactiva en ajustes, cada uno se su
 ## 6. Audio (pilar principal)
 
 - Audio 3D posicional; mezcla distinta por run.
-- Los sonidos de la run 1 son los objetos de la señora (ver sección 2) y los de la casa: cosas que caen o crujen, cada una desde su habitación. **Ni voces ni llantos** (usuario, 2026-11-24).
+- Los sonidos de la run 1 son los objetos de la señora (ver sección 2) y los de la casa: cosas que caen o crujen, cada una desde su habitación. **Ni voces ni llantos** (usuario, 2026-11-24). **Lo que suena y está en el piso se mueve de verdad**: la puerta se abre, la herramienta se cae y se queda en el suelo, la mecedora se balancea (usuario, 2026-11-24).
 - Capas: ambiente del edificio, zumbido eléctrico ligado a la producción, eventos puntuales.
 - Subtítulos descriptivos (ej. "[pastillas cayendo]") como opción de accesibilidad. Cada evento de audio lleva desde su creación una clave de subtítulo (`tr()`).
 

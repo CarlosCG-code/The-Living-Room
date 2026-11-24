@@ -23,18 +23,39 @@ const GLOW_REACH := 0.35
 const LIVING_PLACES := {&"ceiling": Vector3(0.0, 2.6, 0.0), &"wall": Vector3(0.0, 1.3, 2.5),
 		&"behind_sofa": Vector3(0.0, 0.1, -2.35), &"rocking_chair": Vector3(0.95, 0.4, 1.95)}
 
+## Lo que se cae con un suceso: con qué empieza el nombre de sus nodos (furnish_flat.py) y dónde acaba en el suelo (x, z),
+## sin reflejar.
+const PROPS := {
+	&"spoon": {"MetalSpoon": Vector2(-9.3, -4.42)},
+	&"tool": {"cross_pein_hammer": Vector2(0.25, -9.5), "adjustable_wrench": Vector2(-0.75, -9.35),
+			"pipe_wrench": Vector2(-3.7, -9.55), "tongue_groove_pliers": Vector2(-4.07, -9.6)},
+	&"book": {"old_book_red": Vector2(-4.86, -2.6)},
+	&"bath_fall": {"lambis_shell": Vector2(-3.9, 0.15)},
+}
+## La mecedora rueda sobre sus patines: hacia dónde mira, a cuánto de su origen se apoya y con qué radio (de su malla).
+const ROCK_FACING := Vector3(-0.342, 0.0, -0.94)
+const ROCK_CONTACT := 0.12
+const ROCK_RADIUS := 1.2
+const ROCK_ANGLE := deg_to_rad(7.0)
+const ROCK_PERIOD := 2.1  # s, como en la grabación
+
 ## Se fija antes de añadir la escena al árbol.
 @export var mirrored := false
 
 var living_room: Node3D
 var doors: Array[Door] = []
+var props := {}  # id de suceso -> Array[FallingProp]
 var _lights: Array[Light3D] = []
+var _chair: Node3D
+var _chair_rest: Transform3D
 
 
 func _ready() -> void:
 	living_room = LIVING_ROOM.instantiate()
 	living_room.mirrored = mirrored
 	add_child(living_room)
+	_chair = living_room.find_child("Rockingchair_01", true, false)
+	_chair_rest = _chair.transform
 	var geometry := (load(GEOMETRY_MIRROR if mirrored else GEOMETRY) as PackedScene).instantiate()
 	geometry.name = "FlatGeometry"
 	add_child(geometry)
@@ -51,6 +72,7 @@ func _ready() -> void:
 			add_child(door)
 			door.setup(conn, mirrored)
 			doors.append(door)
+	_add_props(geometry)
 	_add_lamps(geometry)
 	_link_glow()
 	_add_occluder(geometry)
@@ -103,6 +125,47 @@ func _place(id: StringName) -> Vector3:
 			return Vector3(leaf.x, 1.0, leaf.z) + Vector3.UP.cross(conn.direction) * conn.swing * 0.4
 	push_error("Lugar desconocido: %s" % id)
 	return Vector3.ZERO
+
+
+func _add_props(geometry: Node) -> void:
+	for event: StringName in PROPS:
+		props[event] = []
+		for start: String in PROPS[event]:
+			var spot: Vector2 = PROPS[event][start]
+			var prop := FallingProp.new()
+			prop.name = "Prop_" + start
+			add_child(prop)
+			prop.setup(geometry.find_children(start + "*", "MeshInstance3D", true, false), Vector2(-spot.x if mirrored else spot.x, spot.y))
+			props[event].append(prop)
+
+
+## Lo que se cae con ese suceso, o null. Uno ya caído vuelve a su sitio, pero nunca a la vista del jugador.
+func pick_prop(event: StringName) -> FallingProp:
+	var ready: Array = props.get(event, []).filter(func(p: FallingProp) -> bool: return not p.fallen)
+	if ready.is_empty():
+		ready = props.get(event, []).filter(func(p: FallingProp) -> bool: return not _in_sight(p.global_position))
+	return null if ready.is_empty() else ready.pick_random()
+
+
+func _in_sight(p: Vector3) -> bool:
+	var cam := get_viewport().get_camera_3d()
+	return cam != null and cam.is_position_in_frustum(p) 			and SoundOcclusion.obstacles(get_world_3d().direct_space_state, cam.global_position, p, 1) == 0
+
+
+## Mueve lo que suena sin caerse: una puerta o la mecedora.
+func stir(place: StringName, seconds: float) -> void:
+	for door in doors:
+		if door.id == place:
+			door.creep(seconds)
+	if place == &"rocking_chair":
+		create_tween().tween_method(_rock.bind(seconds), 0.0, seconds, seconds)
+
+
+func _rock(t: float, seconds: float) -> void:
+	var swing := ROCK_ANGLE * minf(1.0, minf(t, seconds - t) / 2.0) * sin(TAU * t / ROCK_PERIOD)
+	var facing := Vector3(-ROCK_FACING.x if mirrored else ROCK_FACING.x, 0.0, ROCK_FACING.z)
+	var rest := facing * ROCK_CONTACT + Vector3.UP * ROCK_RADIUS
+	_chair.transform = _chair_rest * Transform3D(Basis.IDENTITY, rest + facing * ROCK_RADIUS * swing) 			* Transform3D(Basis(Vector3.UP.cross(facing), swing), Vector3.ZERO) * Transform3D(Basis.IDENTITY, -rest)
 
 
 # Espejos de verdad (PlanarMirror) sobre el cristal de cada Mirror_<zona> (material «Mirror», furnish_flat.py y

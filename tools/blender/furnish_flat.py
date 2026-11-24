@@ -160,6 +160,7 @@ def materials():
         "brass": bpy.data.materials.get("Brass") or mat("Brass", (0.6, 0.45, 0.22), 0.3, metallic=1.0),
         # Latón viejo, solo medio metálico: con metallic 1 y a oscuras no refleja nada y los grifos salían negros (usuario, 2026-11-23).
         "plumbing": half_metal(tex_mat("OldBrass", "porcelain_old", "2k", tint=(0.6, 0.5, 0.32), root=GEN)),
+        "silver": half_metal(tex_mat("OldSilver", "porcelain_old", "2k", tint=(0.36, 0.35, 0.33), root=GEN)),
         "wool": tex_mat("CoatWool", "poly_wool_herringbone", "1k", tint=(0.2, 0.18, 0.17)),
         "linen": tex_mat("UsedLinen", "cloth_linen", "2k", root=GEN),  # la lisa parecía nueva (usuario, 2026-11-22)
         "soap": mat("Soap", (0.62, 0.58, 0.48), 0.6),
@@ -299,6 +300,30 @@ def wall_mixer(M, x, wall, z, reach):
     spout = [(x, y, z + 0.03), (x, y - 0.005, z + 0.12), (x, y - reach * 0.4, z + 0.18), (x, y - reach * 0.85, z + 0.12), (x, y - reach, z + 0.03)]
     parts.append(give(pipe("MixerSpout", spout, 0.011), M["plumbing"]))
     return parts
+
+
+def spoon(M):
+    """Cuchara de alpaca (en las librerías CC0 solo la hay de madera); la cazoleta en y = 0, el mango hacia +Y."""
+    pts, faces, n, m = [], [], 48, 8
+    for i in range(n + 1):
+        t = (i / n) ** 1.6  # más juntos en la punta
+        bowl = math.sqrt(max(0.0, 1 - ((t - 0.15) / 0.15) ** 2))
+        half = max(0.021 * bowl, (0.0028 + 0.006 * max(0.0, t - 0.4)) * min(1.0, 0.3 + 12 * (1 - t)) if t > 0.15 else 0.0005)
+        rim = 0.01 + 0.012 * math.sin(math.pi * max(0.0, t - 0.2) / 0.8) - 0.007 * max(0.0, t - 0.5) * 2
+        for k in range(m + 1):
+            v = 2 * k / m - 1
+            pts.append((v * half, t * 0.19, rim + 0.009 * bowl * (v * v - 1)))
+    for i in range(n):
+        faces += [(i * (m + 1) + k, i * (m + 1) + k + 1, (i + 1) * (m + 1) + k + 1, (i + 1) * (m + 1) + k) for k in range(m)]
+    me = bpy.data.meshes.new("Spoon")
+    me.from_pydata(pts, [], faces)
+    me.transform(Matrix.Translation((0, 0, -min(p[2] for p in pts))))
+    for p in me.polygons:
+        p.use_smooth = True
+    o = bpy.data.objects.new("Spoon", me)
+    bpy.context.collection.objects.link(o)
+    o.modifiers.new("Thick", "SOLIDIFY").thickness = -0.0014
+    return cast(give(o, M["silver"]))
 
 
 def drain(M, x, y, z):
@@ -813,10 +838,12 @@ def furnish():
     desk = put("wooden_table_02", z, "px1", 0.9)
     on("chess_set", desk, dpy=-0.15, scale=0.6, rot=8)
     banker = on("bankers_lamp", desk, dpy=0.35, rot=ROT["px1"])
-    lo, hi = bounds(banker)  # el flexo encendido sin nadie en el cuarto: su luz, bajo la pantalla
-    bulb = give(cylinder("LampBulb", 0.018, 0.08, ((lo.x + hi.x) / 2, (lo.y + hi.y) / 2, hi.z - 0.07), rot=(0, math.radians(90), 0), verts=10), M["bulb"])
-    lamp_light(z, banker + [bulb], at=((lo.x + hi.x) / 2, (lo.y + hi.y) / 2, hi.z - 0.1))
-    on("old_book_red", desk, dpy=0.05, dpx=0.15, rot=15)
+    hi = bounds(banker)[1]  # el flexo encendido sin nadie en el cuarto: su luz, bajo la pantalla (lo más alto de él)
+    top = [p for o in banker for p in (o.matrix_world @ v.co for v in o.data.vertices) if p.z > hi.z - 0.02]
+    cx, cy = (min(p.x for p in top) + max(p.x for p in top)) / 2, (min(p.y for p in top) + max(p.y for p in top)) / 2
+    bulb = give(cylinder("LampBulb", 0.018, 0.08, (cx, cy, hi.z - 0.07), rot=(math.radians(90), 0, 0), verts=10), M["bulb"])
+    lamp_light(z, banker + [bulb], at=(cx, cy, hi.z - 0.1))
+    on("old_book_red", desk, dpy=0.42, dpx=-0.23, rot=5)  # en el canto: se cae (flat.gd, PROPS)
     free("painted_wooden_stool", 9.85, 6.45, rot=180)  # la silla blanca parecía nueva
     made(wall_slate(M), "WallSlate", z, "py1", seg_mid(z, "py1", -0.6), gap=0.0)
     pic("cma:149768", z, "py0", over(daybed, z, "py0"), 1.65, 0.55, "walnut")  # san Juan, sobre la cama
@@ -943,6 +970,7 @@ def furnish():
     window_curtain(z)
     on("wooden_cutting_board", table, dpx=-0.2)
     on("wooden_spoon", table, dpx=-0.15, rot=40)
+    made([spoon(M)], "MetalSpoon", z, None, (11.82, 11.35), z=bounds(table)[1].z, rot=65, uv=0.3)  # se cae (flat.gd, PROPS)
     on("jug_01", table, dpx=0.3, scale=0.7)
     on("wooden_bowl_02", table, dpx=0.05, dpy=0.2)
     on("lemon", table, dpx=0.03, dpy=0.18)  # limones en el cuenco
