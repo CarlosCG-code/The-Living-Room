@@ -38,6 +38,11 @@ func _ready() -> void:
 		for node in get_tree().get_nodes_in_group(&"mirror_transform"):
 			if is_ancestor_of(node):
 				(node as Node3D).transform = MirrorMath.mirror_transform((node as Node3D).transform)
+		# MirrorMath no da la vuelta a la imagen: la ciudad y el viento de la lluvia se reflejan aquí.
+		($WindowBackdrop as Node3D).scale.x = -1.0
+		var rain := $Rain as GPUParticles3D
+		rain.process_material = rain.process_material.duplicate()
+		(rain.process_material as ParticleProcessMaterial).gravity.x *= -1.0
 
 
 func _process(delta: float) -> void:

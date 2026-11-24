@@ -16,6 +16,9 @@ func test_one_door_per_leaf() -> void:
 	var f: Node3D = _flat(false)
 	var leaves: Array = f.get_layout().connections.filter(func(c: ConnectionDef) -> bool: return c.kind == &"leaf")
 	assert_eq(f.doors.size(), leaves.size())
+	for m: MeshInstance3D in f.doors[0].find_children("*", "MeshInstance3D", true, false):
+		for s in m.mesh.get_surface_count():
+			assert_eq((m.mesh.surface_get_material(s) as BaseMaterial3D).cull_mode, BaseMaterial3D.CULL_BACK, "luz invertida al reflejar la hoja")
 	assert_null(f.living_room.find_child("DoorLeaf", true, false), "la hoja horneada del salón ya no está")
 
 
@@ -56,6 +59,59 @@ func test_mirrored_geometry_is_reflection_of_normal() -> void:
 				if box_b.get_center().distance_to(Vector3(-c.x, c.y, c.z)) > 0.01 or (box_b.size - box_a.size).length() > 0.02:
 					fail_test("%s: %s frente a %s" % [a.name, box_b, box_a])
 	assert_gt(checked, 500)
+
+
+## Las normales y la textura de cada malla, también reflejadas (Blender estropeaba las normales al reflejar y la luz salía distinta).
+func test_mirrored_normals_and_uvs_are_reflection_of_normal() -> void:
+	var normal: Node3D = _flat(false)
+	var mirror: Node3D = _flat(true)
+	var seen := {}
+	var total := 0
+	var bad_uv := 0
+	var bad_normal := 0
+	for path: NodePath in [^"FlatGeometry", ^"LivingRoom/Geometry"]:
+		for a: MeshInstance3D in normal.get_node(path).find_children("*", "MeshInstance3D", true, false):
+			if seen.has(a.mesh):
+				continue
+			seen[a.mesh] = true
+			var b := mirror.get_node(String(path) + "/" + String(normal.get_node(path).get_path_to(a))) as MeshInstance3D
+			for s in a.mesh.get_surface_count():
+				var va := _vertices(a, s, 1.0)
+				var vb := _vertices(b, s, -1.0)
+				for key: String in va:
+					total += 1
+					if not vb.has(key):
+						bad_uv += 1
+					elif not va[key].any(func(n: Vector3) -> bool: return vb[key].any(func(m: Vector3) -> bool: return n.dot(m) > 0.98)):
+						bad_normal += 1
+	assert_gt(total, 100000)
+	assert_lt(float(bad_uv) / total, 0.02, "posición y textura")
+	assert_lt(float(bad_normal) / total, 0.005, "normales")
+
+
+## Posición en el mundo y UV (redondeadas) -> normales que hay ahí.
+func _vertices(m: MeshInstance3D, surface: int, x_sign: float) -> Dictionary:
+	var arrays := m.mesh.surface_get_arrays(surface)
+	var flip := Vector3(x_sign, 1.0, 1.0)
+	var out := {}
+	if arrays[Mesh.ARRAY_TEX_UV] == null:
+		return out
+	for i: int in range(0, arrays[Mesh.ARRAY_VERTEX].size()):
+		var p: Vector3 = (m.global_transform * arrays[Mesh.ARRAY_VERTEX][i]) * flip
+		var uv: Vector2 = arrays[Mesh.ARRAY_TEX_UV][i]
+		var key := "%d,%d,%d,%d,%d" % [roundi(p.x * 300), roundi(p.y * 300), roundi(p.z * 300), roundi(uv.x * 100), roundi(uv.y * 100)]
+		if not out.has(key):
+			out[key] = []
+		out[key].append(((m.global_basis * arrays[Mesh.ARRAY_NORMAL][i]).normalized()) * flip)
+	return out
+
+
+## La ciudad de las ventanas también: cada punto del plano queda en su sitio reflejado.
+func test_mirrored_backdrop_is_reflection_of_normal() -> void:
+	var a := _flat(false).living_room.get_node("WindowBackdrop") as Node3D
+	var b := _flat(true).living_room.get_node("WindowBackdrop") as Node3D
+	var p := a.global_transform * Vector3(1.0, 1.0, 0.0)
+	assert_almost_eq(b.global_transform * Vector3(1.0, 1.0, 0.0), Vector3(-p.x, p.y, p.z), Vector3.ONE * 0.001)
 
 
 func _world_box(n: Node3D) -> AABB:

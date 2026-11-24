@@ -81,7 +81,18 @@ def mirror_all(recalc_normals=True):
     bpy.context.view_layer.objects.active = bpy.context.scene.objects[0]
     # Tras exportar, las mallas con modificadores (biselado) quedan con dos usuarios y no se dejaría aplicar.
     bpy.ops.object.make_single_user(object=True, obdata=True)
+    # Aplicar la escala negativa estropea las normales propias de los modelos importados: se guardan y se reponen reflejadas.
+    kept = {o: (o.scale.copy(), [{me.loops[i].vertex_index: me.corner_normals[i].vector.copy() for i in p.loop_indices} for p in me.polygons])
+            for o in bpy.context.scene.objects if o.type == "MESH" for me in [o.data] if me.has_custom_normals}
     bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
+    for o, (sc, polys) in kept.items():
+        me = o.data
+        normals = [None] * len(me.loops)
+        for p in me.polygons:
+            for i in p.loop_indices:
+                n = polys[p.index][me.loops[i].vertex_index]
+                normals[i] = Vector((n.x / sc.x, n.y / sc.y, n.z / sc.z)).normalized()
+        me.normals_split_custom_set(normals)
     # Blender 5.3 ya deja las normales hacia fuera al aplicar la escala negativa (comprobado 2026-11-19);
     # recalcularlas estropearía mallas abiertas importadas (hojas de la planta, pantalla de la lámpara).
     if not recalc_normals:

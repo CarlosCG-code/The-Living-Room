@@ -26,7 +26,7 @@ Lo que falta para terminar *The Living Room*, en el orden en que se hará. Se ac
 - [ ] Especificación, con las preguntas de arriba.
 - [ ] Repartidor: llaman a la puerta, levantarse animado (sustituye a la Q), recoger la comida y dejarla en la mesa.
 - [ ] Run 2: apagón, linterna como mecánica, caja de plomos (modelarla) y fusible, en el piso en espejo.
-- [x] Piso en espejo al día con el normal (2026-11-24); desde ahora se cambian los dos a la vez.
+- [x] Piso en espejo al día con el normal (2026-11-24); normales, ciudad, lluvia, puertas y tele también reflejadas (la pantalla, no); desde ahora se cambian los dos a la vez.
 - [ ] Evidencia: pistas del piso del jugador (GDD §7) y su registro.
 - [ ] Guardado ampliado, con migración y test; guardar la posición.
 - [ ] Pausa de pie e invertir el eje Y.
