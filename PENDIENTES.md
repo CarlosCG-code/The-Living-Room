@@ -2,11 +2,13 @@
 
 Lo que falta para terminar *The Living Room*, en el orden en que se hará. Se actualiza en el mismo commit que cierra o abre algo. El porqué de cada cosa está en `GAME_DESIGN.md` (§11, el plan) y en `specs/`.
 
-**Estado (2026-11-24):** hitos 0, 1 y 4a cerrados; el 2 hecho, falta cerrarlo en el papel. En marcha: **hito 3**, en la parada 1.
+**Estado (2026-11-25):** hitos 0, 1 y 4a cerrados; el 2 hecho, falta cerrarlo en el papel. En marcha: **hito 3**, en la parada 1.
 
 ## Espera una respuesta del usuario
 
 - [ ] **Parada 1 del hito 3:** 10 minutos desde la mitad de la run 1; sonidos aprobados (2026-11-24); ¿valen las cosas que se mueven, los sonidos desde su habitación (también al acercarse), las luces y el ritmo?
+- [ ] Más sonidos de ambiente propuestos (2026-11-25), ¿cuáles?: grifo que gotea (baño o cocina), radio de la cocina con estática, sonería del reloj de pie, relojes que se paran, cisterna que se rellena, zumbido de bombilla, vajilla que tintinea en la vitrina, muelles de la cama, puerta del armario del dormitorio, cartas bajo la puerta, viento en las ventanas, ascensor del edificio, estufa de la cocina.
+- [ ] Despertador del dormitorio: la esfera se ve negra (el cristal del modelo es opaco); ¿se arregla?
 - [ ] Eco de pasos y puertas: no suena (`specs/hito3.md` §9, D6); ¿se recupera?
 - [ ] Lluvia del salón: mide −64 dB, casi no se oye (la tele, −48); ¿se sube?
 - [ ] Dar por cerrado el hito 2 (todo aprobado sobre la marcha; `specs/hito2.md` dice que falta la parada).

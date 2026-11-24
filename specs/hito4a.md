@@ -142,7 +142,7 @@ Lo que lo hace difícil de memorizar (GDD §8, run 2):
 
 **D6 — Andar.** `presentation/player/player.tscn` (`player.gd`) es un `CharacterBody3D`:
 - Cápsula de 0,25 × 1,75 m y ojos a 1,6 m.
-- **Solo andar lento**, 1,3 m/s, con aceleración suave. Sin correr, sin saltar y sin balanceo de cámara.
+- **Solo andar lento**, 1,1 m/s (usuario, 2026-11-25; antes 1,3; las pisadas van al paso: de 2 a 1,7 por segundo), con aceleración suave. Sin correr, sin saltar y sin balanceo de cámara.
 - WASD y ratón capturado; la sensibilidad sale de Ajustes (D10).
 - Un solo juego de pasos CC0 para todo el piso; los pasos según el suelo van con el audio del hito 3.
 - Se mueve en `_physics_process`, que es física de presentación, no lógica de juego, así que cumple la regla del reloj único de `CLAUDE.md`. Con `physics/common/physics_interpolation` activado, no da tirones a 144 fps o más.

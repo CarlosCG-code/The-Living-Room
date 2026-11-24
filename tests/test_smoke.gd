@@ -20,7 +20,7 @@ func test_devboot_skips_without_addon() -> void:
 
 
 func test_layers_of_the_house_loop() -> void:
-	for stream: AudioStreamOggVorbis in [HouseAudio.AMBIENCE, HouseAudio.HUM]:
+	for stream: AudioStreamOggVorbis in [HouseAudio.AMBIENCE, HouseAudio.HUM] + HouseAudio.CLOCKS.values():
 		assert_true(stream.loop, stream.resource_path)
 
 

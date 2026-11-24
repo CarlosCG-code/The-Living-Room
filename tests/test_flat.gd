@@ -338,14 +338,66 @@ func test_the_rocking_chair_rolls_and_ends_at_rest() -> void:
 
 
 func test_each_ear_hears_where_an_event_comes_from() -> void:
-	assert_eq(HouseAudio.ears(Vector3(0, 0, -3)), Vector3.ZERO)
-	var right := HouseAudio.ears(Vector3(2, 0, 0))
+	assert_eq(DirectionalSound.ears(Vector3(0, 0, -3)), Vector3.ZERO)
+	var right := DirectionalSound.ears(Vector3(2, 0, 0))
 	assert_between(right.x, 0.6, 0.7, "ms")
-	assert_eq(right.y, HouseAudio.FAR_EAR_DB)
-	var left := HouseAudio.ears(Vector3(-2, 0, 0))
+	assert_eq(right.y, DirectionalSound.FAR_EAR_DB)
+	var left := DirectionalSound.ears(Vector3(-2, 0, 0))
 	assert_almost_eq(left, Vector3(-right.x, -right.y, 0.0), Vector3.ONE * 0.0001)
-	assert_almost_eq(HouseAudio.ears(Vector3(0, 0, 4)), Vector3(0, 0, 1), Vector3.ONE * 0.0001)
-	var ahead := HouseAudio.ears(Vector3(3, 0, -2))
-	var behind := HouseAudio.ears(Vector3(3, 0, 2))
+	assert_almost_eq(DirectionalSound.ears(Vector3(0, 0, 4)), Vector3(0, 0, 1), Vector3.ONE * 0.0001)
+	var ahead := DirectionalSound.ears(Vector3(3, 0, -2))
+	var behind := DirectionalSound.ears(Vector3(3, 0, 2))
 	assert_eq(ahead.x, behind.x)
 	assert_gt(behind.z, ahead.z)
+
+
+func test_each_directional_sound_has_its_own_bus() -> void:
+	var count := AudioServer.bus_count
+	var sounds: Array[DirectionalSound] = [DirectionalSound.new(), DirectionalSound.new()]
+	for s in sounds:
+		add_child(s)
+		var i := AudioServer.get_bus_index(s.bus)
+		assert_eq(AudioServer.get_bus_send(i), &"HouseEvents")
+		assert_true(AudioServer.get_bus_effect(i, 0) is AudioEffectLowPassFilter)
+	assert_ne(sounds[0].bus, sounds[1].bus)
+	for s in sounds:
+		s.free()
+	assert_eq(AudioServer.bus_count, count)
+
+
+func test_one_ticking_clock_per_room() -> void:
+	var at: Array[Vector3] = []
+	for mirrored: bool in [false, true]:
+		var f: Node3D = _flat(mirrored)
+		var zones := []
+		for clock: String in HouseAudio.CLOCKS:
+			var meshes := f.find_children(clock, "MeshInstance3D", true, false)
+			assert_eq(meshes.size(), 1, clock)
+			var mesh: MeshInstance3D = meshes[0]
+			at.append(mesh.global_transform * mesh.get_aabb().get_center())
+			var zone: StringName = f.get_layout().zone_at(Vector2(at[-1].x, at[-1].z), mirrored)
+			assert_false(zone in zones, "dos en %s" % zone)
+			zones.append(zone)
+		assert_false(&"" in zones)
+	for i in HouseAudio.CLOCKS.size():
+		assert_almost_eq(at[i + HouseAudio.CLOCKS.size()] * Vector3(-1, 1, 1), at[i], Vector3.ONE * 0.01)
+
+
+func test_the_wood_creaks_every_4_or_5_steps_but_not_the_tiles() -> void:
+	var player: Player = load("res://presentation/player/player.tscn").instantiate()
+	add_child_autofree(player)
+	player.setup(load("res://data/flat_layout.tres"), false)
+	for zone: StringName in [&"kitchen", &"corridor_main_m"]:
+		player._zone = zone
+		var creaks := []
+		for step in 60:
+			var left := player._steps_to_creak
+			player._footsteps(Player.STRIDE)
+			if player._steps_to_creak > left:
+				creaks.append(step)
+		if zone == &"kitchen":
+			assert_eq(creaks, [])
+			continue
+		for i in range(1, creaks.size()):
+			assert_between(creaks[i] - creaks[i - 1], 4, 5)
+		assert_between(creaks.size(), 12, 15)

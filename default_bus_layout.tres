@@ -1,4 +1,4 @@
-[gd_resource type="AudioBusLayout" load_steps=10 format=3]
+[gd_resource type="AudioBusLayout" load_steps=8 format=3]
 
 [sub_resource type="AudioEffectHighPassFilter" id="tv_hp"]
 resource_name = "HighPassFilter"
@@ -23,20 +23,6 @@ spread = 0.7
 hipass = 0.15
 dry = 0.0
 wet = 0.5
-
-[sub_resource type="AudioEffectLowPassFilter" id="events_lp"]
-resource_name = "OcclusionLowPass"
-cutoff_hz = 20000.0
-
-[sub_resource type="AudioEffectDelay" id="events_ears"]
-resource_name = "Ears"
-dry = 0.0
-tap1_delay_ms = 0.0
-tap1_level_db = -3.0
-tap1_pan = -1.0
-tap2_delay_ms = 0.0
-tap2_level_db = -3.0
-tap2_pan = 1.0
 
 [sub_resource type="AudioEffectReverb" id="events_reverb"]
 resource_name = "Reverb"
@@ -86,11 +72,7 @@ bus/4/mute = false
 bus/4/bypass_fx = false
 bus/4/volume_db = 0.0
 bus/4/send = &"House"
-bus/4/effect/0/effect = SubResource("events_lp")
+bus/4/effect/0/effect = SubResource("events_reverb")
 bus/4/effect/0/enabled = true
-bus/4/effect/1/effect = SubResource("events_ears")
+bus/4/effect/1/effect = SubResource("events_limiter")
 bus/4/effect/1/enabled = true
-bus/4/effect/2/effect = SubResource("events_reverb")
-bus/4/effect/2/enabled = true
-bus/4/effect/3/effect = SubResource("events_limiter")
-bus/4/effect/3/enabled = true

@@ -7,7 +7,7 @@ extends CharacterBody3D
 
 signal sit_requested
 
-const SPEED := 1.3  # andar lento: no hay correr (usuario, 2026-11-20)
+const SPEED := 1.1  # andar lento: no hay correr (usuario, 2026-11-20 y 2026-11-25)
 const ACCEL := 5.0
 const REACH := 2.0
 const PITCH_LIMIT := 1.4
@@ -24,6 +24,7 @@ var _grabbed: Door
 var _stride_left := STRIDE * 0.5
 var _step_end := 0.0
 var _last_clip := -1
+var _steps_to_creak := 4
 
 @onready var _head: Node3D = $Head
 @onready var camera: Camera3D = $Head/Camera3D
@@ -158,6 +159,17 @@ func _footsteps(moved: float) -> void:
 	_step_end = STEP_CLIPS[i].y
 	p.pitch_scale = randf_range(0.93, 1.04)
 	p.play(STEP_CLIPS[i].x)
+	var zone := _layout.find_zone(_zone) if _layout else null
+	if zone and zone.floor_type == &"wood":
+		_creak()
+
+
+# La madera cruje bajo el pie cada 4 o 5 pisadas (usuario, 2026-11-25).
+func _creak() -> void:
+	_steps_to_creak -= 1
+	if _steps_to_creak == 0:
+		_steps_to_creak = randi_range(4, 5)
+		($Creak as AudioStreamPlayer3D).play()
 
 
 static func _door_of(collider: Object) -> Door:

@@ -10,37 +10,26 @@ const HUM := preload("res://assets/audio/house/wall_hum.ogg")
 const HUM_DB := Vector2(-30.0, -18.0)  # según la producción
 const OFF_DB := -80.0
 const FADE := 120.0  # dB/s, como el zumbido de la tele
-## Como mucho cuenta un muro: con la tabla de la tele una cuchara o unas pastillas no se reconocerían. Corte del paso bajo y ganancia.
-const OPEN := Vector2(20000.0, 0.0)
-const WALLED := Vector2(5000.0, -6.0)
-const WALL_FADE := 5.0  # por segundo, al abrir una puerta o cruzarla
 ## Tope al acercarse: como un portazo del piso a un metro. Con el de Godot (3 dB) una cuchara sonaba igual a 6 m que a 1 m.
 const MAX_DB := 12.0
-## De dónde viene cada suceso con unos auriculares o dos altavoces (usuario, 2026-11-24). El reparto de Godot solo da 6 dB
-## de lado a lado y nada distingue delante de detrás: al oído lejano le llega más tarde (Woodworth) y más bajo, y lo de
-## detrás, más apagado.
-const HEAD_MS := 0.255  # radio de la cabeza entre la velocidad del sonido
-const FAR_EAR_DB := 15.0
-const CENTER_DB := -3.0  # en el centro suenan los dos oídos: la misma potencia que a un lado
-const BEHIND_CUTOFF := 0.5
+## Tic tac: de qué malla del piso sale. Uno por habitación: en el salón, el de pie (también está el de repisa) y en el
+## dormitorio, el despertador (también el de bolsillo).
+const CLOCKS := {"vintage_grandfather_clock_01*HourHand": preload("res://assets/audio/house/clock_grandfather.ogg"),
+		"alarm_clock_01*alarm_clock_01": preload("res://assets/audio/house/clock_alarm.ogg"),
+		"orava_clock*": preload("res://assets/audio/house/clock_wall.ogg")}
+const CLOCK_DB := -12.0
+const CLOCK_WALLED := Vector2(2500.0, -12.0)  # de fondo: no se mezclan los de dos habitaciones
 
 var _flat: Node3D
-var _event := AudioStreamPlayer3D.new()
+var _event := DirectionalSound.new()
 var _hum := AudioStreamPlayer3D.new()
 var _silence_left := 0.0
-var _level := 0.0  # dB del suceso, sin el muro
-var _wall := 0.0  # 1 con un muro por medio
-@onready var _stereo := AudioServer.get_speaker_mode() == AudioServer.SPEAKER_MODE_STEREO
 
 
 func setup(flat: Node3D) -> void:
 	_flat = flat
-	_event.bus = &"HouseEvents"
 	_event.unit_size = 5.0
 	_event.max_db = MAX_DB
-	_event.attenuation_filter_cutoff_hz = 20500.0  # sin filtro por distancia: el del muro basta para apagar los sonidos
-	if _stereo:
-		_event.panning_strength = 0.0  # lo hace _aim
 	add_child(_event)
 	_hum.stream = HUM
 	_hum.bus = &"House"
@@ -55,6 +44,8 @@ func setup(flat: Node3D) -> void:
 	if DisplayServer.get_name() != "headless":
 		_hum.play()
 		ambience.play()
+	for clock: String in CLOCKS:
+		_add_clock(clock)
 	EventBus.fear_event.connect(_on_fear_event)
 	EventBus.house_silence.connect(func(seconds: float) -> void: _silence_left = seconds)
 
@@ -65,9 +56,6 @@ func _process(delta: float) -> void:
 	if _silence_left <= 0.0 and Game.economy.owned(&"antenna") > 0:
 		target = lerpf(HUM_DB.x, HUM_DB.y, Game.economy.production_level())
 	_hum.volume_db = move_toward(_hum.volume_db, target, delta * FADE)
-	if _event.playing:
-		_wall = move_toward(_wall, _wall_between(), delta * WALL_FADE)
-		_aim()
 
 
 func _on_fear_event(def: FearEventDef, place: StringName) -> void:
@@ -76,7 +64,7 @@ func _on_fear_event(def: FearEventDef, place: StringName) -> void:
 	_event.stream = def.sounds.pick_random()
 	var prop: FallingProp = _flat.pick_prop(def.id)
 	_event.position = prop.landing if prop else _flat.get_place(place)
-	_level = def.volume_db - (CENTER_DB if _stereo else 0.0)
+	_event.level = def.volume_db
 	var length := _event.stream.get_length()
 	var lead := prop.lead() if prop else 0.0  # suena al tocar el suelo
 	var wait := lead
@@ -85,42 +73,17 @@ func _on_fear_event(def: FearEventDef, place: StringName) -> void:
 		EventBus.house_silence.emit(PRELUDE + length)
 	var tween := create_tween()
 	tween.tween_callback(prop.fall if prop else _flat.stir.bind(place, length)).set_delay(wait - lead)
-	tween.tween_callback(_play).set_delay(lead)
+	tween.tween_callback(_event.start).set_delay(lead)
 
 
-func _play() -> void:
-	_wall = _wall_between()
-	_aim()
-	_event.play()
-
-
-# En cada fotograma: el sonido se queda en su sitio al girar la cabeza o andar, y se abre al quitarse el muro de en medio.
-func _aim() -> void:
-	var cam := get_viewport().get_camera_3d()
-	if cam == null:
-		return
-	var occlusion := OPEN.lerp(WALLED, _wall)
-	_event.volume_db = _level + occlusion.y
-	var bus := AudioServer.get_bus_index(&"HouseEvents")
-	var at := ears(cam.global_basis.inverse() * (_event.global_position - cam.global_position))
-	(AudioServer.get_bus_effect(bus, 0) as AudioEffectLowPassFilter).cutoff_hz = occlusion.x * lerpf(1.0, BEHIND_CUTOFF, at.z)
-	if not _stereo:
-		return
-	var delay := AudioServer.get_bus_effect(bus, 1) as AudioEffectDelay  # toma 1, oído izquierdo; toma 2, derecho
-	var center := CENTER_DB * (1.0 - absf(at.y) / FAR_EAR_DB)
-	delay.tap1_delay_ms = maxf(at.x, 0.0)
-	delay.tap2_delay_ms = maxf(-at.x, 0.0)
-	delay.tap1_level_db = center - maxf(at.y, 0.0)
-	delay.tap2_level_db = center - maxf(-at.y, 0.0)
-
-
-## Para un sonido en esa dirección (cámara: -Z delante, +X derecha): retraso (ms) y pérdida (dB) del oído lejano, positivos
-## si viene de la derecha, y cuánto está detrás (0-1).
-static func ears(to: Vector3) -> Vector3:
-	var dir := to.normalized()
-	return Vector3(HEAD_MS * (asin(clampf(dir.x, -1.0, 1.0)) + dir.x), FAR_EAR_DB * dir.x, maxf(0.0, dir.z))
-
-
-func _wall_between() -> float:
-	var cam := get_viewport().get_camera_3d()
-	return 0.0 if cam == null else float(SoundOcclusion.obstacles(cam.get_world_3d().direct_space_state, cam.global_position, _event.global_position, 1))
+func _add_clock(mesh_name: String) -> void:
+	var mesh: MeshInstance3D = _flat.find_children(mesh_name, "MeshInstance3D", true, false)[0]
+	var tick := DirectionalSound.new()
+	tick.stream = CLOCKS[mesh_name]
+	tick.level = CLOCK_DB
+	tick.walled = CLOCK_WALLED
+	tick.unit_size = 1.0
+	add_child(tick)
+	tick.global_position = mesh.global_transform * mesh.get_aabb().get_center()
+	if DisplayServer.get_name() != "headless":
+		tick.start()
