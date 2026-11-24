@@ -10,7 +10,7 @@ func after_each() -> void:
 func test_missing_file_gives_defaults() -> void:
 	var s := UserSettings.load_from(PATH)
 	assert_eq(s.quality, &"medium")
-	assert_false(s.fullscreen)
+	assert_eq(s.window_mode, &"window")
 	assert_almost_eq(s.volume, 0.25, 0.0001)
 	assert_almost_eq(s.crt, 1.0, 0.0001)
 
@@ -18,13 +18,13 @@ func test_missing_file_gives_defaults() -> void:
 func test_round_trip() -> void:
 	var s := UserSettings.new()
 	s.quality = &"ultra"
-	s.fullscreen = true
+	s.window_mode = &"borderless"
 	s.volume = 0.3
 	s.crt = 0.0
 	assert_true(s.save_to(PATH))
 	var back := UserSettings.load_from(PATH)
 	assert_eq(back.quality, &"ultra")
-	assert_true(back.fullscreen)
+	assert_eq(back.window_mode, &"borderless")
 	assert_almost_eq(back.volume, 0.3, 0.0001)
 	assert_almost_eq(back.crt, 0.0, 0.0001)
 
@@ -63,6 +63,17 @@ func test_old_file_without_new_keys_keeps_defaults() -> void:
 	assert_eq(s.max_fps, 0)
 	assert_almost_eq(s.brightness, 1.0, 0.0001)
 	assert_true(s.film_grain)
+
+
+func test_window_mode_of_an_old_file() -> void:
+	var cfg := ConfigFile.new()
+	cfg.set_value("settings", "version", 1)
+	cfg.set_value("settings", "fullscreen", true)
+	cfg.save(PATH)
+	assert_eq(UserSettings.load_from(PATH).window_mode, &"fullscreen")
+	cfg.set_value("settings", "window_mode", "otro")
+	cfg.save(PATH)
+	assert_eq(UserSettings.load_from(PATH).window_mode, &"window")
 
 
 func test_mouse_sensitivity_round_trip_and_clamp() -> void:

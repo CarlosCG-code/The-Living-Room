@@ -7,6 +7,7 @@ extends RefCounted
 
 const VERSION := 1
 const QUALITIES: Array[StringName] = [&"low", &"medium", &"high", &"ultra"]
+const WINDOW_MODES: Array[StringName] = [&"window", &"borderless", &"fullscreen"]
 const SECTION := "settings"
 ## 0 = sin límite.
 const FPS_LIMITS: Array[int] = [0, 30, 60, 120, 144, 165, 240]
@@ -20,7 +21,7 @@ const SENSITIVITY_STEP := 0.0002
 const SENSITIVITY_MAX := 0.0024
 
 var quality: StringName = &"medium"
-var fullscreen := false
+var window_mode: StringName = &"window"
 ## Resolución a la que se dibuja el 3D y, en ventana, tamaño de la ventana. (0, 0) = auto: decide el preset (en
 ## ventana, maximizada). No hay «escala 3D» aparte (usuario, 2026-11-22: la resolución elegida es la que se dibuja);
 ## un archivo antiguo con render_scale se lee sin ella.
@@ -50,7 +51,10 @@ static func load_from(path: String) -> UserSettings:
 		return s
 	var q := StringName(str(cfg.get_value(SECTION, "quality", s.quality)))
 	s.quality = q if q in QUALITIES else s.quality
-	s.fullscreen = cfg.get_value(SECTION, "fullscreen", s.fullscreen) == true
+	# Un archivo anterior solo tiene fullscreen (sí/no).
+	var old_mode := "fullscreen" if cfg.get_value(SECTION, "fullscreen", false) == true else "window"
+	var mode := StringName(str(cfg.get_value(SECTION, "window_mode", old_mode)))
+	s.window_mode = mode if mode in WINDOW_MODES else s.window_mode
 	var res: Variant = cfg.get_value(SECTION, "resolution", s.resolution)
 	s.resolution = res if res is Vector2i and (res == Vector2i.ZERO or (res.x >= 640 and res.y >= 360)) else s.resolution
 	s.vsync = cfg.get_value(SECTION, "vsync", s.vsync) != false
@@ -72,7 +76,7 @@ func save_to(path: String) -> bool:
 	var cfg := ConfigFile.new()
 	cfg.set_value(SECTION, "version", VERSION)
 	cfg.set_value(SECTION, "quality", String(quality))
-	cfg.set_value(SECTION, "fullscreen", fullscreen)
+	cfg.set_value(SECTION, "window_mode", String(window_mode))
 	cfg.set_value(SECTION, "resolution", resolution)
 	cfg.set_value(SECTION, "vsync", vsync)
 	cfg.set_value(SECTION, "max_fps", max_fps)

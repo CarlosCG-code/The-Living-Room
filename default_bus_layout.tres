@@ -1,4 +1,4 @@
-[gd_resource type="AudioBusLayout" load_steps=9 format=3]
+[gd_resource type="AudioBusLayout" load_steps=10 format=3]
 
 [sub_resource type="AudioEffectHighPassFilter" id="tv_hp"]
 resource_name = "HighPassFilter"
@@ -47,6 +47,10 @@ hipass = 0.15
 dry = 1.0
 wet = 0.22
 
+[sub_resource type="AudioEffectHardLimiter" id="events_limiter"]
+resource_name = "Limiter"
+ceiling_db = -2.5
+
 [resource]
 bus/1/name = &"TV"
 bus/1/solo = false
@@ -88,3 +92,5 @@ bus/4/effect/1/effect = SubResource("events_ears")
 bus/4/effect/1/enabled = true
 bus/4/effect/2/effect = SubResource("events_reverb")
 bus/4/effect/2/enabled = true
+bus/4/effect/3/effect = SubResource("events_limiter")
+bus/4/effect/3/enabled = true

@@ -93,7 +93,7 @@ var lamps: Array[StringName]             # lámparas a la vista
 Con el ritmo de la parada 1 (usuario, 2026-11-24: «terror psicológico constante»): 28 de media en 30 min (23-32) y 35 en 40 min; nunca más de 3 min 5 s en silencio (100 semillas).
 
 **D4 — Lugares.** `flat.get_place(id) -> Vector3`, con el espejo ya resuelto:
-- zona: su centro, a 1 m;
+- zona: el mueble del que sale (`ROOM_PLACES`: mesilla, lavabo, bajante de la cisterna, mesa del comedor, muro del pasillo); si no, su centro, a 1 m. Lo que se cae suena donde toca el suelo;
 - puerta (solo `kind == leaf`): el centro de la hoja, a 1 m, movido 0,4 m hacia `zone_a`;
 - sitios del salón: `ceiling` (techo), `wall` (pared frente al sofá), `behind_sofa` (suelo detrás) y `rocking_chair` (mecedora).
 
@@ -104,7 +104,7 @@ Regla del sonido: nunca en la zona donde está el jugador (`LAYOUT.zone_at(punto
 
 **D6 — Audio.** `audio/house_audio.gd` (`Node`, lo monta `main.gd`): escucha `EventBus.fear_event` y reproduce los `SOUND` con **un solo** `AudioStreamPlayer3D` (van de uno en uno).
 - **Bus nuevo `HouseEvents`** (paso bajo, envía a `House`): filtrar `House` apagaría también pasos y puertas. El eco del piso se mantiene.
-- **Muros:** como mucho cuenta uno: sin muro, 0 dB y 20 kHz; con muro, −6 dB y 5 kHz. Con la tabla de la tele (−24 dB y 300 Hz) unas pastillas no se reconocerían, y el final depende de reconocerlas. La lejanía va en `volume_db` y `unit_size`.
+- **Muros:** como mucho cuenta uno: sin muro, 0 dB y 20 kHz; con muro, −6 dB y 5 kHz. Con la tabla de la tele (−24 dB y 300 Hz) unas pastillas no se reconocerían, y el final depende de reconocerlas. Se mira en cada fotograma: al abrir la puerta o entrar, el sonido se abre. La lejanía va en `volume_db` y `unit_size`.
 - **Preludio:** en la mitad de los sonidos, al azar, el zumbido de la tele y el de la casa se cortan 1,5 s antes y siguen cortados hasta el final (`EventBus.house_silence(seconds)`). Sustituye a los cortes al azar de `tv.gd`.
 - **Capas continuas:** ambiente del edificio (muy bajo) y zumbido eléctrico en la pared del salón desde la primera Antena: de −30 a −18 dB según `production_level()`. Con la partida parada, se quedan en su nivel.
 - **Parpadeos:** `LightFlicker` pierde el temporizador de las lámparas y ejecuta `lamp_flicker`. El de la linterna sigue como está (en la build normal no se usa hasta 4b), pero espera si hay una lámpara parpadeando.
@@ -210,4 +210,6 @@ Manual, en las paradas: sonidos, luces y ritmo (1), la run entera (2).
 - **Parada 1, primera vuelta (usuario, 2026-11-24):** fuera el llanto y las voces; en su lugar, objetos, cada uno desde su habitación (cocina, taller, la de enfrente, baño y el propio salón), y más seguidos.
 - **Parada 1, segunda vuelta (usuario, 2026-11-24): lo que suena se mueve de verdad** si tiene modelo en el piso. `world/player_flat/falling_prop.gd`: el objeto resbala hasta el borde, cae, bota y se queda en el suelo; el golpe suena al tocarlo. Cuchara (alpaca, hecha en Blender: la de librería es de madera y suena a metal), martillo, llave inglesa, llave de tubo, alicates, libro (movido al canto de la mesa) y la caracola del baño. Primero los que no se han caído; luego vuelven a su sitio si el jugador no los ve. La puerta que cruje se abre 35° o se entorna (con llave, no; `Door.creep`) y la mecedora rueda sobre sus patines. Nada de esto se guarda: al cargar, todo está en su sitio. Sin modelo siguen siendo solo sonido: mando, pastillas, gafas, dentadura, tuberías, chasquidos, pasos, toques y el suelo.
 - **De dónde viene (usuario, 2026-11-24):** el reparto de Godot daba 6 dB entre oídos como mucho y nada entre delante y detrás. En estéreo lo hace `HouseAudio._aim` en cada fotograma, con un `AudioEffectDelay` del bus `HouseEvents` (una toma por oído): retraso del oído lejano de hasta 0,66 ms, hasta 15 dB menos, y lo de detrás con el paso bajo a la mitad. Medido desde el sofá: baño, 62° a la derecha, 13 dB; la habitación de enfrente, 92°, 15 dB; en espejo, igual a la izquierda. Con más de dos altavoces sigue el reparto de Godot. Lo que cae suena desde donde cae, no desde el centro del cuarto.
+- **Cada sonido está en su habitación (usuario, 2026-11-24):** el punto ya era el de la casa, pero el tope de Godot (`max_db` 3) lo dejaba igual de fuerte a 6 m que a 1 m. Ahora crece al acercarse hasta el nivel de un portazo a un metro (`MAX_DB` 12 y limitador a −2,5 dB en `HouseEvents`): la cuchara, de −39 dB en el sofá a −23 en la cocina. Ningún suceso sale ya del aire en mitad de un cuarto.
+- **Ajustes, modo de pantalla (usuario, 2026-11-24):** ventana, ventana sin bordes (el `FULLSCREEN` de Godot) o pantalla completa (`EXCLUSIVE_FULLSCREEN`). Un `settings.cfg` anterior se lee igual.
 - **Sonidos:** `spoon`, `tool_2`, `book` y `bath_fall` recortados para que empiecen en el golpe. Fuera el bote de champú: en el baño cae la caracola.

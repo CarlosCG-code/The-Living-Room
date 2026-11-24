@@ -71,10 +71,10 @@ func _ready() -> void:
 	mixer.set_factor(_light)
 	settings = GraphicsSettings.new(get_viewport(), environment, room.get_voxel_gi(), room.get_reflection_probe(),
 			camera.get_flashlight(), mixer)
-	# TLR_RES=3840x2160: pantalla completa y el 3D a esa resolución (capturas y benchmark como los ve el jugador).
+	# TLR_RES=3840x2160: ventana sin bordes y el 3D a esa resolución (capturas y benchmark como los ve el jugador).
 	if _dev("TLR_RES") != "":
 		var wh := _dev("TLR_RES").split("x")
-		Game.settings.fullscreen = true
+		Game.settings.window_mode = &"borderless"
 		Game.settings.resolution = Vector2i(int(wh[0]), int(wh[1]))
 		Game.apply_settings()
 	var dev_preset := StringName(_dev("TLR_PRESET"))

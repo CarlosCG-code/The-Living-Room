@@ -23,6 +23,12 @@ const GLOW_REACH := 0.35
 const LIVING_PLACES := {&"ceiling": Vector3(0.0, 2.6, 0.0), &"wall": Vector3(0.0, 1.3, 2.5),
 		&"behind_sofa": Vector3(0.0, 0.1, -2.35), &"rocking_chair": Vector3(0.95, 0.4, 1.95)}
 
+## De qué sale en las demás habitaciones lo que no se cae, sin reflejar: mesilla, lavabo, bajante de la cisterna, mesa del comedor
+## y el muro del pasillo (tuberías).
+const ROOM_PLACES := {&"bedroom_main": Vector3(1.45, 0.7, 6.65), &"bathroom": Vector3(-5.2, 0.95, 1.8),
+		&"service_toilet": Vector3(-11.4, 1.5, -8.98), &"dining_room": Vector3(0.45, 0.9, -4.83),
+		&"corridor_main_m": Vector3(-2.25, 1.3, -0.1)}
+
 ## Lo que se cae con un suceso: con qué empieza el nombre de sus nodos (furnish_flat.py) y dónde acaba en el suelo (x, z),
 ## sin reflejar.
 const PROPS := {
@@ -96,8 +102,8 @@ func get_layout() -> FlatLayout:
 	return LAYOUT
 
 
-## De dónde sale el sonido de un suceso (specs/hito3.md D4): el centro de una zona, una hoja (0,4 m hacia zone_a),
-## o un punto del salón (LIVING_PLACES).
+## De dónde sale el sonido de un suceso (specs/hito3.md D4): un mueble de la zona (o su centro), una hoja (0,4 m hacia
+## zone_a), o un punto del salón (LIVING_PLACES).
 func get_place(id: StringName) -> Vector3:
 	var p := _place(id)
 	return Vector3(-p.x if mirrored else p.x, p.y, p.z)
@@ -115,6 +121,8 @@ func get_place_zone(id: StringName) -> StringName:
 func _place(id: StringName) -> Vector3:
 	if LIVING_PLACES.has(id):
 		return LIVING_PLACES[id]
+	if ROOM_PLACES.has(id):
+		return ROOM_PLACES[id]
 	var zone := LAYOUT.find_zone(id)
 	if zone:
 		var c := zone.rect.get_center()

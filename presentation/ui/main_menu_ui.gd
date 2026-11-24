@@ -16,7 +16,7 @@ const VOLUME_STEP := 0.1
 const DIM := Color("5a6480")
 ## Apartados de Ajustes (clave de su título → filas). En la tele de 320 × 240 no caben todas a la vez.
 const PAGES := {
-	"UI_PAGE_DISPLAY": ["fullscreen", "resolution", "vsync", "max_fps", "brightness"],
+	"UI_PAGE_DISPLAY": ["window_mode", "resolution", "vsync", "max_fps", "brightness"],
 	"UI_PAGE_GRAPHICS": ["quality", "film_grain", "crt", "effects_intensity"],
 	"UI_PAGE_AUDIO": ["volume", "volume_tv", "volume_room"],
 	"UI_PAGE_CONTROLS": ["mouse_sensitivity"],
@@ -164,8 +164,8 @@ func _change(key: String, step: int, wrap := false) -> void:
 	match key:
 		"quality":
 			s.next_quality(step)
-		"fullscreen":
-			s.fullscreen = not s.fullscreen
+		"window_mode":
+			s.window_mode = UserSettings.cycle(UserSettings.WINDOW_MODES, s.window_mode, step)
 		"resolution":
 			s.resolution = UserSettings.cycle(UserSettings.resolution_options(_screen_size()), s.resolution, step)
 		"vsync":
@@ -206,7 +206,7 @@ func _refresh() -> void:
 	var yes_no := func(on: bool) -> String: return tr("UI_ON") if on else tr("UI_OFF")
 	var percent := func(v: float) -> int: return roundi(v * 100.0)
 	(_rows["quality"] as Button).text = tr("UI_QUALITY") % tr("QUALITY_" + String(s.quality).to_upper())
-	(_rows["fullscreen"] as Button).text = tr("UI_FULLSCREEN") % tr("UI_SCREEN_FULL" if s.fullscreen else "UI_SCREEN_WINDOW")
+	(_rows["window_mode"] as Button).text = tr("UI_WINDOW_MODE") % tr("UI_WINDOW_MODE_" + String(s.window_mode).to_upper())
 	var res := tr("UI_AUTO") if s.resolution == Vector2i.ZERO else "%dx%d" %[s.resolution.x, s.resolution.y]
 	(_rows["resolution"] as Button).text = tr("UI_RESOLUTION") % res
 	(_rows["vsync"] as Button).text = tr("UI_VSYNC") % yes_no.call(s.vsync)

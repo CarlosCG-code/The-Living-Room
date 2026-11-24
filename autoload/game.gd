@@ -17,7 +17,7 @@ var _saves := SaveSystem.new()
 var _holding := false
 var _directed: RunState  # la run que lleva el director: con otra (reinicio, partida nueva) empieza de cero
 var _since_save := 0.0
-var _window_applied := []  # [pantalla completa, resolución] aplicados por última vez
+var _window_applied := []  # [modo, resolución] aplicados por última vez
 # TLR_NO_SAVE=1 (tests y verify.sh): no se toca la partida real. Va en una variable de entorno porque GUT rechaza argumentos que no conoce.
 # Con GUT tampoco, aunque falte la variable.
 var _no_save := OS.get_environment("TLR_NO_SAVE") == "1" or "gut_cmdln" in " ".join(OS.get_cmdline_args())
@@ -54,16 +54,18 @@ func apply_settings() -> void:
 	EventBus.settings_changed.emit()
 
 
-# En ventana, la resolución es el tamaño de la ventana (centrada; «la de la pantalla» = maximizada); en
+# En ventana, la resolución es el tamaño de la ventana (centrada; «la de la pantalla» = maximizada); sin bordes y en
 # pantalla completa la ventana ocupa la pantalla y la resolución solo limita el 3D (main.gd). Solo se toca
 # si cambió el modo o la resolución: así subir el volumen no deshace la ventana que el jugador arrastró.
 func _apply_window() -> void:
-	var wanted := [settings.fullscreen, settings.resolution]
+	var wanted := [settings.window_mode, settings.resolution]
 	if wanted == _window_applied:
 		return
 	_window_applied = wanted
-	if settings.fullscreen:
-		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
+	if settings.window_mode != &"window":
+		# El FULLSCREEN de Godot es una ventana sin bordes; el de verdad es EXCLUSIVE.
+		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN if settings.window_mode == &"borderless"
+				else DisplayServer.WINDOW_MODE_EXCLUSIVE_FULLSCREEN)
 		return
 	if settings.resolution == Vector2i.ZERO:
 		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_MAXIMIZED)

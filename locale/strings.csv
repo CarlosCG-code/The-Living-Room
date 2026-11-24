@@ -49,14 +49,15 @@ QUALITY_LOW,baja
 QUALITY_MEDIUM,media
 QUALITY_HIGH,alta
 QUALITY_ULTRA,ultra
-UI_FULLSCREEN,Modo: %s
+UI_WINDOW_MODE,Modo: %s
 UI_VOLUME,General: %d %%
 UI_CRT,Filtro: %s
 UI_CRT_OFF,no
 UI_CRT_SOFT,suave
 UI_CRT_FULL,fuerte
-UI_SCREEN_FULL,pantalla completa
-UI_SCREEN_WINDOW,ventana
+UI_WINDOW_MODE_WINDOW,ventana
+UI_WINDOW_MODE_BORDERLESS,ventana sin bordes
+UI_WINDOW_MODE_FULLSCREEN,pantalla completa
 UI_PAGE_DISPLAY,Pantalla
 UI_PAGE_GRAPHICS,Gráficos
 UI_PAGE_AUDIO,Sonido
