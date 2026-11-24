@@ -8,7 +8,6 @@ Lo que falta para terminar *The Living Room*, en el orden en que se hará. Se ac
 
 - [ ] **Parada 1 del hito 3:** 10 minutos desde la mitad de la run 1; sonidos aprobados (2026-11-24); ¿valen las cosas que se mueven, los sonidos desde su habitación (también al acercarse), las luces y el ritmo?
 - [x] Sonidos de ambiente elegidos por el usuario (2026-11-25): grifo del baño y armario del dormitorio, hechos. Los demás propuestos, descartados por ahora.
-- [ ] Cosas interactuables (idea del usuario, 2026-11-25: fusibles en un inventario para la run 2, grifos, armario…): especificarlo con el hito 4b.
 - [ ] Despertador del dormitorio: la esfera se ve negra (el cristal del modelo es opaco); ¿se arregla?
 - [ ] Eco de pasos y puertas: no suena (`specs/hito3.md` §9, D6); ¿se recupera?
 - [ ] Lluvia del salón: mide −64 dB, casi no se oye (la tele, −48); ¿se sube?
@@ -31,6 +30,7 @@ Lo que falta para terminar *The Living Room*, en el orden en que se hará. Se ac
 - [ ] Especificación, con las preguntas de arriba.
 - [ ] Repartidor: llaman a la puerta, levantarse animado (sustituye a la Q), recoger la comida y dejarla en la mesa.
 - [ ] Run 2: apagón, linterna como mecánica, caja de plomos (modelarla) y fusible, en el piso en espejo.
+- [ ] Cosas interactuables (usuario, 2026-11-25): fusibles e inventario pequeño para la run 2; grifos, puertas de armarios, cajones, interruptores y la radio; coger objetos, solo si aporta miedo.
 - [x] Piso en espejo al día con el normal (2026-11-24); normales, ciudad, lluvia, puertas y tele (salvo la imagen de la pantalla) también reflejadas; comparado en las 21 zonas; desde ahora se cambian los dos a la vez.
 - [ ] Evidencia: pistas del piso del jugador (GDD §7) y su registro.
 - [ ] Guardado ampliado, con migración y test; guardar la posición.
