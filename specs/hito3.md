@@ -79,6 +79,7 @@ var lamps: Array[StringName]             # lámparas a la vista
 | `tool` | — | 0,1 | — | 300 | `workshop` | una herramienta cae |
 | `book` | — | 0,15 | — | 300 | `bedroom_3` (la de enfrente) | un libro cae |
 | `bath_fall` | — | 0,2 | — | 300 | `bathroom` | algo cae |
+| `wardrobe` | — | 0,25 | — | 360 | `wardrobe` (armario del dormitorio) | la puerta cruje y se abre, o se cierra |
 | `rocking` | — | 0,45 | — | 420 | `rocking_chair` | la mecedora se balancea |
 | `knocks` | `channel_3` | 0 | compra, o `p` ≥ 0,85 aunque no se compre | 300 | `door_front` | toques en la puerta |
 | `pipes` | — | 0,1 | — | 240 | `bathroom`, `service_toilet` | tuberías |
@@ -213,5 +214,6 @@ Manual, en las paradas: sonidos, luces y ritmo (1), la run entera (2).
 - **Cada sonido está en su habitación (usuario, 2026-11-24):** el punto ya era el de la casa, pero el tope de Godot (`max_db` 3) lo dejaba igual de fuerte a 6 m que a 1 m. Ahora crece al acercarse hasta el nivel de un portazo a un metro (`MAX_DB` 12 y limitador a −2,5 dB en `HouseEvents`): la cuchara, de −39 dB en el sofá a −23 en la cocina. Ningún suceso sale ya del aire en mitad de un cuarto.
 - **Ajustes, modo de pantalla (usuario, 2026-11-24):** ventana, ventana sin bordes (el `FULLSCREEN` de Godot) o pantalla completa (`EXCLUSIVE_FULLSCREEN`). Un `settings.cfg` anterior se lee igual.
 - **Sonidos:** `spoon`, `tool_2`, `book` y `bath_fall` recortados para que empiecen en el golpe. Fuera el bote de champú: en el baño cae la caracola.
-- **Ambiente (usuario, 2026-11-25):** tic tac en un reloj por habitación (`HouseAudio.CLOCKS`): el de pie del salón (uno por segundo), el de pared del comedor y el despertador del dormitorio. El de repisa y el de bolsillo no suenan. Suenan siempre, desde la malla, y a través de un muro llegan a −12 dB y 2,5 kHz. Un crujido sutil bajo el pie cada 4-5 pisadas, solo sobre madera.
+- **Ambiente (usuario, 2026-11-25):** tic tac en un reloj por habitación (`HouseAudio.CLOCKS`): el de pie del salón (uno cada 1,5 s), el de pared del comedor y el despertador del dormitorio. El de repisa y el de bolsillo no suenan. Suenan siempre, desde la malla, y a través de un muro llegan a −12 dB y 2,5 kHz. Un crujido sutil bajo el pie cada 4-5 pisadas, solo sobre madera.
 - **`audio/directional_sound.gd`:** el reparto por oídos sale de `HouseAudio` a `DirectionalSound` (un bus propio por sonido, que envía a `HouseEvents`), porque ahora suenan varios a la vez.
+- **Grifo y armario (usuario, 2026-11-25):** el lavabo del baño gotea siempre (`world/player_flat/drip.gd`: la gota crece, cae y suena al tocar la loza). Suceso `wardrobe`: la puerta alta del armario del dormitorio gira 50° sobre sus pernios con el crujido; a la siguiente se cierra.

@@ -27,7 +27,12 @@ const LIVING_PLACES := {&"ceiling": Vector3(0.0, 2.6, 0.0), &"wall": Vector3(0.0
 ## y el muro del pasillo (tuberías).
 const ROOM_PLACES := {&"bedroom_main": Vector3(1.45, 0.7, 6.65), &"bathroom": Vector3(-5.2, 0.95, 1.8),
 		&"service_toilet": Vector3(-11.4, 1.5, -8.98), &"dining_room": Vector3(0.45, 0.9, -4.83),
-		&"corridor_main_m": Vector3(-2.25, 1.3, -0.1)}
+		&"corridor_main_m": Vector3(-2.25, 1.3, -0.1), &"wardrobe": Vector3(-0.35, 1.75, 3.65)}
+## Boca del grifo del baño que gotea, sin reflejar, y lo que cae la gota hasta la loza (furnish_flat.py, basin y tap).
+const DRIP := Vector3(-5.06, 0.9, 1.875)
+const DRIP_HEIGHT := 0.129
+const WARDROBE_DOOR := "GothicCabinet_01*door1"
+const WARDROBE_ANGLE := deg_to_rad(50.0)
 
 ## Lo que se cae con un suceso: con qué empieza el nombre de sus nodos (furnish_flat.py) y dónde acaba en el suelo (x, z),
 ## sin reflejar.
@@ -54,6 +59,7 @@ var props := {}  # id de suceso -> Array[FallingProp]
 var _lights: Array[Light3D] = []
 var _chair: Node3D
 var _chair_rest: Transform3D
+var _wardrobe := Node3D.new()  # en los pernios de la puerta
 
 
 func _ready() -> void:
@@ -79,6 +85,11 @@ func _ready() -> void:
 			door.setup(conn, mirrored)
 			doors.append(door)
 	_add_props(geometry)
+	_add_wardrobe(geometry)
+	var drip := Drip.new()
+	drip.position = Vector3(-DRIP.x if mirrored else DRIP.x, DRIP.y, DRIP.z)
+	add_child(drip)
+	drip.setup(DRIP_HEIGHT)
 	_add_lamps(geometry)
 	_link_glow()
 	_add_occluder(geometry)
@@ -147,6 +158,15 @@ func _add_props(geometry: Node) -> void:
 			props[event].append(prop)
 
 
+func _add_wardrobe(geometry: Node) -> void:
+	var leaf: MeshInstance3D = geometry.find_children(WARDROBE_DOOR, "MeshInstance3D", true, false)[0]
+	leaf.gi_mode = GeometryInstance3D.GI_MODE_DYNAMIC  # no deja su sombra horneada al abrirse
+	var box := leaf.global_transform * leaf.get_aabb()
+	_wardrobe.position = Vector3(box.end.x if mirrored else box.position.x, 0.0, box.position.z + 0.04)
+	add_child(_wardrobe)
+	leaf.reparent(_wardrobe)
+
+
 ## Lo que se cae con ese suceso, o null. Uno ya caído vuelve a su sitio, pero nunca a la vista del jugador.
 func pick_prop(event: StringName) -> FallingProp:
 	var ready: Array = props.get(event, []).filter(func(p: FallingProp) -> bool: return not p.fallen)
@@ -160,11 +180,14 @@ func _in_sight(p: Vector3) -> bool:
 	return cam != null and cam.is_position_in_frustum(p) 			and SoundOcclusion.obstacles(get_world_3d().direct_space_state, cam.global_position, p, 1) == 0
 
 
-## Mueve lo que suena sin caerse: una puerta o la mecedora.
+## Mueve lo que suena sin caerse: una puerta, la del armario (se abre o, si ya lo está, se cierra) o la mecedora.
 func stir(place: StringName, seconds: float) -> void:
 	for door in doors:
 		if door.id == place:
 			door.creep(seconds)
+	if place == &"wardrobe":
+		var open := WARDROBE_ANGLE if mirrored else -WARDROBE_ANGLE
+		create_tween().tween_property(_wardrobe, "rotation:y", 0.0 if _wardrobe.rotation.y else open, seconds).set_trans(Tween.TRANS_SINE)
 	if place == &"rocking_chair":
 		create_tween().tween_method(_rock.bind(seconds), 0.0, seconds, seconds)
 

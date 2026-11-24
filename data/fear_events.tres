@@ -24,6 +24,8 @@
 [ext_resource type="AudioStream" path="res://assets/audio/house/pills_2.ogg" id="pills_2"]
 [ext_resource type="AudioStream" path="res://assets/audio/house/creak_1.ogg" id="creak_1"]
 [ext_resource type="AudioStream" path="res://assets/audio/house/creak_2.ogg" id="creak_2"]
+[ext_resource type="AudioStream" path="res://assets/audio/house/wardrobe_1.ogg" id="wardrobe_1"]
+[ext_resource type="AudioStream" path="res://assets/audio/house/wardrobe_2.ogg" id="wardrobe_2"]
 [ext_resource type="AudioStream" path="res://assets/audio/house/rocking_1.ogg" id="rocking_1"]
 [ext_resource type="AudioStream" path="res://assets/audio/house/rocking_2.ogg" id="rocking_2"]
 [ext_resource type="AudioStream" path="res://assets/audio/house/glasses_1.ogg" id="glasses_1"]
@@ -170,6 +172,17 @@ sounds = Array[AudioStream]([ExtResource("creak_1"), ExtResource("creak_2")])
 volume_db = 6.0
 subtitle_key = "SUB_CREAK"
 
+[sub_resource type="Resource" id="wardrobe"]
+script = ExtResource("def")
+id = &"wardrobe"
+min_progress = 0.25
+cooldown = 360.0
+duration = 6.5
+places = Array[StringName]([&"wardrobe"])
+sounds = Array[AudioStream]([ExtResource("wardrobe_1"), ExtResource("wardrobe_2")])
+volume_db = 3.0
+subtitle_key = "SUB_WARDROBE"
+
 [sub_resource type="Resource" id="rocking"]
 script = ExtResource("def")
 id = &"rocking"
@@ -227,4 +240,4 @@ duration = 1.0
 
 [resource]
 script = ExtResource("set")
-events = Array[ExtResource("def")]([SubResource("wall_ticks"), SubResource("spoon"), SubResource("floor_creak"), SubResource("remote"), SubResource("knocks"), SubResource("tool"), SubResource("pipes"), SubResource("book"), SubResource("bath_fall"), SubResource("steps_above"), SubResource("pills"), SubResource("creak"), SubResource("rocking"), SubResource("glasses"), SubResource("denture"), SubResource("lamp_flicker"), SubResource("tv_frame")])
+events = Array[ExtResource("def")]([SubResource("wall_ticks"), SubResource("spoon"), SubResource("floor_creak"), SubResource("remote"), SubResource("knocks"), SubResource("tool"), SubResource("pipes"), SubResource("book"), SubResource("bath_fall"), SubResource("steps_above"), SubResource("pills"), SubResource("creak"), SubResource("wardrobe"), SubResource("rocking"), SubResource("glasses"), SubResource("denture"), SubResource("lamp_flicker"), SubResource("tv_frame")])

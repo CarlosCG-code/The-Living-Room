@@ -284,7 +284,7 @@ func test_data() -> void:
 			assert_not_null(config.find_generator(def.requires), "%s: máquina" % def.id)
 		for place in def.places:
 			var leaf := LAYOUT.connections.any(func(c: ConnectionDef) -> bool: return c.id == place and c.kind == &"leaf")
-			assert_true(place in LIVING or leaf or LAYOUT.find_zone(place) != null, "%s: %s" % [def.id, place])
+			assert_true(place in LIVING or place == &"wardrobe" or leaf or LAYOUT.find_zone(place) != null, "%s: %s" % [def.id, place])
 		if def.kind == FearEventDef.Kind.SOUND:
 			assert_ne(tr(def.subtitle_key), def.subtitle_key, "%s: subtítulo" % def.id)
 			assert_false(def.places.is_empty(), String(def.id))

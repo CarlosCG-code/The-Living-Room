@@ -260,7 +260,7 @@ func test_places_of_the_director() -> void:
 		if conn.kind == &"leaf":
 			assert_eq(normal.get_place_zone(conn.id), conn.zone_a, String(conn.id))
 	for id: StringName in normal.ROOM_PLACES:
-		assert_eq(normal.get_place_zone(id), id)
+		assert_eq(normal.get_place_zone(id), &"bedroom_main" if id == &"wardrobe" else id)
 	for id: StringName in [&"kitchen", &"bathroom", &"door_front", &"door_gallery", &"wall", &"ceiling", &"behind_sofa", &"rocking_chair"]:
 		var p: Vector3 = normal.get_place(id)
 		assert_almost_eq(mirror.get_place(id), Vector3(-p.x, p.y, p.z), Vector3.ONE * 0.0001)
@@ -349,6 +349,29 @@ func test_each_ear_hears_where_an_event_comes_from() -> void:
 	var behind := DirectionalSound.ears(Vector3(3, 0, 2))
 	assert_eq(ahead.x, behind.x)
 	assert_gt(behind.z, ahead.z)
+
+
+func test_the_wardrobe_opens_into_the_room_and_closes() -> void:
+	for mirrored: bool in [false, true]:
+		var f: Node3D = _flat(mirrored)
+		var leaf: MeshInstance3D = f._wardrobe.get_child(0)
+		var edge := func() -> float: return (leaf.global_transform * leaf.get_aabb()).end.z
+		var shut: float = edge.call()
+		f.stir(&"wardrobe", 0.05)
+		await wait_seconds(0.2)
+		assert_gt(edge.call(), shut + 0.4, "hacia el dormitorio")
+		f.stir(&"wardrobe", 0.05)
+		await wait_seconds(0.2)
+		assert_almost_eq(edge.call(), shut, 0.001)
+
+
+func test_the_tap_drips_in_the_basin() -> void:
+	for mirrored: bool in [false, true]:
+		var f: Node3D = _flat(mirrored)
+		var basin: MeshInstance3D = f.find_child("Basin", true, false)
+		var box := basin.global_transform * basin.get_aabb()
+		var drip: Drip = f.get_children().filter(func(n: Node) -> bool: return n is Drip)[0]
+		assert_true(box.has_point(drip.global_position - Vector3(0.0, f.DRIP_HEIGHT, 0.0)))
 
 
 func test_each_directional_sound_has_its_own_bus() -> void:
