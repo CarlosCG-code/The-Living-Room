@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
-# Copia de seguridad en ../backups/<hito>/<fecha>: bash tools/backup.sh hito3
+# Copia de seguridad en <carpeta>/<hito>/<fecha>: bash tools/backup.sh hito3
+# La carpeta, una vez por PC: git config tlr.backups <ruta>
 # Proyecto entero con su historial (sin lo que se regenera), la build jugable, la partida y las notas de Claude.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 : "${1:?falta el hito, p. ej. hito3}"
-[ -d ../backups ] || { echo "BACKUP FAIL: no existe ../backups" >&2; exit 1; }
-DEST="../backups/$1/$(date +%F)"
+ROOT=$(git config tlr.backups) && [ -d "$ROOT" ] || { echo "BACKUP FAIL: no existe la carpeta de copias (git config tlr.backups)" >&2; exit 1; }
+DEST="$ROOT/$1/$(date +%F)"
 [ ! -e "$DEST" ] || DEST="${DEST}_$(date +%H%M%S)"
 mkdir -p "$DEST/proyecto"
 
