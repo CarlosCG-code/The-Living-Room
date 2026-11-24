@@ -1,0 +1,147 @@
+[gd_resource type="Resource" script_class="FearEventSet" format=3]
+
+[ext_resource type="Script" path="res://fear/fear_event_set.gd" id="set"]
+[ext_resource type="Script" path="res://fear/fear_event_def.gd" id="def"]
+
+[sub_resource type="Resource" id="wall_ticks"]
+script = ExtResource("def")
+id = &"wall_ticks"
+requires = &"valves"
+mandatory = 1
+cooldown = 180.0
+duration = 6.0
+places = Array[StringName]([&"wall", &"corridor_main_m"])
+subtitle_key = "SUB_WALL_TICKS"
+
+[sub_resource type="Resource" id="cry"]
+script = ExtResource("def")
+id = &"cry"
+requires = &"audio_frequency"
+mandatory = 1
+cooldown = 300.0
+duration = 6.0
+places = Array[StringName]([&"kitchen"])
+subtitle_key = "SUB_CRY"
+
+[sub_resource type="Resource" id="voices"]
+script = ExtResource("def")
+id = &"voices"
+requires = &"tuner"
+mandatory = 1
+cooldown = 300.0
+duration = 6.0
+places = Array[StringName]([&"ceiling"])
+subtitle_key = "SUB_VOICES"
+
+[sub_resource type="Resource" id="remote"]
+script = ExtResource("def")
+id = &"remote"
+requires = &"remote"
+mandatory = 1
+cooldown = 300.0
+duration = 6.0
+places = Array[StringName]([&"dining_room", &"bedroom_main"])
+subtitle_key = "SUB_REMOTE"
+
+[sub_resource type="Resource" id="fall"]
+script = ExtResource("def")
+id = &"fall"
+min_progress = 0.5
+requires = &"remote"
+cooldown = 360.0
+duration = 6.0
+places = Array[StringName]([&"workshop", &"bedroom_2", &"gallery"])
+subtitle_key = "SUB_FALL"
+
+[sub_resource type="Resource" id="knocks"]
+script = ExtResource("def")
+id = &"knocks"
+requires = &"channel_3"
+mandatory = 1
+mandatory_progress = 0.85
+cooldown = 300.0
+duration = 6.0
+places = Array[StringName]([&"door_front"])
+subtitle_key = "SUB_KNOCKS"
+
+[sub_resource type="Resource" id="pipes"]
+script = ExtResource("def")
+id = &"pipes"
+min_progress = 0.1
+cooldown = 240.0
+duration = 6.0
+places = Array[StringName]([&"bathroom", &"service_toilet"])
+subtitle_key = "SUB_PIPES"
+
+[sub_resource type="Resource" id="steps_above"]
+script = ExtResource("def")
+id = &"steps_above"
+min_progress = 0.3
+cooldown = 300.0
+duration = 6.0
+places = Array[StringName]([&"ceiling"])
+subtitle_key = "SUB_STEPS_ABOVE"
+
+[sub_resource type="Resource" id="creak"]
+script = ExtResource("def")
+id = &"creak"
+min_progress = 0.4
+cooldown = 360.0
+duration = 6.0
+places = Array[StringName]([&"door_bedroom_3", &"door_gallery"])
+subtitle_key = "SUB_CREAK"
+
+[sub_resource type="Resource" id="pills"]
+script = ExtResource("def")
+id = &"pills"
+min_progress = 0.35
+mandatory = 2
+mandatory_progress = 0.35
+cooldown = 420.0
+duration = 6.0
+places = Array[StringName]([&"bedroom_main", &"bathroom"])
+subtitle_key = "SUB_PILLS"
+
+[sub_resource type="Resource" id="glasses"]
+script = ExtResource("def")
+id = &"glasses"
+min_progress = 0.55
+mandatory = 2
+mandatory_progress = 0.55
+cooldown = 420.0
+duration = 6.0
+places = Array[StringName]([&"dining_room", &"bedroom_main"])
+subtitle_key = "SUB_GLASSES"
+
+[sub_resource type="Resource" id="denture"]
+script = ExtResource("def")
+id = &"denture"
+min_progress = 0.7
+mandatory = 2
+mandatory_progress = 0.7
+cooldown = 420.0
+duration = 6.0
+places = Array[StringName]([&"bathroom"])
+subtitle_key = "SUB_DENTURE"
+
+[sub_resource type="Resource" id="lamp_flicker"]
+script = ExtResource("def")
+id = &"lamp_flicker"
+kind = 1
+cooldown = 180.0
+duration = 2.4
+
+[sub_resource type="Resource" id="tv_frame"]
+script = ExtResource("def")
+id = &"tv_frame"
+kind = 2
+min_progress = 0.7
+mandatory = 2
+mandatory_progress = 0.7
+random = false
+cooldown = 0.0
+duration = 1.0
+
+[resource]
+script = ExtResource("set")
+events = Array[ExtResource("def")]([SubResource("wall_ticks"), SubResource("cry"), SubResource("voices"), SubResource("remote"), SubResource("fall"), SubResource("knocks"), SubResource("pipes"), SubResource("steps_above"), SubResource("creak"), SubResource("pills"), SubResource("glasses"), SubResource("denture"), SubResource("lamp_flicker"), SubResource("tv_frame")])

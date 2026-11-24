@@ -252,6 +252,7 @@ func _click(at: Vector2) -> void:
 ## Sacude la imagen de la tele px píxeles enteros un instante (compras, críticos, cintas). Solo la imagen:
 ## la cámara no se mueve.
 func shake(px: int) -> void:
+	px = roundi(px * Game.settings.effects_intensity)
 	if _shake:
 		_shake.kill()
 	position = Vector2.ZERO

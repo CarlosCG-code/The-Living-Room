@@ -358,13 +358,12 @@ func _make_vignette() -> TextureRect:
 	return v
 
 
-## De vez en cuando la luz de la fábrica falla un instante.
+## De vez en cuando la luz de la fábrica falla un instante; entre fallo y fallo, al menos lo que separa los destellos.
 func _flicker(delta: float) -> void:
-	if _flicker_left > 0.0:
-		_flicker_left -= delta
-	elif randf() < delta / 9.0:
+	_flicker_left -= delta
+	if _flicker_left <= -LightFlicker.MIN_DIP_GAP and randf() < delta / 9.0:
 		_flicker_left = randf_range(0.06, 0.25)
-	_factory.modulate = Color(0.45, 0.45, 0.55) if _flicker_left > 0.0 else Color.WHITE
+	_factory.modulate = Color.WHITE.lerp(Color(0.45, 0.45, 0.55), Game.settings.effects_intensity if _flicker_left > 0.0 else 0.0)
 
 
 ## Terror progresivo (specs/incremental_v2.md §6): f = Energía producida / umbral; run = número de run.

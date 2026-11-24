@@ -38,6 +38,8 @@ var volume_room := 1.0
 ## Intensidad del filtro CRT/VHS de la tele, 0–1 (0 = imagen limpia).
 var crt := 1.0
 var mouse_sensitivity := 0.0012
+## Parpadeos, bajada de las luces y efectos de pantalla, 0–1 (specs/hito3.md D9).
+var effects_intensity := 1.0
 
 
 ## Lee el archivo; si falta o es ilegible, devuelve los valores por defecto. Corrige valores fuera de rango.
@@ -62,6 +64,7 @@ static func load_from(path: String) -> UserSettings:
 	s.crt = clampf(_num(cfg.get_value(SECTION, "crt", s.crt), s.crt), 0.0, 1.0)
 	s.mouse_sensitivity = clampf(_num(cfg.get_value(SECTION, "mouse_sensitivity", s.mouse_sensitivity), s.mouse_sensitivity),
 			SENSITIVITY_MIN, SENSITIVITY_MAX)
+	s.effects_intensity = clampf(_num(cfg.get_value(SECTION, "effects_intensity", s.effects_intensity), s.effects_intensity), 0.0, 1.0)
 	return s
 
 
@@ -80,6 +83,7 @@ func save_to(path: String) -> bool:
 	cfg.set_value(SECTION, "volume_room", volume_room)
 	cfg.set_value(SECTION, "crt", crt)
 	cfg.set_value(SECTION, "mouse_sensitivity", mouse_sensitivity)
+	cfg.set_value(SECTION, "effects_intensity", effects_intensity)
 	return cfg.save(path) == OK
 
 

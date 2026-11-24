@@ -69,6 +69,41 @@ func get_layout() -> FlatLayout:
 	return LAYOUT
 
 
+## De dónde sale el sonido de un suceso (specs/hito3.md D4): el centro de una zona, una hoja (0,4 m hacia zone_a),
+## «ceiling» o «wall» (techo del salón y pared frente al sofá).
+func get_place(id: StringName) -> Vector3:
+	var p := _place(id)
+	return Vector3(-p.x if mirrored else p.x, p.y, p.z)
+
+
+## Zona de un lugar; &"" en el techo y la pared, que suenan aunque el jugador esté en el salón.
+func get_place_zone(id: StringName) -> StringName:
+	if id in [&"ceiling", &"wall"]:
+		return &""
+	var p := _place(id)
+	return LAYOUT.zone_at(Vector2(p.x, p.z), false)
+
+
+# Sin reflejar.
+func _place(id: StringName) -> Vector3:
+	var zone := LAYOUT.find_zone(id)
+	if zone:
+		var c := zone.rect.get_center()
+		return Vector3(c.x, 1.0, c.y)
+	for conn in LAYOUT.connections:
+		if conn.id == id and conn.kind == &"leaf":
+			var leaf := conn.hinge + conn.direction * conn.width / 2.0
+			return Vector3(leaf.x, 1.0, leaf.z) + Vector3.UP.cross(conn.direction) * conn.swing * 0.4
+	var living := LAYOUT.find_zone(&"living_room").rect
+	match id:
+		&"ceiling":
+			return Vector3(living.get_center().x, 2.6, living.get_center().y)
+		&"wall":
+			return Vector3(living.get_center().x, 1.3, living.end.y)
+	push_error("Lugar desconocido: %s" % id)
+	return Vector3.ZERO
+
+
 # Espejos de verdad (PlanarMirror) sobre el cristal de cada Mirror_<zona> (material «Mirror», furnish_flat.py y
 # build_living_room.py). La cara buena es la que da a su habitación.
 func _add_mirrors(geometry: Node) -> void:

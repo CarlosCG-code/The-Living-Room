@@ -50,6 +50,7 @@ func set_tv_state(state: StringName) -> void:
 	apply()
 
 
+## La producción baja las lámparas y, a medias, la luz ambiente; la pantalla (es la que consume) y la farola no.
 func set_factor(f: float) -> void:
 	_factor = f
 	apply()
@@ -82,13 +83,13 @@ func set_ambient_gi_scale(f: float) -> void:
 func apply() -> void:
 	var key := "base_dark" if _state == &"dark" else "base_normal"
 	for light in _room_lights:
-		var energy: float = light.get_meta(key, 0.0) * _factor
+		var energy: float = light.get_meta(key, 0.0) * (_factor if light is OmniLight3D else 1.0)
 		light.light_energy = energy * _scale.get(light, 1.0)
 		light.visible = energy > 0.0
 		for material: BaseMaterial3D in light.get_meta(&"glow", []):
 			material.emission_energy_multiplier = float(material.get_meta(&"base_energy")) * light.light_energy / float(light.get_meta("base_normal"))
 	if _screen_light:
-		var screen_energy: float = _screen_base * TV_SCREEN_SCALE.get(_tv_state, 1.0) * _factor
+		var screen_energy: float = _screen_base * TV_SCREEN_SCALE.get(_tv_state, 1.0)
 		_screen_light.light_energy = screen_energy
 		_screen_light.visible = screen_energy > 0.0
 	if _flashlight:
@@ -97,4 +98,4 @@ func apply() -> void:
 	if _environment and _ambient.has(_state):
 		var amb: Dictionary = _ambient[_state]
 		_environment.ambient_light_color = amb["color"]
-		_environment.ambient_light_energy = float(amb["energy"]) * _ambient_gi_scale * _factor
+		_environment.ambient_light_energy = float(amb["energy"]) * _ambient_gi_scale * lerpf(1.0, _factor, 0.5)

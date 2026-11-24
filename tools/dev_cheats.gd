@@ -113,6 +113,11 @@ func _build() -> void:
 	_row(events)
 	_row([["Cinta común", _drop.bind(0)], ["Cinta rara", _drop.bind(1)], ["Cinta negra", _drop.bind(2)]])
 	_row([["Quitar enfriamientos", _clear_cooldowns], ["Llenar barra de cinta", _fill_bar]])
+	_section("Director: suceso ya")
+	var fear: Array = []
+	for def in (load(Game.FEAR_EVENTS_PATH) as FearEventSet).events:
+		fear.append([String(def.id), Game.director.force.bind(def.id)])
+	_row(fear)
 	_section("Tiempo")
 	_row([["×1", _speed.bind(1.0)], ["×5", _speed.bind(5.0)], ["×20", _speed.bind(20.0)], ["×60", _speed.bind(60.0)]])
 	_section("Salón (recarga la escena)")

@@ -38,6 +38,7 @@ func test_round_trip_new_keys() -> void:
 	s.film_grain = false
 	s.volume_tv = 0.4
 	s.volume_room = 0.6
+	s.effects_intensity = 0.3
 	assert_true(s.save_to(PATH))
 	var back := UserSettings.load_from(PATH)
 	assert_eq(back.resolution, Vector2i(1600, 900))
@@ -47,6 +48,7 @@ func test_round_trip_new_keys() -> void:
 	assert_false(back.film_grain)
 	assert_almost_eq(back.volume_tv, 0.4, 0.0001)
 	assert_almost_eq(back.volume_room, 0.6, 0.0001)
+	assert_almost_eq(back.effects_intensity, 0.3, 0.0001)
 
 
 func test_old_file_without_new_keys_keeps_defaults() -> void:
@@ -106,11 +108,13 @@ func test_bad_values_are_corrected() -> void:
 	cfg.set_value("settings", "quality", "insane")
 	cfg.set_value("settings", "volume", 7.0)
 	cfg.set_value("settings", "crt", "mucho")
+	cfg.set_value("settings", "effects_intensity", 7)
 	cfg.save(PATH)
 	var s := UserSettings.load_from(PATH)
 	assert_eq(s.quality, &"medium")
 	assert_almost_eq(s.volume, 1.0, 0.0001)
 	assert_almost_eq(s.crt, 1.0, 0.0001)
+	assert_almost_eq(s.effects_intensity, 1.0, 0.0001)
 
 
 func test_other_version_gives_defaults() -> void:

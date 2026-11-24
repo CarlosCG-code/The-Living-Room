@@ -99,6 +99,8 @@ func test_new_rows_cycle() -> void:
 	assert_almost_eq(Game.settings.brightness, 0.5, 0.0001, "del máximo da la vuelta al mínimo")
 	menu.get_option_button("vsync").pressed.emit()
 	assert_false(Game.settings.vsync)
+	menu.get_option_button("effects_intensity").pressed.emit()
+	assert_almost_eq(Game.settings.effects_intensity, 0.0, 0.0001)
 	menu.get_option_button("volume_tv").pressed.emit()
 	assert_almost_eq(Game.settings.volume_tv, 0.0, 0.0001)
 

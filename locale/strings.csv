@@ -66,6 +66,7 @@ UI_RESOLUTION,Resolución: %s
 UI_VSYNC,VSync: %s
 UI_MAX_FPS,Límite de FPS: %s
 UI_UNLIMITED,sin límite
+UI_EFFECTS,Intensidad de efectos: %d %%
 UI_BRIGHTNESS,Brillo: %d %%
 UI_AUTO,auto
 UI_FILM_GRAIN,Grano y viñeta: %s
@@ -186,3 +187,15 @@ OSD_NEXT_CARGA,+1 de Carga a %s
 UI_CARGA_HELP,Cada reinicio da 3 de Carga; esperar da más.
 UI_END_OF_BROADCAST,FIN DE LAS EMISIONES
 UI_END_OF_BROADCAST_SUB,No apague el receptor.
+SUB_WALL_TICKS,[Chasquidos dentro de la pared]
+SUB_CRY,[Un llanto lejano]
+SUB_VOICES,[Voces apagadas de otra tele]
+SUB_REMOTE,[El clic de un mando]
+SUB_FALL,[Algo cae al suelo]
+SUB_KNOCKS,[Golpes en la puerta]
+SUB_PIPES,[Ruido de tuberías]
+SUB_STEPS_ABOVE,[Pasos en el piso de arriba]
+SUB_CREAK,[Una puerta cruje]
+SUB_PILLS,[Pastillas que caen]
+SUB_GLASSES,[Unas gafas caen al suelo]
+SUB_DENTURE,[Una dentadura cae en un vaso]

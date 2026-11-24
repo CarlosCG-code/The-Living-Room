@@ -550,3 +550,24 @@ func test_seek_does_not_waste_cooldown_with_event_on_screen() -> void:
 	eco.state.event_left = 5.0
 	assert_false(eco.use_skill(&"seek"))
 	assert_eq(eco.skill_cooldown(&"seek"), 0.0)
+
+
+func test_run_progress_and_production_level() -> void:
+	config.threshold = 45000000.0
+	config.threshold_mult = []
+	var last := -1.0
+	for energy: float in [0.0, 2000.0, 1e5, 1e6, 45000000.0, 1e9]:
+		eco.state.energy_produced_run = energy
+		assert_gte(eco.run_progress(), last)
+		last = eco.run_progress()
+		if energy <= 2000.0:
+			assert_eq(last, 0.0)
+	assert_eq(last, 1.0)
+	assert_true(eco.restart())
+	assert_eq(eco.run_progress(), 0.0)
+	assert_eq(eco.production_level(), 0.0)
+	eco.state.generators[config.generators[0].id] = 50
+	eco._recalc()
+	assert_between(eco.production_level(), 0.01, 0.999)
+	eco.state.timers["tv_off"] = 5.0
+	assert_eq(eco.production_level(), 0.0, "con la tele apagada las luces vuelven")

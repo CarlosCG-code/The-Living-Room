@@ -246,3 +246,20 @@ func test_dust_covers_every_zone_and_casts_no_shadow() -> void:
 			var c := zone.rect.get_center()
 			var p := Vector3(-c.x if mirrored else c.x, 1.3, c.y) - dust.position
 			assert_true(absf(p.x) < half.x and absf(p.z) < half.z, "polvo en %s" % zone.id)
+
+
+func test_places_of_the_director() -> void:
+	var normal: Node3D = _flat(false)
+	var mirror: Node3D = _flat(true)
+	var layout: FlatLayout = normal.get_layout()
+	assert_almost_eq(normal.get_place(&"kitchen"), Vector3(-9.95, 1.0, -5.35), Vector3.ONE * 0.0001)
+	assert_eq(normal.get_place(&"ceiling"), Vector3(0.0, 2.6, 0.0))
+	assert_eq(normal.get_place(&"wall"), Vector3(0.0, 1.3, 2.5))
+	assert_eq(normal.get_place_zone(&"wall"), &"")
+	for conn in layout.connections:
+		if conn.kind == &"leaf":
+			assert_eq(normal.get_place_zone(conn.id), conn.zone_a, String(conn.id))
+	for id: StringName in [&"kitchen", &"door_front", &"door_gallery", &"wall", &"ceiling"]:
+		var p: Vector3 = normal.get_place(id)
+		assert_almost_eq(mirror.get_place(id), Vector3(-p.x, p.y, p.z), Vector3.ONE * 0.0001)
+		assert_eq(mirror.get_place_zone(id), normal.get_place_zone(id))

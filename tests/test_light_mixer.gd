@@ -1,7 +1,7 @@
 extends GutTest
 
 var lamp: OmniLight3D
-var street: OmniLight3D
+var street: SpotLight3D
 var screen_light: OmniLight3D
 var flashlight: SpotLight3D
 var env: Environment
@@ -12,7 +12,7 @@ func before_each() -> void:
 	lamp = autofree(OmniLight3D.new())
 	lamp.set_meta("base_normal", 2.0)
 	lamp.set_meta("base_dark", 0.0)
-	street = autofree(OmniLight3D.new())
+	street = autofree(SpotLight3D.new())
 	street.set_meta("base_normal", 0.5)
 	street.set_meta("base_dark", 0.2)
 	screen_light = autofree(OmniLight3D.new())
@@ -60,6 +60,9 @@ func test_glow_follows_its_light() -> void:
 func test_factor_multiplies_base() -> void:
 	mixer.set_factor(0.5)
 	assert_almost_eq(lamp.light_energy, 1.0, 0.0001)
+	assert_almost_eq(env.ambient_light_energy, 0.375, 0.0001, "la ambiente, a medias")
+	assert_eq(street.light_energy, 0.5, "la farola no")
+	assert_eq(screen_light.light_energy, 1.0, "la pantalla es la que consume")
 
 
 func test_screen_light_follows_tv() -> void:
@@ -110,3 +113,37 @@ func test_flicker_bursts_stay_under_three_dips_per_second() -> void:
 			if i > 0:
 				assert_gte(burst[i].x - burst[i - 1].x, LightFlicker.MIN_DIP_GAP)
 		assert_eq(LightFlicker.level_at(burst, LightFlicker.burst_end(burst) + 0.01), 1.0, "termina encendida")
+
+
+func test_flicker_depth_follows_effects_intensity() -> void:
+	var burst: Array[Vector3] = [Vector3(0.0, 0.1, 0.2)]
+	assert_almost_eq(LightFlicker.level_at(burst, 0.05, 1.0), 0.2, 0.0001)
+	assert_almost_eq(LightFlicker.level_at(burst, 0.05, 0.5), 0.6, 0.0001)
+	assert_almost_eq(LightFlicker.level_at(burst, 0.75, 0.0), 0.75, 0.0001, "con 0, un bajón suave")
+	assert_gt(LightFlicker.level_at(burst, 0.05, 0.0), 0.95)
+	assert_almost_eq(LightFlicker.burst_end(burst, 0.0), 1.5, 0.0001)
+
+
+func test_lamp_and_flashlight_never_flicker_together() -> void:
+	var flicker: LightFlicker = add_child_autofree(LightFlicker.new())
+	lamp.name = "Lamp"
+	add_child(lamp)
+	var lights: Array[Light3D] = [lamp]
+	flicker.setup(mixer, lights, flashlight, FlatLayout.new(), false)
+	mixer.set_flashlight_on(true)
+	flicker._torch_wait = 0.0
+	flicker._process(0.01)  # la linterna empieza a fallar
+	var def := FearEventDef.new()
+	def.kind = FearEventDef.Kind.LAMP
+	EventBus.fear_event.emit(def, &"Lamp")
+	var torch_dipped := false
+	var lamp_dipped := false
+	for i in 1000:
+		flicker._torch_wait = 0.0
+		flicker._process(0.01)
+		var torch := flashlight.light_energy < 2.99
+		var room := lamp.light_energy < 1.99
+		assert_false(torch and room)
+		torch_dipped = torch_dipped or torch
+		lamp_dipped = lamp_dipped or room
+	assert_true(torch_dipped and lamp_dipped)

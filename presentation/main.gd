@@ -10,16 +10,25 @@ const CAMERA := preload("res://presentation/camera/game_camera.tscn")
 const PLAYER := preload("res://presentation/player/player.tscn")
 const STAND_OFFSET := 0.6  # de pie, delante del asiento hacia la tele
 const TRANSITION := 0.5
+## Las luces de la casa con la producción al máximo, con «Intensidad de efectos» al 100 % y al 0 % (specs/hito3.md D2, D9).
+const LIGHT_MIN := 0.55
+const LIGHT_MIN_SOFT := 0.8
+const LIGHT_FADE := 1.0  # 1/s: un cambio se nota en unos 3 s
+const PROBE_STEP := 0.1  # cambio de luz con el que se recaptura la sonda
 const VIEWS: Array[StringName] = [&"game", &"sofa", &"window", &"door", &"corner"]
 
 var mixer: LightMixer
 var settings: GraphicsSettings
 
+var _flat: Node3D
 var _room: Node3D
 var _film_grain: CanvasLayer
 var _camera: Camera3D
 var _player: Player
 var _ui: Node
+var _flicker: LightFlicker
+var _light := 1.0
+var _probe_light := 1.0
 var _flashlight_on := false
 
 
@@ -30,6 +39,7 @@ func _ready() -> void:
 	var flat := FLAT.instantiate()
 	flat.mirrored = _dev("TLR_MIRROR") == "1"
 	add_child(flat)
+	_flat = flat
 	var room: Node3D = flat.living_room  # anclas, entorno, luces y cámaras de captura siguen siendo del salón
 	_room = room
 	var tv := TV.instantiate()
@@ -53,6 +63,9 @@ func _ready() -> void:
 
 	var environment: Environment = room.get_environment().environment
 	mixer = LightMixer.new(flat.get_lights(), tv.get_screen_light(), camera.get_flashlight(), environment, room.get_ambient())
+	_light = _light_goal()
+	_probe_light = _light
+	mixer.set_factor(_light)
 	settings = GraphicsSettings.new(get_viewport(), environment, room.get_voxel_gi(), room.get_reflection_probe(),
 			camera.get_flashlight(), mixer)
 	# TLR_RES=3840x2160: pantalla completa y el 3D a esa resolución (capturas y benchmark como los ve el jugador).
@@ -71,9 +84,10 @@ func _ready() -> void:
 	if _dev("TLR_OCCLUSION") == "0":  # comparar con y sin oclusión (flat.gd)
 		get_viewport().use_occlusion_culling = false
 	var flicker := LightFlicker.new()
+	_flicker = flicker
 	flicker.name = "LightFlicker"
 	add_child(flicker)
-	flicker.setup(mixer, flat.get_lights(), camera.get_flashlight())
+	flicker.setup(mixer, flat.get_lights(), camera.get_flashlight(), flat.get_layout(), flat.mirrored)
 	_add_film_grain()
 	_apply_user_settings()
 	var preset_now := func() -> StringName: return dev_preset if dev_preset in GraphicsSettings.PRESETS else Game.settings.quality
@@ -127,13 +141,38 @@ func _ready() -> void:
 			for v in VIEWS.slice(1):
 				bench.cameras.append(room.get_capture_camera(v))
 		add_child(bench)
-	tree_exiting.connect(func() -> void: Game.running = false)
+	Game.senses = _sense
+	tree_exiting.connect(func() -> void:
+		Game.running = false
+		Game.senses = Callable())
 	print("BOOT_OK")
 	# TLR_SHOT=ruta.png: guarda lo que se ve a los 6 s (la GI y el TAA ya asentados) y cierra.
 	if _dev("TLR_SHOT") != "":
 		await get_tree().create_timer(6.0).timeout
 		get_viewport().get_texture().get_image().save_png(_dev("TLR_SHOT"))
 		get_tree().quit()
+
+
+func _process(delta: float) -> void:
+	var goal := _light_goal()
+	if absf(goal - _light) < 0.001:
+		return
+	_light = lerpf(_light, goal, 1.0 - exp(-LIGHT_FADE * delta))
+	mixer.set_factor(_light)
+	if absf(_light - _probe_light) >= PROBE_STEP:  # si no, los reflejos seguirían con la luz de antes
+		_probe_light = _light
+		_recapture_probe()
+
+
+func _light_goal() -> float:
+	return lerpf(1.0, lerpf(LIGHT_MIN_SOFT, LIGHT_MIN, Game.settings.effects_intensity), Game.economy.production_level())
+
+
+func _sense(s: DirectorState) -> void:
+	s.ui_idle = _ui.is_idle()
+	s.player_zone = _player.current_zone() if _player.active else &"living_room"
+	s.place_zone = _flat.get_place_zone
+	s.lamps = _flicker.visible_lamps.bind(s.player_zone)
 
 
 func _apply_user_settings() -> void:

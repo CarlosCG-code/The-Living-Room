@@ -17,12 +17,12 @@ const DIM := Color("5a6480")
 ## Apartados de Ajustes (clave de su título → filas). En la tele de 320 × 240 no caben todas a la vez.
 const PAGES := {
 	"UI_PAGE_DISPLAY": ["fullscreen", "resolution", "vsync", "max_fps", "brightness"],
-	"UI_PAGE_GRAPHICS": ["quality", "film_grain", "crt"],
+	"UI_PAGE_GRAPHICS": ["quality", "film_grain", "crt", "effects_intensity"],
 	"UI_PAGE_AUDIO": ["volume", "volume_tv", "volume_room"],
 	"UI_PAGE_CONTROLS": ["mouse_sensitivity"],
 }
 
-const REPEATABLE: Array[String] = ["brightness", "volume", "volume_tv", "volume_room", "mouse_sensitivity"]
+const REPEATABLE: Array[String] = ["brightness", "volume", "volume_tv", "volume_room", "mouse_sensitivity", "effects_intensity"]
 
 var _main: VBoxContainer
 var _options: VBoxContainer  # lista de apartados
@@ -91,8 +91,9 @@ func _process(delta: float) -> void:
 		_glitch_left -= delta
 	elif randf() < delta / 6.0:
 		_glitch_left = randf_range(0.05, 0.15)
-	_title.position.x = randf_range(-3.0, 3.0) if _glitch_left > 0.0 else 0.0
-	_title.modulate.a = 0.55 if _glitch_left > 0.0 else 1.0
+	var glitch := Game.settings.effects_intensity if _glitch_left > 0.0 else 0.0
+	_title.position.x = randf_range(-3.0, 3.0) * glitch
+	_title.modulate.a = lerpf(1.0, 0.55, glitch)
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -175,7 +176,7 @@ func _change(key: String, step: int, wrap := false) -> void:
 			s.brightness = _step(s.brightness, step, UserSettings.BRIGHTNESS_MIN, UserSettings.BRIGHTNESS_MAX, wrap)
 		"film_grain":
 			s.film_grain = not s.film_grain
-		"volume", "volume_tv", "volume_room":
+		"volume", "volume_tv", "volume_room", "effects_intensity":
 			s.set(key, _step(s.get(key), step, 0.0, 1.0, wrap))
 		"mouse_sensitivity":
 			var next := s.mouse_sensitivity + step * UserSettings.SENSITIVITY_STEP
@@ -217,6 +218,7 @@ func _refresh() -> void:
 	(_rows["volume_room"] as Button).text = tr("UI_VOLUME_ROOM") % percent.call(s.volume_room)
 	var crt_name: String = ["UI_CRT_OFF", "UI_CRT_SOFT", "UI_CRT_FULL"][CRT_LEVELS.find(_nearest_crt(s.crt))]
 	(_rows["crt"] as Button).text = tr("UI_CRT") % tr(crt_name)
+	(_rows["effects_intensity"] as Button).text = tr("UI_EFFECTS") % percent.call(s.effects_intensity)
 	(_rows["mouse_sensitivity"] as Button).text = tr("UI_SENSITIVITY") % s.sensitivity_level()
 
 

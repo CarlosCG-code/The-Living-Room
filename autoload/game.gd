@@ -1,6 +1,7 @@
 extends Node
 
 const CONFIG_PATH := "res://data/economy_run1.tres"
+const FEAR_EVENTS_PATH := "res://data/fear_events.tres"
 const AUTOSAVE_INTERVAL := 300.0
 const SETTINGS_PATH := "user://settings.cfg"
 
@@ -8,9 +9,13 @@ var economy: Economy
 var settings: UserSettings
 ## La partida solo avanza dentro del salón; en el menú principal está quieta.
 var running := false
+var director: EventDirector
+## (s: DirectorState) -> void: lo que el director sabe de la escena. Lo pone main.gd y lo retira al salir.
+var senses: Callable
 
 var _saves := SaveSystem.new()
 var _holding := false
+var _directed: RunState  # la run que lleva el director: con otra (reinicio, partida nueva) empieza de cero
 var _since_save := 0.0
 var _window_applied := []  # [pantalla completa, resolución] aplicados por última vez
 # TLR_NO_SAVE=1 (tests y verify.sh): no se toca la partida real. Va en una variable de entorno porque GUT rechaza argumentos que no conoce.
@@ -25,6 +30,8 @@ func _ready() -> void:
 	economy = Economy.new(config, state)
 	economy.purchased.connect(func(id: StringName) -> void: EventBus.purchase_made.emit(id))
 	economy.restarted.connect(_on_restarted)
+	director = EventDirector.new(load(FEAR_EVENTS_PATH), RandomNumberGenerator.new())
+	director.event_started.connect(_on_fear_event)
 	if state == null:
 		_save()
 	settings = UserSettings.new() if _no_save else UserSettings.load_from(SETTINGS_PATH)
@@ -86,9 +93,29 @@ func tick(delta: float) -> void:
 	if not running:
 		return
 	economy.tick(delta, _holding)
+	_tick_director(delta)
 	_since_save += delta
-	if _since_save >= AUTOSAVE_INTERVAL:
+	if _since_save >= AUTOSAVE_INTERVAL and not director.busy():  # nunca en mitad de un suceso (GDD §3)
 		_save()
+
+
+func _tick_director(delta: float) -> void:
+	var s := DirectorState.new()
+	s.progress = economy.run_progress()
+	s.owned = economy.state.generators
+	s.tv_event = economy.state.event_id
+	if senses.is_valid():
+		senses.call(s)
+	if economy.state != _directed:
+		_directed = economy.state
+		director.reset(s)
+	director.tick(delta, s)
+
+
+func _on_fear_event(def: FearEventDef, place: StringName) -> void:
+	if OS.is_debug_build():
+		print("SUCESO %s %s (p %.2f)" % [def.id, place, economy.run_progress()])
+	EventBus.fear_event.emit(def, place)
 
 
 ## Clic a mano: Energía ganada (0 si no cuenta).

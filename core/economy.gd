@@ -21,6 +21,8 @@ const HOLD_BAR_FILL := 0.5  # mantener pulsado sigue siendo tu mano: llena la mi
 const ECHO_MULT := 1.25  # Eco: los clics automáticos valen más, además de hacer racha y crítico
 const PACKAGE_LIFE := 20.0  # una cinta sin abrir se pierde a los 20 s
 const MAX_PACKAGES := 2
+const PROGRESS_FROM := 2000.0  # Energía con la que run_progress() empieza a subir
+const FULL_PRODUCTION := 26000.0  # producción por segundo con production_level() = 1
 const INCOME_SMOOTH := 10.0  # segundos de media de «ingresos por segundo»
 const SWEEP_CPS := 10.0
 const SIM_COMBO_CPS := 2.0  # en valor esperado, a partir de estos clics/s se cuenta la racha llena
@@ -393,6 +395,16 @@ func total_owned() -> int:
 ## Energía producida que pide Reiniciar en esta run.
 func threshold() -> float:
 	return config.threshold_for(state.run_index)
+
+
+## Cuánto ha avanzado la run, de 0 a 1: casi lineal con el tiempo del jugador activo (specs/hito3.md D1).
+func run_progress() -> float:
+	return clampf(log(maxf(1.0, state.energy_produced_run) / PROGRESS_FROM) / log(threshold() / PROGRESS_FROM), 0.0, 1.0)
+
+
+## Cuánta producción hay ahora, de 0 a 1; 0 con la tele apagada.
+func production_level() -> float:
+	return clampf(log(1.0 + production_per_second()) / log(1.0 + FULL_PRODUCTION), 0.0, 1.0)
 
 
 func can_restart() -> bool:
