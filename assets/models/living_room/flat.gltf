@@ -8510,13 +8510,16 @@
 			"alphaMode":"BLEND",
 			"doubleSided":true,
 			"emissiveFactor":[
-				0.4000000059604645,
-				0.3280000020265579,
-				0.240000013113022
+				1,
+				0.6000000238418579,
+				0.30000001192092896
 			],
 			"extensions":{
 				"KHR_materials_transmission":{
 					"transmissionFactor":1
+				},
+				"KHR_materials_emissive_strength":{
+					"emissiveStrength":3
 				},
 				"KHR_materials_ior":{
 					"ior":1.4500000476837158
@@ -8538,12 +8541,17 @@
 		{
 			"doubleSided":true,
 			"emissiveFactor":[
-				0.4000000059604645,
-				0.4000000059604645,
-				0.4000000059604645
+				1,
+				1,
+				1
 			],
 			"emissiveTexture":{
 				"index":184
+			},
+			"extensions":{
+				"KHR_materials_emissive_strength":{
+					"emissiveStrength":3
+				}
 			},
 			"name":"lightbulb_01_base.005_On",
 			"normalTexture":{
@@ -8895,9 +8903,9 @@
 			"alphaMode":"BLEND",
 			"doubleSided":true,
 			"emissiveFactor":[
-				0.4000000059604645,
-				0.3280000020265579,
-				0.240000013113022
+				1,
+				0.6000000238418579,
+				0.30000001192092896
 			],
 			"extensions":{
 				"KHR_materials_transmission":{
@@ -8905,6 +8913,9 @@
 					"transmissionTexture":{
 						"index":232
 					}
+				},
+				"KHR_materials_emissive_strength":{
+					"emissiveStrength":3
 				}
 			},
 			"name":"lantern_chandelier_01_glass.003_On",
@@ -9016,13 +9027,16 @@
 			"alphaMode":"BLEND",
 			"doubleSided":true,
 			"emissiveFactor":[
-				0.4000000059604645,
-				0.3280000020265579,
-				0.240000013113022
+				1,
+				0.6000000238418579,
+				0.30000001192092896
 			],
 			"extensions":{
 				"KHR_materials_transmission":{
 					"transmissionFactor":1
+				},
+				"KHR_materials_emissive_strength":{
+					"emissiveStrength":3
 				},
 				"KHR_materials_ior":{
 					"ior":1.4500000476837158
@@ -9044,12 +9058,17 @@
 		{
 			"doubleSided":true,
 			"emissiveFactor":[
-				0.4000000059604645,
-				0.4000000059604645,
-				0.4000000059604645
+				1,
+				1,
+				1
 			],
 			"emissiveTexture":{
 				"index":249
+			},
+			"extensions":{
+				"KHR_materials_emissive_strength":{
+					"emissiveStrength":3
+				}
 			},
 			"name":"lightbulb_01_base.004_On",
 			"normalTexture":{
@@ -9492,13 +9511,16 @@
 			"alphaMode":"BLEND",
 			"doubleSided":true,
 			"emissiveFactor":[
-				0.4000000059604645,
-				0.3280000020265579,
-				0.240000013113022
+				1,
+				0.6000000238418579,
+				0.30000001192092896
 			],
 			"extensions":{
 				"KHR_materials_transmission":{
 					"transmissionFactor":1
+				},
+				"KHR_materials_emissive_strength":{
+					"emissiveStrength":3
 				},
 				"KHR_materials_ior":{
 					"ior":1.4500000476837158
@@ -9520,12 +9542,17 @@
 		{
 			"doubleSided":true,
 			"emissiveFactor":[
-				0.4000000059604645,
-				0.4000000059604645,
-				0.4000000059604645
+				1,
+				1,
+				1
 			],
 			"emissiveTexture":{
 				"index":315
+			},
+			"extensions":{
+				"KHR_materials_emissive_strength":{
+					"emissiveStrength":3
+				}
 			},
 			"name":"lightbulb_01_base.011_On",
 			"normalTexture":{

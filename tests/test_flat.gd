@@ -134,6 +134,22 @@ func test_mirrored_nodes_are_reflection_of_normal() -> void:
 	assert_almost_eq(wind[1], Vector3(-wind[0].x, wind[0].y, wind[0].z), Vector3.ONE * 0.001, "viento de la lluvia")
 
 
+## Cada lámpara enciende sus bombillas y nada brilla sin una luz dentro.
+func test_only_lit_lamps_glow() -> void:
+	for mirrored in [false, true]:
+		var f: Node3D = _flat(mirrored)
+		var glowing := []
+		for light: Light3D in f.get_lights():
+			if light is OmniLight3D:
+				assert_gt((light.get_meta(&"glow", []) as Array).size(), 0, "%s sin bombilla" % light.name)
+				glowing.append_array(light.get_meta(&"glow", []))
+		for m: MeshInstance3D in f.find_children("*", "MeshInstance3D", true, false):
+			for s in m.mesh.get_surface_count():
+				var material := m.get_active_material(s) as BaseMaterial3D
+				if material and material.emission_enabled:
+					assert_has(glowing, material, "%s brilla sin luz (espejo: %s)" % [m.name, mirrored])
+
+
 ## La ciudad de las ventanas también: cada punto del plano queda en su sitio reflejado.
 func test_mirrored_backdrop_is_reflection_of_normal() -> void:
 	var a := _flat(false).living_room.get_node("WindowBackdrop") as Node3D

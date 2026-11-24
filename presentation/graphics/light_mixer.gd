@@ -85,6 +85,8 @@ func apply() -> void:
 		var energy: float = light.get_meta(key, 0.0) * _factor
 		light.light_energy = energy * _scale.get(light, 1.0)
 		light.visible = energy > 0.0
+		for material: BaseMaterial3D in light.get_meta(&"glow", []):
+			material.emission_energy_multiplier = float(material.get_meta(&"base_energy")) * light.light_energy / float(light.get_meta("base_normal"))
 	if _screen_light:
 		var screen_energy: float = _screen_base * TV_SCREEN_SCALE.get(_tv_state, 1.0) * _factor
 		_screen_light.light_energy = screen_energy

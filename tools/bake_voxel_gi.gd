@@ -14,6 +14,12 @@ func _init() -> void:
 	get_root().add_child(room)
 	await process_frame
 	await process_frame
+	# Sin el brillo propio de las pantallas: horneado, seguía dando luz con las lámparas apagadas.
+	for m: MeshInstance3D in room.find_children("*", "MeshInstance3D", true, false):
+		for i in m.mesh.get_surface_count():
+			var material := m.mesh.surface_get_material(i) as BaseMaterial3D
+			if material:
+				material.emission_enabled = false
 	var gi: VoxelGI = room.get_voxel_gi()
 	gi.bake()
 	print("BAKE %s (%s)" % [OUTPUT, error_string(ResourceSaver.save(gi.data, OUTPUT))])

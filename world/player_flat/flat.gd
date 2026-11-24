@@ -15,6 +15,9 @@ const STREET_COPY := 0.6
 ## Lo que el tapón de cada muro queda por dentro de sus bordes (m).
 const OCCLUDER_INSET := 0.05
 
+## Hasta dónde se busca la luz de una bombilla alrededor de ella (m).
+const GLOW_REACH := 0.35
+
 ## Se fija antes de añadir la escena al árbol.
 @export var mirrored := false
 
@@ -44,6 +47,7 @@ func _ready() -> void:
 			door.setup(conn, mirrored)
 			doors.append(door)
 	_add_lamps(geometry)
+	_link_glow()
 	_add_occluder(geometry)
 	_keep_living_light_inside()
 	_add_mirrors(geometry)
@@ -208,6 +212,27 @@ func _add_lamps(geometry: Node) -> void:
 			lamp.set_meta(&"base_dark", l["base_dark"])
 			add_child(lamp)
 			_lights.append(lamp)
+
+
+# Lo que se ve encendido (bombillas, cristales, pantallas) brilla solo si su luz da luz (usuario, 2026-11-24): su material
+# queda en el metadato «glow» de la luz que tiene dentro y LightMixer lo sube y baja con ella. Sin luz dentro, no brilla.
+func _link_glow() -> void:
+	for root: Node in [living_room, get_node(^"FlatGeometry")]:
+		for m: MeshInstance3D in root.find_children("*", "MeshInstance3D", true, false):
+			for i in m.mesh.get_surface_count():
+				var lit := m.get_active_material(i) as BaseMaterial3D
+				if lit == null or not lit.emission_enabled:
+					continue
+				var material := lit.duplicate() as BaseMaterial3D  # el original lo comparten otras lámparas
+				m.set_surface_override_material(i, material)
+				var box := (m.global_transform * m.get_aabb()).grow(GLOW_REACH)
+				var lights := get_lights().filter(func(l: Light3D) -> bool: return l is OmniLight3D and box.has_point(l.global_position))
+				if lights.is_empty():
+					material.emission_enabled = false
+					continue
+				material.set_meta(&"base_energy", material.emission_energy_multiplier)
+				lights[0].set_meta(&"glow", lights[0].get_meta(&"glow", []) + [material])
+
 
 # Oclusión: los muros tapan lo que hay detrás y no se dibuja (las sombras y la GI no cambian: no la usan).
 # Cada muro (una caja) tapa con un rectángulo en su plano medio, algo más pequeño que él: en su cara, el cálculo

@@ -45,6 +45,18 @@ func test_dark_keeps_only_street_and_flashlight() -> void:
 	assert_eq(env.ambient_light_color, Color(0.05, 0.05, 0.08))
 
 
+func test_glow_follows_its_light() -> void:
+	var bulb := StandardMaterial3D.new()
+	bulb.set_meta(&"base_energy", 4.0)
+	lamp.set_meta(&"glow", [bulb])
+	mixer.set_light_scale(lamp, 0.25)
+	assert_almost_eq(bulb.emission_energy_multiplier, 1.0, 0.0001, "parpadeo")
+	mixer.set_light_scale(lamp, 1.0)
+	assert_almost_eq(bulb.emission_energy_multiplier, 4.0, 0.0001)
+	mixer.set_state(&"dark")
+	assert_eq(bulb.emission_energy_multiplier, 0.0, "apagada no brilla")
+
+
 func test_factor_multiplies_base() -> void:
 	mixer.set_factor(0.5)
 	assert_almost_eq(lamp.light_energy, 1.0, 0.0001)

@@ -578,8 +578,8 @@ def fixture(zid, asset="pull_chain_light_socket", scale=1.0, drop=()):
                     on_m = m.copy()
                     on_m.name = m.name + "_On"
                     b = next(n for n in on_m.node_tree.nodes if n.type == "BSDF_PRINCIPLED")
-                    b.inputs["Emission Color"].default_value = (1.0, 0.82, 0.6, 1.0)
-                    b.inputs["Emission Strength"].default_value = 0.4
+                    b.inputs["Emission Color"].default_value = (1.0, 0.6, 0.3, 1.0)
+                    b.inputs["Emission Strength"].default_value = 3.0  # con 0,4 el cristal salía gris y parecía apagado (usuario, 2026-11-24)
                     o.data.materials[i] = on_m
     for k, o in enumerate(objs):
         o.name = "Fixture_%s_%d" % (zid, k)
