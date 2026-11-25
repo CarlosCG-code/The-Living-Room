@@ -207,7 +207,7 @@ func test_sound_occlusion_counts_walls_not_furniture() -> void:
 	var f: Node3D = _flat(false)
 	await wait_physics_frames(2)
 	var space := (f as Node3D).get_world_3d().direct_space_state
-	var rain := (f.living_room.get_node("RainSound") as Node3D).global_position
+	var rain := f._center(f.living_room.find_child("WindowGlass", true, false)) as Vector3
 	var sofa := (f.living_room.get_node("Anchors/SeatAnchor") as Node3D).global_position + Vector3.UP * 0.5
 	assert_eq(SoundOcclusion.obstacles(space, sofa, rain), 0, "dentro del salón la lluvia se oye")
 	assert_gt(SoundOcclusion.obstacles(space, Vector3(-2.75, 1.6, 4.6), rain), 0, "desde el pasillo la tapa un muro")
@@ -228,11 +228,30 @@ func test_wall_occluder_covers_flat_and_mirrors() -> void:
 	assert_almost_eq(boxes[1].size, boxes[0].size, Vector3.ONE * 0.01)
 
 
+func test_it_rains_on_every_window() -> void:
+	for mirrored: bool in [false, true]:
+		var f: Node3D = _flat(mirrored)
+		await wait_physics_frames(2)
+		var windows: Array[Vector3] = f.get_windows()
+		assert_eq(windows.size(), 6)
+		var drops: Array = f.find_children("*", "GPUParticles3D", true, false).filter(func(p: GPUParticles3D) -> bool: return p.process_material == f.living_room.get_node("Rain").process_material)
+		assert_eq(drops.size(), 6)
+		for glass: MeshInstance3D in f.find_children("WindowGlass*", "MeshInstance3D", true, false):
+			assert_true(glass.material_override is ShaderMaterial, glass.name)
+		var space := f.get_world_3d().direct_space_state
+		for w in windows:
+			assert_eq(drops.filter(func(p: GPUParticles3D) -> bool: return absf(p.global_position.z - w.z) < 0.01 and absf(p.global_position.x - w.x) < 1.5 and absf(p.global_position.x) > absf(w.x)).size(), 1, "por fuera de %s" % w)
+			var zone: ZoneDef = f.get_layout().find_zone(f._zone_of(w))
+			var c := zone.rect.get_center()
+			assert_eq(SoundOcclusion.obstacles(space, Vector3(-c.x if mirrored else c.x, 1.6, w.z), w), 0, "se oye en %s" % zone.id)
+		f.free()  # los muros de un piso tapan los del otro
+
+
 # La lluvia se mueve en cada fotograma: si diera sombra, obligaría a redibujar cada fotograma la sombra de todas
 # las lámparas a su alcance (miles de objetos de más). Su sombra no se notaba.
 func test_rain_casts_no_shadow() -> void:
-	var rain := _flat(false).living_room.get_node("Rain") as GeometryInstance3D
-	assert_eq(rain.cast_shadow, GeometryInstance3D.SHADOW_CASTING_SETTING_OFF)
+	for rain: GeometryInstance3D in _flat(false).find_children("*", "GPUParticles3D", true, false):
+		assert_eq(rain.cast_shadow, GeometryInstance3D.SHADOW_CASTING_SETTING_OFF)
 
 
 # Polvo: cubre todas las zonas (también en espejo) y no da sombra, por lo mismo que la lluvia.

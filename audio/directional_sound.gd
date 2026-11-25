@@ -53,10 +53,10 @@ func _process(delta: float) -> void:
 		_aim()
 
 
-func start() -> void:
+func start(from := 0.0) -> void:
 	_loss = _loss_to.call(global_position)
 	_aim()
-	play()
+	play(from)
 
 
 # En cada fotograma: el sonido se queda en su sitio al girar la cabeza o andar, y se abre al abrir una puerta.

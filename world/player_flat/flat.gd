@@ -12,6 +12,8 @@ const LIVING_LAYER := 1 << 1
 const FACADE_WINDOWS: Array[StringName] = [&"bedroom_main", &"dining_room", &"workshop"]
 ## La farola por las ventanas que no son la del salón: más tenue, para que esos cuartos sigan casi a oscuras.
 const STREET_COPY := 0.6
+## Cuánto se ven el cristal y la lluvia en el patio de luces, que está a oscuras (no reciben luz: brillaban).
+const PATIO_LIGHT := 0.12
 ## Lo que el tapón de cada muro queda por dentro de sus bordes (m).
 const OCCLUDER_INSET := 0.05
 
@@ -106,6 +108,7 @@ func _ready() -> void:
 	_keep_living_light_inside()
 	_add_mirrors(geometry)
 	_fit_dust()
+	_add_rain(geometry)
 	var backdrop := living_room.get_node("WindowBackdrop") as Node3D
 	for zone in FACADE_WINDOWS:
 		var marker := geometry.find_child("Window_" + zone, true, false) as Node3D
@@ -116,6 +119,38 @@ func _ready() -> void:
 			# Se solapan: en el mismo plano ganaba uno u otro según el orden de dibujo.
 			copy.position.x += signf(copy.position.x) * 0.01 * (FACADE_WINDOWS.find(zone) + 1)
 			_add_street_light(marker.position.z)
+
+
+# Llueve en todas las ventanas como en la del salón (usuario, 2026-11-25): el mismo cristal y la misma lluvia por fuera.
+func _add_rain(geometry: Node) -> void:
+	var rain := living_room.get_node("Rain") as GPUParticles3D
+	var living_glass := living_room.find_child("WindowGlass", true, false) as MeshInstance3D
+	var outside := absf(rain.global_position.x) - absf(_center(living_glass).x)
+	for glass: MeshInstance3D in geometry.find_children("WindowGlass_*", "MeshInstance3D", true, false):
+		glass.material_override = living_glass.material_override
+		var copy := rain.duplicate() as GPUParticles3D
+		if not StringName(String(glass.name).trim_prefix("WindowGlass_")) in FACADE_WINDOWS:
+			glass.material_override = glass.material_override.duplicate()
+			(glass.material_override as ShaderMaterial).set_shader_parameter(&"light", PATIO_LIGHT)
+			copy.draw_pass_1 = copy.draw_pass_1.duplicate()
+			var drops := (copy.draw_pass_1 as QuadMesh).material.duplicate() as StandardMaterial3D
+			drops.albedo_color = Color(drops.albedo_color * PATIO_LIGHT, drops.albedo_color.a)
+			(copy.draw_pass_1 as QuadMesh).material = drops
+		add_child(copy)
+		var c := _center(glass)
+		copy.global_position = Vector3(c.x + signf(c.x) * outside, rain.global_position.y, c.z)
+
+
+## El centro del cristal de cada ventana, la del salón incluida.
+func get_windows() -> Array[Vector3]:
+	var out: Array[Vector3] = []
+	for glass: MeshInstance3D in find_children("WindowGlass*", "MeshInstance3D", true, false):
+		out.append(_center(glass))
+	return out
+
+
+func _center(mesh: MeshInstance3D) -> Vector3:
+	return mesh.global_transform * mesh.get_aabb().get_center()
 
 
 func get_layout() -> FlatLayout:

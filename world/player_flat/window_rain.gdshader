@@ -9,6 +9,7 @@ uniform sampler2D screen_tex : hint_screen_texture, filter_linear_mipmap;
 uniform float scale = 4.0; // unidades de gota por metro
 uniform float speed = 1.0;
 uniform float refraction = 0.012; // desvío máximo, en fracción de pantalla
+uniform float light = 1.0; // la de fuera: el patio de luces está a oscuras
 uniform vec4 tint : source_color = vec4(0.55, 0.6, 0.65, 0.07);
 
 varying vec3 world_pos;
@@ -64,7 +65,7 @@ void fragment() {
 	offset.x *= sign(world_pos.x - CAMERA_POSITION_WORLD.x); // hacia +z es la derecha mirando a +X y la izquierda mirando a -X (espejo)
 	vec3 behind = textureLod(screen_tex, SCREEN_UV - offset * refraction, 0.0).rgb;
 	float rim = smoothstep(0.6, 1.0, length(offset)) * mask;
-	vec3 drop_col = behind * 1.1 + vec3(0.04, 0.05, 0.06) * rim;
-	ALBEDO = mix(tint.rgb, drop_col, mask);
+	vec3 drop_col = behind * 1.1 + vec3(0.04, 0.05, 0.06) * rim * light;
+	ALBEDO = mix(tint.rgb * light, drop_col, mask);
 	ALPHA = max(tint.a, mask * 0.95);
 }

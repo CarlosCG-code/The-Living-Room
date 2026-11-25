@@ -18,6 +18,8 @@ const CLOCKS := {"vintage_grandfather_clock_01*HourHand": preload("res://assets/
 		"alarm_clock_01*alarm_clock_01": preload("res://assets/audio/house/clock_alarm.ogg"),
 		"orava_clock*": preload("res://assets/audio/house/clock_wall.ogg")}
 const CLOCK_DB := -12.0
+const RAIN := preload("res://assets/audio/room/rain_window.ogg")
+const RAIN_DB := -4.0
 
 var _flat: Node3D
 var _event: DirectionalSound
@@ -45,7 +47,10 @@ func setup(flat: Node3D) -> void:
 		_hum.start()
 		ambience.play()
 	for clock: String in CLOCKS:
-		_add_clock(clock)
+		var mesh: MeshInstance3D = flat.find_children(clock, "MeshInstance3D", true, false)[0]
+		_add_loop(CLOCKS[clock], mesh.global_transform * mesh.get_aabb().get_center(), CLOCK_DB, 1.0)
+	for window: Vector3 in flat.get_windows():
+		_add_loop(RAIN, window, RAIN_DB, 1.2).attenuation_filter_cutoff_hz = 3500.0  # de lejos, más sorda
 	EventBus.fear_event.connect(_on_fear_event)
 	EventBus.house_silence.connect(func(seconds: float) -> void: _silence_left = seconds)
 
@@ -76,13 +81,13 @@ func _on_fear_event(def: FearEventDef, place: StringName) -> void:
 	tween.tween_callback(_event.start).set_delay(lead)
 
 
-func _add_clock(mesh_name: String) -> void:
-	var mesh: MeshInstance3D = _flat.find_children(mesh_name, "MeshInstance3D", true, false)[0]
-	var tick := DirectionalSound.new(_flat.sound_loss)
-	tick.stream = CLOCKS[mesh_name]
-	tick.level = CLOCK_DB
-	tick.unit_size = 1.0
-	add_child(tick)
-	tick.global_position = mesh.global_transform * mesh.get_aabb().get_center()
+func _add_loop(stream: AudioStream, at: Vector3, level: float, unit: float) -> DirectionalSound:
+	var sound := DirectionalSound.new(_flat.sound_loss)
+	sound.stream = stream
+	sound.level = level
+	sound.unit_size = unit
+	add_child(sound)
+	sound.global_position = at
 	if DisplayServer.get_name() != "headless":
-		tick.start()
+		sound.start(randf() * stream.get_length())  # las seis lluvias a la vez no suenan iguales
+	return sound
