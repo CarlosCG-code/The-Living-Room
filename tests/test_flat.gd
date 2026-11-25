@@ -450,3 +450,7 @@ func test_walls_and_shut_doors_muffle_a_sound() -> void:
 		assert_gt(heard[0], heard[1])
 		assert_gt(heard[1], heard[2])
 		assert_lt(heard[2], 10.0, "con la puerta abierta se oye, aunque no esté a la vista")
+		for door: Door in f.doors:
+			door.angle = f.DOOR_OPEN_ANGLE
+		cam.position = at.call(Vector3(-9.95, 1.6, -5.35))
+		assert_gt(loss.call(&"bathroom"), 30.0, "en la cocina, ni con todas abiertas")

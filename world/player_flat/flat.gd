@@ -53,9 +53,9 @@ const ROCK_PERIOD := 2.1  # s, como en la grabación
 ## Lo que pierde un sonido (dB): por muro en línea recta, por una puerta cerrada o abierta y por cada vano.
 const WALL_DB := 26.0
 const DOOR_CLOSED_DB := 20.0
-const DOOR_OPEN_DB := 3.0
+const DOOR_OPEN_DB := 8.0
 const DOOR_OPEN_ANGLE := deg_to_rad(40.0)  # desde aquí, como abierta del todo
-const PASSAGE_DB := 1.5
+const PASSAGE_DB := 5.0  # la esquina y lo que se aleja: el goteo del baño no llega a la cocina con todo abierto
 const LOSSES_EVERY := 100  # ms
 
 ## Se fija antes de añadir la escena al árbol.
