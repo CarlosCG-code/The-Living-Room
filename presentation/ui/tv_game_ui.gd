@@ -10,6 +10,8 @@ extends Control
 
 const CHANNEL_CHANGE := 0.4  # segundos de nieve al cambiar de canal
 const FRAME_TIME := 0.12
+const FRAME_COUNT := 3
+const SNOW_TIME := Vector2(0.34, 0.5)  # s de nieve antes de cada vez: como mucho 3 destellos por segundo (specs/hito3.md D9)
 
 @onready var _osd: TvOsd = $Osd
 @onready var _factory: FactoryView = $FactoryView
@@ -263,17 +265,26 @@ func shake(px: int) -> void:
 	_shake.tween_property(self, "position", Vector2.ZERO, 0.04)
 
 
-## Enseña un instante el fotograma del director (specs/hito3.md D7).
+## La señal se pierde, como al cambiar de canal, y entre la nieve asoma unas veces el fotograma del director (specs/hito3.md
+## D7; usuario, 2026-11-25).
 func show_frame(texture: Texture2D) -> void:
 	var frame := TextureRect.new()
 	frame.name = "Frame"
 	frame.texture = texture
 	frame.mouse_filter = MOUSE_FILTER_IGNORE
 	frame.modulate.a = Game.settings.effects_intensity
+	frame.hide()
 	add_child(frame)
-	_factory.still_left = 1.0
-	await get_tree().create_timer(FRAME_TIME).timeout
+	_static.show()
+	for i in FRAME_COUNT:
+		await get_tree().create_timer(randf_range(SNOW_TIME.x, SNOW_TIME.y)).timeout
+		frame.show()
+		await get_tree().create_timer(FRAME_TIME).timeout
+		frame.hide()
+	await get_tree().create_timer(SNOW_TIME.x).timeout
+	_static.hide()
 	frame.queue_free()
+	_factory.still_left = 1.0
 
 
 ## Esc durante la partida: la partida se para y la tele muestra el menú de pausa.

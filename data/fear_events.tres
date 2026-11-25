@@ -191,7 +191,7 @@ cooldown = 420.0
 duration = 12.5
 places = Array[StringName]([&"rocking_chair"])
 sounds = Array[AudioStream]([ExtResource("rocking_1"), ExtResource("rocking_2")])
-volume_db = -8.0
+volume_db = -11.0
 subtitle_key = "SUB_ROCKING"
 
 [sub_resource type="Resource" id="glasses"]
@@ -236,7 +236,7 @@ mandatory = 2
 mandatory_progress = 0.7
 random = false
 cooldown = 0.0
-duration = 1.0
+duration = 2.6
 
 [resource]
 script = ExtResource("set")

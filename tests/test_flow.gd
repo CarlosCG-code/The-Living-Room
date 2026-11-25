@@ -189,3 +189,16 @@ func test_save_and_load_keeps_everything() -> void:
 	for f in DirAccess.get_files_at(dir):
 		DirAccess.remove_absolute(dir.path_join(f))
 	DirAccess.remove_absolute(dir)
+
+
+func test_the_frame_shows_through_the_snow_and_the_picture_comes_back() -> void:
+	ui.start_playing()
+	ui.show_frame(PlaceholderTexture2D.new())
+	var frame: TextureRect = ui.get_node("Frame")
+	var times := [0]
+	frame.visibility_changed.connect(func() -> void: times[0] += int(frame.visible))
+	assert_true(ui._static.visible)
+	await wait_seconds(2.5)
+	assert_eq(times[0], ui.FRAME_COUNT)
+	assert_false(ui._static.visible)
+	assert_false(is_instance_valid(frame))
