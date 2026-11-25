@@ -780,9 +780,8 @@ def furnish():
     pic("cma:151298", "corridor_main_m", "py1", seg_mid("corridor_main_m", "py1", 3.4, 3, 1), 1.55, 0.38, "silver")
     pic("cma:108809", "corridor_main_e", "py1", seg_mid("corridor_main_e", "py1", 1.0, 3, 2), 1.55, 0.36, "walnut")  # bosque
     fixture("corridor_main_e", "lantern_chandelier_01")
-    # Pasillo lateral: un Cristo muerto y una banqueta plegable.
+    # Pasillo lateral: un Cristo muerto.
     pic(441965, "corridor_side", "px0", seg_mid("corridor_side", "px0", 1.8), 1.55, 0.6)
-    put("folding_wooden_stool", "corridor_side", "px1", seg_mid("corridor_side", "px1", 1.8), gap=0.05)
     pic("cma:148758", "corridor_side", "px1", seg_mid("corridor_side", "px1", 1.8), 1.6, 0.5)
     fixture("corridor_side")
     # Pasillo de servicio: farol de aceite para los apagones y un colgador.
