@@ -50,6 +50,14 @@ const ROCK_RADIUS := 1.2
 const ROCK_ANGLE := deg_to_rad(7.0)
 const ROCK_PERIOD := 2.1  # s, como en la grabación
 
+## Lo que pierde un sonido (dB): por muro en línea recta, por una puerta cerrada o abierta y por cada vano.
+const WALL_DB := 26.0
+const DOOR_CLOSED_DB := 20.0
+const DOOR_OPEN_DB := 3.0
+const DOOR_OPEN_ANGLE := deg_to_rad(40.0)  # desde aquí, como abierta del todo
+const PASSAGE_DB := 1.5
+const LOSSES_EVERY := 100  # ms
+
 ## Se fija antes de añadir la escena al árbol.
 @export var mirrored := false
 
@@ -59,6 +67,8 @@ var props := {}  # id de suceso -> Array[FallingProp]
 var _lights: Array[Light3D] = []
 var _chair: Node3D
 var _chair_rest: Transform3D
+var _losses := {}  # zona -> dB hasta quien escucha, por las puertas
+var _losses_at := -LOSSES_EVERY
 var _wardrobe := Node3D.new()  # en los pernios de la puerta
 
 
@@ -86,7 +96,7 @@ func _ready() -> void:
 			doors.append(door)
 	_add_props(geometry)
 	_add_wardrobe(geometry)
-	var drip := Drip.new()
+	var drip := Drip.new(sound_loss)
 	drip.position = Vector3(-DRIP.x if mirrored else DRIP.x, DRIP.y, DRIP.z)
 	add_child(drip)
 	drip.setup(DRIP_HEIGHT)
@@ -95,7 +105,6 @@ func _ready() -> void:
 	_add_occluder(geometry)
 	_keep_living_light_inside()
 	_add_mirrors(geometry)
-	_add_acoustics()
 	_fit_dust()
 	var backdrop := living_room.get_node("WindowBackdrop") as Node3D
 	for zone in FACADE_WINDOWS:
@@ -144,6 +153,30 @@ func _place(id: StringName) -> Vector3:
 			return Vector3(leaf.x, 1.0, leaf.z) + Vector3.UP.cross(conn.direction) * conn.swing * 0.4
 	push_error("Lugar desconocido: %s" % id)
 	return Vector3.ZERO
+
+
+## dB que pierde un sonido desde ese punto hasta quien escucha (usuario, 2026-11-25: tras una puerta o una pared, muy flojo o
+## nada): a través de los muros o, si pierde menos, por las puertas y los vanos.
+func sound_loss(from: Vector3) -> float:
+	var cam := get_viewport().get_camera_3d()
+	if cam == null:
+		return 0.0
+	var walls := SoundOcclusion.obstacles(get_world_3d().direct_space_state, cam.global_position, from, 2)
+	if walls == 0:
+		return 0.0
+	if Time.get_ticks_msec() - _losses_at >= LOSSES_EVERY:
+		_losses_at = Time.get_ticks_msec()
+		_losses = LAYOUT.sound_losses(_zone_of(cam.global_position), PASSAGE_DB, _door_db)
+	return minf(walls * WALL_DB, _losses.get(_zone_of(from), INF))
+
+
+func _zone_of(p: Vector3) -> StringName:
+	return LAYOUT.nearest_zone(Vector2(p.x, p.z), mirrored)
+
+
+func _door_db(id: StringName) -> float:
+	var door: Door = get_node(String(id))
+	return lerpf(DOOR_CLOSED_DB, DOOR_OPEN_DB, sqrt(minf(1.0, absf(door.angle) / DOOR_OPEN_ANGLE)))
 
 
 func _add_props(geometry: Node) -> void:
@@ -250,28 +283,6 @@ func _keep_living_light_inside() -> void:
 ## Las del salón y las del resto del piso: todas pasan por el único LightMixer (specs/hito4a.md D8, D12).
 func get_lights() -> Array[Light3D]:
 	return living_room.get_lights() + _lights
-
-
-# Eco de la casa: los sonidos 3D del piso (bus House) mandan parte al bus Room, la reverberación. El salón tiene
-# su propia área (RoomAcoustics), con más prioridad.
-func _add_acoustics() -> void:
-	var r := _bounds()
-	var area := Area3D.new()
-	area.name = "FlatAcoustics"
-	area.monitoring = false
-	area.priority = -1
-	area.reverb_bus_enabled = true
-	area.reverb_bus_name = &"Room"
-	area.reverb_bus_amount = 0.45
-	area.reverb_bus_uniformity = 0.6
-	var box := BoxShape3D.new()
-	box.size = Vector3(r.size.x, 2.6, r.size.y)
-	var shape := CollisionShape3D.new()
-	shape.shape = box
-	area.add_child(shape)
-	var c := r.get_center()
-	area.position = Vector3(-c.x if mirrored else c.x, 1.3, c.y)
-	add_child(area)
 
 
 # Polvo en suspensión por todo el piso (usuario, 2026-11-23). Lo alumbran las lámparas y la linterna: a oscuras no se ve.

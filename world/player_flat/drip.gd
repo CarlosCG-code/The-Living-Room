@@ -11,7 +11,11 @@ const GROW := 2.4  # s colgando del caño
 const RADIUS := 0.004
 
 var _drop := MeshInstance3D.new()
-var _sound := DirectionalSound.new()
+var _sound: DirectionalSound
+
+
+func _init(loss: Callable) -> void:
+	_sound = DirectionalSound.new(loss)
 
 
 ## El nodo va en la boca del caño; height es lo que cae (m).

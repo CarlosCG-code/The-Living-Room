@@ -8,9 +8,9 @@ Lo que falta para terminar *The Living Room*, en el orden en que se hará. Se ac
 
 - [ ] **Parada 1 del hito 3:** 10 minutos desde la mitad de la run 1; sonidos aprobados (2026-11-24); ¿valen las cosas que se mueven, los sonidos desde su habitación (también al acercarse), las luces y el ritmo?
 - [x] Sonidos de ambiente elegidos por el usuario (2026-11-25): grifo del baño y armario del dormitorio, hechos. Los demás propuestos, descartados por ahora.
-- [ ] Despertador del dormitorio: la esfera se ve negra (el cristal del modelo es opaco); ¿se arregla?
-- [ ] Eco de pasos y puertas: no suena (`specs/hito3.md` §9, D6); ¿se recupera?
-- [ ] Lluvia del salón: mide −64 dB, casi no se oye (la tele, −48); ¿se sube?
+- [x] Despertador del dormitorio: esfera a la vista (2026-11-25).
+- [ ] Eco de pasos y puertas: ligero, hecho (2026-11-25); ¿más o menos?
+- [x] Lluvia del salón: se queda como está; es el modelo de realismo para los demás sonidos (usuario, 2026-11-25).
 - [ ] Dar por cerrado el hito 2 (todo aprobado sobre la marcha; `specs/hito2.md` dice que falta la parada).
 - [x] Textos en el piso en espejo: al revés, como todo lo demás (usuario, 2026-11-24).
 - [ ] Desde la run 2, ¿levantarse cuando se quiera? (GDD §12; 4b)

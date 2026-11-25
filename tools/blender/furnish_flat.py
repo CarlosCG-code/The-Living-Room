@@ -678,7 +678,7 @@ def furnish():
     light_up(oil, ("flame",), 6.0)  # el quinqué encendido es la luz del cuarto: sombras largas de la cama
     light_up(oil, ("glass",), 0.4)
     lamp_light(z, oil)
-    on("alarm_clock_01", stand, dpy=0.13, rot=-60, scale=0.6)
+    on("alarm_clock_01", stand, dpy=0.13, rot=-60, scale=0.6, drop=("glass",))  # salía negro y tapaba la esfera
     put("GreenChair_01", z, "px0", 3.45, gap=0.1, rot=-20)
     put("GothicCabinet_01", z, "px1", 2.0)
     commode = put("GothicCommode_01", z, "py0", -1.0)

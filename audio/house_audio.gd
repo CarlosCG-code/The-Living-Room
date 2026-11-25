@@ -18,22 +18,22 @@ const CLOCKS := {"vintage_grandfather_clock_01*HourHand": preload("res://assets/
 		"alarm_clock_01*alarm_clock_01": preload("res://assets/audio/house/clock_alarm.ogg"),
 		"orava_clock*": preload("res://assets/audio/house/clock_wall.ogg")}
 const CLOCK_DB := -12.0
-const CLOCK_WALLED := Vector2(2500.0, -12.0)  # de fondo: no se mezclan los de dos habitaciones
 
 var _flat: Node3D
-var _event := DirectionalSound.new()
-var _hum := AudioStreamPlayer3D.new()
+var _event: DirectionalSound
+var _hum: DirectionalSound
 var _silence_left := 0.0
 
 
 func setup(flat: Node3D) -> void:
 	_flat = flat
+	_event = DirectionalSound.new(flat.sound_loss)
 	_event.unit_size = 5.0
 	_event.max_db = MAX_DB
 	add_child(_event)
+	_hum = DirectionalSound.new(flat.sound_loss)
 	_hum.stream = HUM
-	_hum.bus = &"House"
-	_hum.volume_db = OFF_DB
+	_hum.level = OFF_DB
 	add_child(_hum)
 	_hum.global_position = flat.get_place(&"wall")
 	var ambience := AudioStreamPlayer.new()
@@ -42,7 +42,7 @@ func setup(flat: Node3D) -> void:
 	ambience.volume_db = -30.0
 	add_child(ambience)
 	if DisplayServer.get_name() != "headless":
-		_hum.play()
+		_hum.start()
 		ambience.play()
 	for clock: String in CLOCKS:
 		_add_clock(clock)
@@ -55,7 +55,7 @@ func _process(delta: float) -> void:
 	var target := OFF_DB
 	if _silence_left <= 0.0 and Game.economy.owned(&"antenna") > 0:
 		target = lerpf(HUM_DB.x, HUM_DB.y, Game.economy.production_level())
-	_hum.volume_db = move_toward(_hum.volume_db, target, delta * FADE)
+	_hum.level = move_toward(_hum.level, target, delta * FADE)
 
 
 func _on_fear_event(def: FearEventDef, place: StringName) -> void:
@@ -78,10 +78,9 @@ func _on_fear_event(def: FearEventDef, place: StringName) -> void:
 
 func _add_clock(mesh_name: String) -> void:
 	var mesh: MeshInstance3D = _flat.find_children(mesh_name, "MeshInstance3D", true, false)[0]
-	var tick := DirectionalSound.new()
+	var tick := DirectionalSound.new(_flat.sound_loss)
 	tick.stream = CLOCKS[mesh_name]
 	tick.level = CLOCK_DB
-	tick.walled = CLOCK_WALLED
 	tick.unit_size = 1.0
 	add_child(tick)
 	tick.global_position = mesh.global_transform * mesh.get_aabb().get_center()

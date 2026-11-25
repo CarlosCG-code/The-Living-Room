@@ -50,11 +50,11 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, 0)
 stream = ExtResource("3_steps")
 volume_db = 4.0
 unit_size = 2.0
-bus = &"House"
+bus = &"Room"
 
 [node name="Creak" type="AudioStreamPlayer3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, 0)
 stream = SubResource("Creaks")
 volume_db = -15.0
 unit_size = 2.0
-bus = &"House"
+bus = &"Room"

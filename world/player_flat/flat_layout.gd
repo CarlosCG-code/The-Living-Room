@@ -24,6 +24,36 @@ func zone_at(p: Vector2, mirrored: bool) -> StringName:
 	return &""
 
 
+## La zona que contiene el punto o, dentro de un muro o en un vano, la más cercana.
+func nearest_zone(p: Vector2, mirrored: bool) -> StringName:
+	var q := Vector2(-p.x, p.y) if mirrored else p
+	var best: StringName = &""
+	var best_distance := INF
+	for z in zones:
+		var d := q.distance_to(q.clamp(z.rect.position, z.rect.end))
+		if d < best_distance:
+			best = z.id
+			best_distance = d
+	return best
+
+
+## dB que pierde un sonido desde cada zona hasta esta por puertas y vanos, por el mejor camino. door_db: (id) -> float.
+func sound_losses(to: StringName, passage_db: float, door_db: Callable) -> Dictionary:
+	var losses := {to: 0.0}
+	var changed := true
+	while changed:
+		changed = false
+		for c in connections:
+			if c.zone_b == &"":
+				continue
+			var db: float = door_db.call(c.id) if c.kind == &"leaf" else passage_db
+			for ends: Array in [[c.zone_a, c.zone_b], [c.zone_b, c.zone_a]]:
+				if losses.has(ends[0]) and losses[ends[0]] + db < losses.get(ends[1], INF):
+					losses[ends[1]] = losses[ends[0]] + db
+					changed = true
+	return losses
+
+
 ## Zonas unidas a esta por cualquier conexión (hoja o vano), sin el rellano.
 func neighbors(id: StringName) -> Array[StringName]:
 	var out: Array[StringName] = []

@@ -17,12 +17,12 @@ resource_name = "OcclusionGain"
 
 [sub_resource type="AudioEffectReverb" id="room_reverb"]
 resource_name = "Reverb"
-room_size = 0.28
+room_size = 0.35
 damping = 0.7
 spread = 0.7
 hipass = 0.15
-dry = 0.0
-wet = 0.5
+dry = 1.0
+wet = 0.12
 
 [sub_resource type="AudioEffectReverb" id="events_reverb"]
 resource_name = "Reverb"

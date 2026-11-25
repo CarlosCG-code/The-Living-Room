@@ -48,7 +48,7 @@ func apply_settings() -> void:
 	Engine.max_fps = settings.max_fps
 	AudioServer.set_bus_volume_db(0, linear_to_db(settings.volume))
 	AudioServer.set_bus_volume_db(AudioServer.get_bus_index(&"TV"), linear_to_db(settings.volume_tv))
-	# "Casa": el sonido directo de la casa (House) y su eco (Room).
+	# "Casa": los sonidos de la casa (House) y los del jugador, con eco (Room).
 	for bus: StringName in [&"House", &"Room"]:
 		AudioServer.set_bus_volume_db(AudioServer.get_bus_index(bus), linear_to_db(settings.volume_room))
 	EventBus.settings_changed.emit()

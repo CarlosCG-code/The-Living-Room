@@ -9,19 +9,21 @@ const HEAD_MS := 0.255  # radio de la cabeza entre la velocidad del sonido
 const FAR_EAR_DB := 15.0
 const CENTER_DB := -3.0  # en el centro suenan los dos oídos: la misma potencia que a un lado
 const BEHIND_CUTOFF := 0.5
-## Sin muro y, por defecto, con él: corte del paso bajo y ganancia. Como mucho cuenta un muro: con la tabla de la tele una
-## cuchara o unas pastillas no se reconocerían.
-const OPEN := Vector2(20000.0, 0.0)
-const WALLED := Vector2(5000.0, -6.0)
-const WALL_FADE := 5.0  # por segundo, al abrir una puerta o cruzarla
+const OPEN_CUTOFF := 20000.0
+const CUTOFF_PER_DB := 0.1  # lo que se pierde en muros y puertas se va antes en los agudos: con 20 dB, 2,7 kHz
+const LOSS_FADE := 80.0  # dB/s, al abrir una puerta o cruzarla
 
-## dB, sin el muro.
+## dB, sin muros por medio.
 var level := 0.0
-var walled := WALLED
-var _wall := 0.0  # 1 con un muro por medio
+var _loss_to: Callable  # (Vector3) -> float: Flat.sound_loss
+var _loss := 0.0
 var _low_pass := AudioEffectLowPassFilter.new()
 var _ears := AudioEffectDelay.new()  # toma 1, oído izquierdo; toma 2, derecho
 @onready var _stereo := AudioServer.get_speaker_mode() == AudioServer.SPEAKER_MODE_STEREO
+
+
+func _init(loss_to: Callable) -> void:
+	_loss_to = loss_to
 
 
 func _ready() -> void:
@@ -47,25 +49,24 @@ func _exit_tree() -> void:
 
 func _process(delta: float) -> void:
 	if playing:
-		_wall = move_toward(_wall, _wall_between(), delta * WALL_FADE)
+		_loss = move_toward(_loss, _loss_to.call(global_position), delta * LOSS_FADE)
 		_aim()
 
 
 func start() -> void:
-	_wall = _wall_between()
+	_loss = _loss_to.call(global_position)
 	_aim()
 	play()
 
 
-# En cada fotograma: el sonido se queda en su sitio al girar la cabeza o andar, y se abre al quitarse el muro de en medio.
+# En cada fotograma: el sonido se queda en su sitio al girar la cabeza o andar, y se abre al abrir una puerta.
 func _aim() -> void:
 	var cam := get_viewport().get_camera_3d()
 	if cam == null:
 		return
 	var at := ears(cam.global_basis.inverse() * (global_position - cam.global_position))
-	var occlusion := OPEN.lerp(walled, _wall)
-	_low_pass.cutoff_hz = occlusion.x * lerpf(1.0, BEHIND_CUTOFF, at.z)
-	volume_db = level + occlusion.y
+	_low_pass.cutoff_hz = OPEN_CUTOFF * exp(-CUTOFF_PER_DB * _loss) * lerpf(1.0, BEHIND_CUTOFF, at.z)
+	volume_db = level - _loss
 	if not _stereo:
 		return
 	volume_db -= CENTER_DB
@@ -81,8 +82,3 @@ func _aim() -> void:
 static func ears(to: Vector3) -> Vector3:
 	var dir := to.normalized()
 	return Vector3(HEAD_MS * (asin(clampf(dir.x, -1.0, 1.0)) + dir.x), FAR_EAR_DB * dir.x, maxf(0.0, dir.z))
-
-
-func _wall_between() -> float:
-	var cam := get_viewport().get_camera_3d()
-	return 0.0 if cam == null else float(SoundOcclusion.obstacles(cam.get_world_3d().direct_space_state, cam.global_position, global_position, 1))

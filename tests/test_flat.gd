@@ -376,7 +376,7 @@ func test_the_tap_drips_in_the_basin() -> void:
 
 func test_each_directional_sound_has_its_own_bus() -> void:
 	var count := AudioServer.bus_count
-	var sounds: Array[DirectionalSound] = [DirectionalSound.new(), DirectionalSound.new()]
+	var sounds: Array[DirectionalSound] = [DirectionalSound.new(Callable()), DirectionalSound.new(Callable())]
 	for s in sounds:
 		add_child(s)
 		var i := AudioServer.get_bus_index(s.bus)
@@ -424,3 +424,29 @@ func test_the_wood_creaks_every_4_or_5_steps_but_not_the_tiles() -> void:
 		for i in range(1, creaks.size()):
 			assert_between(creaks[i] - creaks[i - 1], 4, 5)
 		assert_between(creaks.size(), 12, 15)
+
+
+func test_walls_and_shut_doors_muffle_a_sound() -> void:
+	for mirrored: bool in [false, true]:
+		var f: Node3D = _flat(mirrored)
+		var at := func(p: Vector3) -> Vector3: return Vector3(-p.x if mirrored else p.x, p.y, p.z)
+		var cam := Camera3D.new()
+		f.add_child(cam)
+		cam.make_current()
+		cam.position = at.call(Vector3(0.0, 1.2, -1.8))  # el sofá
+		await wait_physics_frames(2)
+		var loss := func(place: StringName) -> float:
+			f._losses_at = -f.LOSSES_EVERY * 2
+			return f.sound_loss(f.get_place(place))
+		assert_eq(loss.call(&"rocking_chair"), 0.0, "en el salón, entero")
+		assert_eq(loss.call(&"wardrobe"), f.WALL_DB, "tras un muro, muy flojo")
+		assert_gt(loss.call(&"kitchen"), 40.0, "tras muros y puertas, nada")
+		cam.position = at.call(Vector3(-2.75, 1.6, -1.5))  # el pasillo
+		var bathroom := f.get_node("door_bathroom") as Door
+		var heard := []
+		for angle: float in [0.0, DoorMath.AJAR_ANGLE, f.DOOR_OPEN_ANGLE]:
+			bathroom.angle = angle
+			heard.append(loss.call(&"bathroom"))
+		assert_gt(heard[0], heard[1])
+		assert_gt(heard[1], heard[2])
+		assert_lt(heard[2], 10.0, "con la puerta abierta se oye, aunque no esté a la vista")
