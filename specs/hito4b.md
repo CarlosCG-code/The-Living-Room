@@ -88,8 +88,9 @@ Fuera de 4b: la llamada de la señora y la escalera (hito 5); el *Reiniciar* de 
   - «Perdona que llame tan tarde… Se me han fundido los plomos.»
   - «¿No tendrás unos de sobra? En el taller tendrás, tú de esto sabes.»
   - Al dárselos: «Gracias. Ya te los devuelvo.» No los devuelve.
-- **Qué hace el jugador** (P9): ir al taller, abrir la caja de herramientas, examinar los plomos y cogerlos (D7, D10). Después vuelve, saca los plomos con la tecla 1 y hace clic en la rendija:
-  - la mano del vecino entra por la rendija (su animación) y los plomos, que tenías delante, van hacia ella con un tween;
+- **Qué hace el jugador** (P9; usuario, 2026-11-26): al abrir la puerta, el vecino habla solo. Cuando pide los plomos:
+  - si no los llevas, tu personaje contesta con un subtítulo («Espera, voy a buscarlos») y vas al taller: abres la caja de herramientas, examinas los plomos y los coges (D7, D10). Al volver, clic en la rendija para hablarle otra vez;
+  - si los llevas, se los das solo: la mano del vecino entra por la rendija (su animación) y los plomos van hacia ella con un tween;
   - el vecino se aparta y se oyen sus pasos bajando la escalera;
   - la luz del rellano se apaga y la puerta se cierra sola despacio (`creep`), con la llave echada. Si el jugador está en el recorrido, espera a que se aparte.
   - Paso `free`.
@@ -105,9 +106,9 @@ Fuera de 4b: la llamada de la señora y la escalera (hito 5); el *Reiniciar* de 
 - De pie, la tele sigue produciendo, salvo con secuencia (GDD §12).
 
 **D7 — Lo que llevas (usuario, 2026-11-26).**
-- **Coger:** al examinar algo que se puede llevar (D10), sale la opción «Coger». Se guarda en la **tecla 1** y un subtítulo dice «Llevas los plomos» (`tr()`).
-- **Sacar:** la tecla 1 lo saca y queda delante de la cámara, abajo a la derecha, con el balanceo de D3b; otra vez 1 o Esc lo guarda. Con él fuera, el clic lo usa donde sirve (la rendija, el hueco de la caja de plomos) y la retícula crece ahí.
-- Un solo hueco en 4b: los plomos (run 1) o el repuesto (run 2), nunca a la vez. La tecla es una acción del mapa de entrada (`item_1`), para poder añadir más huecos después.
+- **Coger:** al examinar algo que se puede llevar (D10), sale la opción «Coger». Un subtítulo dice «Llevas los plomos» (`tr()`).
+- **Usar:** no hace falta sacarlo. Se usa solo donde sirve: el vecino lo coge al pedirlo y el plomo nuevo entra al hacer clic en el hueco de la caja.
+- Un solo hueco en 4b: los plomos (run 1) o el repuesto (run 2), nunca a la vez. Sin tecla propia.
 - No se guarda: si se carga, se vuelve a coger.
 
 **D8 — El espejo y el apagón.**
@@ -127,7 +128,7 @@ Fuera de 4b: la llamada de la señora y la escalera (hito 5); el *Reiniciar* de 
   4. **La caja de herramientas está vacía:** el vecino se llevó los plomos. El repuesto está en un cajón de la cocina (P3).
   5. **Cambiar el plomo (usuario, 2026-11-26):** clic en la caja: la cámara se acerca y se queda delante de ella, con la retícula libre por la caja (como sentado ante la tele); Esc o clic derecho para salir.
      - Clic en el plomo fundido (tiene la marca negra del fogonazo; con la linterna se ve): se desenrosca solo, con el chirrido de la porcelana, y queda fuera. Los buenos no se mueven: suena un roce y nada más.
-     - Tecla 1: sale el repuesto. Clic en el hueco donde estaba el otro: se enrosca solo.
+     - Si llevas el repuesto, clic en el hueco donde estaba el otro: se enrosca solo.
      - La luz vuelve con un golpe seco y el zumbido. La tele se enciende sola. Paso `fixed`.
      - Sin repuesto, el hueco no hace nada y un subtítulo lo dice (D16).
   6. Al sentarse se abre la Carga y empieza la run 3, en la misma casa en espejo. Su *Reiniciar* enseña «continuará» hasta el hito 5.
@@ -196,7 +197,7 @@ core/sequence.gd                 crear    (Sequence: after_restart, next, flat_v
 core/economy.gd                  cambiar  (restart copia evidence y pone la secuencia)
 core/user_settings.gd            cambiar  (invertir eje Y, subtítulos)
 autoload/game.gd                 cambiar  (sequence_done, finish_sequence, find_clue, player_pose)
-presentation/player/inventory.gd crear    (hueco de la tecla 1: coger, sacar, usar)
+presentation/player/inventory.gd crear    (lo que llevas: coger y usar)
 autoload/event_bus.gd            cambiar  (sequence_cue, clue_found)
 presentation/main.gd             cambiar  (variante desde el estado, recarga, stand_up, aviso, pose)
 presentation/player/player.gd    cambiar  (use/can_use, Esc de pie, eje Y, cabeza que se mueve al andar)
@@ -221,7 +222,7 @@ narrative/inspectable_def.gd     crear    (carpeta nueva)
 data/inspectables.tres           crear
 art_source/characters/*.blend    crear    (carpeta nueva)
 assets/models/characters/        crear    (carpeta nueva)
-project.godot                    cambiar  (acciones stand_up e item_1)
+project.godot                    cambiar  (acción stand_up)
 locale/strings.csv               cambiar
 tools/dev_cheats.gd, tools/verify.sh (22 scripts de test)  cambiar
 tests/test_sequence.gd           crear
