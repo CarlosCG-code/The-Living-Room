@@ -13,6 +13,7 @@ const STAND_FOV := 70.0
 const DOOR_LOOK := 0.55  # parte del giro hacia la puerta antes de levantarse, como quien duda
 const DOOR_TURN := 0.7
 const DOOR_PAUSE := 0.3
+const DOOR_FOV_TIME := 2.0  # la vista se abre despacio desde que empieza el giro hasta media subida (usuario, 2026-11-26)
 const SOUNDS := {
 	&"step": preload("res://assets/audio/flat/floor_step_1.ogg"),
 }
@@ -55,16 +56,18 @@ func play(anim: StringName, anchor: Transform3D, from: Camera3D, door_yaw := 0.0
 	camera.fov = from.fov
 	await _blend_from(from)
 	var length := _anim.current_animation_length
-	if door_yaw != 0.0:  # al apartar la vista de la tele, deja de mirarla de cerca: el FOV se abre ya en el giro
-		var look := create_tween().set_parallel().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	if door_yaw != 0.0:  # al apartar la vista de la tele deja de mirarla de cerca: el FOV se abre desde el giro, sin prisa
+		var fov := create_tween().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+		fov.tween_property(camera, "fov", STAND_FOV, DOOR_FOV_TIME)
+		var look := create_tween().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 		look.tween_property(_yaw, "rotation:y", door_yaw * DOOR_LOOK, DOOR_TURN)
-		look.tween_property(camera, "fov", STAND_FOV, DOOR_TURN)
-		look.chain().tween_interval(DOOR_PAUSE)
+		look.tween_interval(DOOR_PAUSE)
 		await look.finished
-	var rest := create_tween().set_parallel().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-	rest.tween_property(camera, "fov", STAND_FOV, length * 0.6).set_delay(length * 0.2)
+	var rest := create_tween().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 	if door_yaw != 0.0:
 		rest.tween_property(_yaw, "rotation:y", door_yaw, length * 0.75).set_delay(length * 0.15)
+	else:
+		rest.tween_property(camera, "fov", STAND_FOV, length * 0.6).set_delay(length * 0.2)
 	_anim.play()
 	await _anim.animation_finished
 	if rest.is_running():
