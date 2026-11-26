@@ -28,7 +28,8 @@ Lo que falta para terminar *The Living Room*, en el orden en que se hará. Se ac
 ## Hito 4b — Corte vertical
 
 - [ ] Especificación, con las preguntas de arriba.
-- [ ] Repartidor: llaman a la puerta, levantarse animado (sustituye a la Q), recoger la comida y dejarla en la mesa.
+- [ ] Vecino (no repartidor: no existen en la época; usuario, 2026-11-26): llama a la puerta y pide algo de electricidad; levantarse animado girando hacia la puerta (sustituye a la Q).
+- [ ] Modelos de personaje (usuario, 2026-11-26): el jugador, electricista con ropa de trabajo (primero manos y antebrazos al levantarse); el vecino, señor de mediana edad visto solo en parte. Propuesta: MakeHuman/MPFB2 (CC0) y animación a mano en Blender; falta el sí del usuario a instalar MPFB2.
 - [ ] Run 2: apagón, linterna como mecánica, caja de plomos (modelarla) y fusible, en el piso en espejo.
 - [ ] Cosas interactuables (usuario, 2026-11-25): fusibles e inventario pequeño para la run 2; grifos, puertas de armarios, cajones, interruptores y la radio; coger objetos, solo si aporta miedo.
 - [x] Piso en espejo al día con el normal (2026-11-24); normales, ciudad, lluvia, puertas y tele (salvo la imagen de la pantalla) también reflejadas; comparado en las 21 zonas; desde ahora se cambian los dos a la vez.

@@ -46,7 +46,7 @@ La primera compra de cada uno activa su sonido en el piso; las siguientes lo hac
 | 3 | **Frecuencia de audio** | Una cuchara cae en la cocina (usuario, 2026-11-24; antes, un llanto) | 10 |
 | 4 | **Sintonizador** | La madera del suelo cruje detrás del sofá (usuario, 2026-11-24; antes, voces) | 15 |
 | 5 | **Mando a distancia** | El clic de un mando en el dormitorio vacío | 22 |
-| 6 | **Canal 3** | Toques en la puerta (anticipan al repartidor; el 3 es el piso de la señora) | 28 |
+| 6 | **Canal 3** | Toques en la puerta (anticipan al vecino; el 3 es el piso de la señora) | 28 |
 
 **Centrados en el clic (cambio del usuario, 2026-11-18):** cada generador suma Energía a cada clic (su bono, al que también afectan *Pulso* y *Pulso fuerte*) y produce algo por segundo, menos que antes. Con el ajuste, el clic (manual, mantenido o automático) da ~3/4 de la Energía desde el minuto 15. La tienda muestra en cada generador lo que suma por clic y por segundo, y el panel muestra «Por clic».
 

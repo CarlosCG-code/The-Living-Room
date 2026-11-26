@@ -10,7 +10,7 @@ Juego de **terror psicológico con un clicker/incremental como mecánica central
 1. **El sonido es el miedo.** Sin enemigos; el audio y lo que se ve (o se deja de ver) hacen todo el trabajo.
 2. **El clicker es la causa, no un adorno.** Lo que compras altera el mundo; el jugador se siente cómplice.
 3. **Premiar la atención.** Quien explora y observa decide con información; quien corre decide a ciegas.
-4. **Lo mundano da más miedo.** Repartidor, café, fusibles, escaleras.
+4. **Lo mundano da más miedo.** Un vecino que pide fusibles, café, escaleras.
 
 **No objetivos:** combate o enemigos, estado de derrota, multijugador, contenido procedural (todo está diseñado a mano), plataformas distintas de PC (Windows).
 
@@ -38,7 +38,7 @@ El ***Reiniciar*** del incremental es el disparador del bucle: al pulsarlo ocurr
 | Run | Duración aprox. | Qué escucha/ve el jugador | Evento tras el reinicio |
 |---|---|---|---|
 | Menú | — | Dentro del propio salón, a oscuras: la tele llena el encuadre y muestra *Jugar/Continuar*, *Ajustes* y *Salir*. *Jugar* cambia de canal (nieve un instante) al incremental, sin cambiar de escena; desde la pausa, *Menú principal* vuelve al canal del menú (2026-11-18). Las variantes de los finales serán estados de este mismo salón | — |
-| 1 | ~35 min | Sonidos del incremental que derivan en toques en la puerta y objetos que caen. La vista queda fija en la tele, sin zoom out (usuario, 2026-11-24): el salón y el sofá se descubren al levantarse para abrir al repartidor | Llama a la puerta el **repartidor**. Tras un segundo de silencio, animación de levantarse girando hacia la puerta del salón, un solo movimiento lo más realista posible (usuario, 2026-11-26). Recoge la comida, la deja en la mesa. Puede **explorar el piso** (~15 min, opcional) o volver a la tele |
+| 1 | ~35 min | Sonidos del incremental que derivan en toques en la puerta y objetos que caen. La vista queda fija en la tele, sin zoom out (usuario, 2026-11-24): el salón y el sofá se descubren al levantarse para abrir al vecino | Llama a la puerta un **vecino**, un señor de mediana edad: en la época del juego no hay repartidores (usuario, 2026-11-26). Tras un segundo de silencio, animación de levantarse girando hacia la puerta del salón, un solo movimiento lo más realista posible (usuario, 2026-11-26). Te pide algo de electricidad: fusibles, una herramienta… Qué hace el jugador con eso, **[PENDIENTE]** (propuesta: buscarlo en su caja de herramientas y dárselo). Puede **explorar el piso** (~15 min, opcional) o volver a la tele |
 | 2 | ~25 min | Luces y sonidos | **Apagón**. Solo linterna. La casa está **en espejo**. Hay que llegar a la caja de plomos y cambiar un fusible (~15 min) |
 | 3 | ~20 min | Más de lo anterior, más intenso; objetos que cambian de sitio | Llama la **señora del 3.º**. El protagonista vive en el 8.º. Ascensor roto: **escalera a oscuras** hasta su piso, repara la avería, café, y en el salón la **misma tele con el mismo progreso**. Evento ~25 min |
 | 4 | ~15 min | Juega en la tele de ella; su salón (3.º) se transforma objeto a objeto hasta ser idéntico al tuyo, fuera de tu vista o en apagones (§5). Quien va rápido no lo nota; quien observa sí (intencionado: premia la atención). Lo que falte por cambiar cambia durante la transición | Sonidos de la señora (pastillas, gafas, dentadura). Final |
@@ -46,7 +46,7 @@ El ***Reiniciar*** del incremental es el disparador del bucle: al pulsarlo ocurr
 
 Total estimado: ~2h35 sin la exploración opcional; ~2h50 con ella.
 
-**Guardado:** autoguardado al empezar cada run y cada evento de transición (repartidor, apagón, avería, confesión), no en los sustos del director, y además cada ~5 minutos. El periódico se aplaza mientras haya un evento en curso (un susto, una transición). Si se carga a mitad de un evento, este se repite desde su inicio. Tras un final, el *Reiniciar* del menú empieza una partida nueva: se reinician Energía, Carga y Evidencia, y se conserva el meta-estado: el último final, que decide el menú alterado.
+**Guardado:** autoguardado al empezar cada run y cada evento de transición (vecino, apagón, avería, confesión), no en los sustos del director, y además cada ~5 minutos. El periódico se aplaza mientras haya un evento en curso (un susto, una transición). Si se carga a mitad de un evento, este se repite desde su inicio. Tras un final, el *Reiniciar* del menú empieza una partida nueva: se reinician Energía, Carga y Evidencia, y se conserva el meta-estado: el último final, que decide el menú alterado.
 
 ## 4. Núcleo incremental
 
@@ -186,6 +186,6 @@ Cada hito empieza con su **especificación de implementación** (archivos, pasos
 ## 14. Alternativas consideradas
 
 - **Clicker dentro de la tele, no como menú superpuesto:** es más inmersivo y esconde dónde está el jugador hasta que se levanta; así puede notar el cambio de habitación en la run 4.
-- **Cuatro runs:** cada una sostiene un evento propio (repartidor y exploración, apagón y fusible, escalera hasta la señora, cambio de piso y confesión). No se buscaron más porque estas cuatro cubren la historia completa.
+- **Cuatro runs:** cada una sostiene un evento propio (vecino y exploración, apagón y fusible, escalera hasta la señora, cambio de piso y confesión). No se buscaron más porque estas cuatro cubren la historia completa.
 - **Una sola rama de prestigio, no dos:** más sencilla de desarrollar y equilibrar. La atención se premia con la exploración y la Evidencia, no con una rama aparte.
 - **Final con una acción diegética, no con un botón de menú:** realizar una acción pesa más que elegir una opción.

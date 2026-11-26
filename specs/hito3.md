@@ -21,7 +21,7 @@ Jugando la run 1 sentado:
 **La vista no cambia (usuario, 2026-11-24):** sentado, la cámara sigue fija en la tele, sin zoom out ni giro de cabeza. El salón y el sofá se descubren al levantarse para abrir al repartidor (4b). Sustituye al zoom out del GDD §3 y a lo previsto en hito2 D2 y D3.
 
 **Fuera:**
-- 4b: la revelación del salón, el repartidor, levantarse animado, aviso de fotosensibilidad, mezcla por run y pasos según el suelo (hito 4a se los dejaba a este hito, pero en la build normal todavía no se anda).
+- 4b: la revelación del salón, el vecino (antes, el repartidor), levantarse animado, aviso de fotosensibilidad, mezcla por run y pasos según el suelo (hito 4a se los dejaba a este hito, pero en la build normal todavía no se anda).
 - Hito 7: mostrar los subtítulos (aquí se crean sus textos).
 - Runs 2-4: sucesos propios. Hasta entonces usan los de la run 1.
 - Final: congelación (D8 solo decide cómo será).

@@ -217,7 +217,7 @@ func _apply_user_settings() -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if not (event is InputEventKey and event.pressed and not event.echo):
 		return
-	# Q, solo en la build de pruebas: en la normal, levantarse llega con el repartidor (specs/hito4a.md D7, P2).
+	# Q, solo en la build de pruebas: en la normal, levantarse llega con el vecino (specs/hito4a.md D7, P2).
 	if (event as InputEventKey).physical_keycode == KEY_Q and OS.is_debug_build() and not _player.active and _ui.is_idle():
 		var seat: Transform3D = _room.get_anchor(&"SeatAnchor").global_transform
 		_stand(Transform3D(seat.basis, Vector3(seat.origin.x, 0.0, seat.origin.z) - seat.basis.z * STAND_OFFSET))
