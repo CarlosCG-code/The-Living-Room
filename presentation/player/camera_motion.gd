@@ -15,6 +15,7 @@ const DOOR_TURN := 0.7
 const DOOR_PAUSE := 0.3
 const DOOR_FOV_TIME := 2.0  # la vista se abre despacio desde que empieza el giro hasta media subida (usuario, 2026-11-26)
 const SOUNDS := {
+	&"sofa": preload("res://assets/audio/room/sofa_rise.ogg"),
 	&"step": preload("res://assets/audio/flat/floor_step_1.ogg"),
 }
 

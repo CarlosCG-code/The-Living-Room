@@ -119,6 +119,12 @@ Fuente: `COPYRIGHT.txt` de https://github.com/godotengine/godot/blob/4.7.2-stabl
 | `assets/audio/house/wardrobe_2.ogg` (puerta del armario); recorte 14-18,6 s, filtrado, en mono y con el nivel igualado | https://freesound.org/people/myristica/sounds/836316/ («Carey Nutman. ZOOM H4.  squeaking hinge. wardrobe door», vista previa HQ en `.ogg`; SHA-256 `fc1acba913f37ca08f48de3d704b989a7b2aeb82104be50e30d32937055c6417`) | myristica | CC0 1.0 | 2026-11-25 |
 | `assets/audio/house/creak_1.ogg` y `creak_2.ogg` (una puerta cruje) | recortes 8,5-12 y 18,5-20,65 s de `assets/audio/flat/door_creak.ogg` (arriba) | ChristopherJngs | CC0 1.0 | 2026-11-24 |
 
+### Levantarse del sofá (hito 4b paso 4, 2026-11-26)
+
+| Archivo | Fuente (URL) | Autor | Licencia | Fecha |
+|---|---|---|---|---|
+| `assets/audio/room/sofa_rise.ogg` (muelles del sofá al levantarse; tramo 8,8-10,1 s, en mono, cortado con Blender) | https://freesound.org/people/felixdembinski/sounds/663821/ («Squeeky Sofa 2.wav», vista previa HQ en `.ogg`; SHA-256 `84dfc82002b790fdbe1616ec01fe61f933f704c3d32997181063e516e6dd6365`) | felixdembinski | CC0 1.0 | 2026-11-26 |
+
 ### Personajes (hito 4b paso 3, 2026-11-26)
 
 Hechos con MPFB2 2.0.18 (extensión de Blender, GPL-3.0, solo herramienta) con `tools/blender/build_characters.py` y exportados con `export_character.py` a `assets/models/characters/` (`player_arms.gltf`, `neighbor.gltf` y `textures/`). Se instalaron solo assets cuyos archivos dicen CC0; los que dicen AGPL o CC-BY se descartaron (specs/hito4b.md §8). Claude retiñó el jersey, el pelo canoso y el iris por código (sin IA generativa). El jugador no tiene cuerpo (usuario, 2026-11-26): solo está el vecino.
