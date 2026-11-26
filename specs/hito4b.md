@@ -1,6 +1,6 @@
 # Especificación — Hito 4b: corte vertical (runs 1 y 2)
 
-> Estado: **v2 (2026-11-26)**, tras la revisión EGM (`reviews/hito4b/egm_report.md`) y las respuestas del usuario del mismo día; falta su aprobación. No se escribe código hasta entonces.
+> Estado: **v2 aprobada por el usuario (2026-11-26)**, tras la revisión EGM (`reviews/hito4b/egm_report.md`); §9 aprobada con las recomendaciones.
 >
 > Fuentes: `GAME_DESIGN.md` §2-§8, §11 (hito 4) y §12; `CLAUDE.md`; `PENDIENTES.md` (hito 4b); `specs/hito2.md` (D7, D14, D16), `specs/hito4a.md` (D5-D7, D11, D14-D16), `specs/hito3.md` (D3, D6, D8, D9), `specs/incremental_v2.md`.
 

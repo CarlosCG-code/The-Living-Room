@@ -2,7 +2,7 @@
 
 Lo que falta para terminar *The Living Room*, en el orden en que se hará. Se actualiza en el mismo commit que cierra o abre algo. El porqué de cada cosa está en `GAME_DESIGN.md` (§11, el plan) y en `specs/`.
 
-**Estado (2026-11-26):** hitos 0, 1, 2, 3 y 4a cerrados. Siguiente: **hito 4b** (corte vertical), empezando por su especificación.
+**Estado (2026-11-26):** hitos 0, 1, 2, 3 y 4a cerrados. En marcha: **hito 4b** (corte vertical), paso 2 de `specs/hito4b.md`.
 
 ## Espera una respuesta del usuario
 
@@ -27,7 +27,7 @@ Lo que falta para terminar *The Living Room*, en el orden en que se hará. Se ac
 
 ## Hito 4b — Corte vertical
 
-- [ ] Especificación: v2 tras EGM (`specs/hito4b.md`, 2026-11-26), espera la aprobación del usuario. Decidido: espejo desde la run 2, subtítulos (voz más adelante), playtest desde cero, tras el plomo se vuelve a la tele.
+- [x] Especificación v2 aprobada (`specs/hito4b.md`, 2026-11-26). Decidido: espejo desde la run 2, subtítulos (voz más adelante), playtest desde cero, tras el plomo se vuelve a la tele.
 - [ ] Vecino (no repartidor: no existen en la época; usuario, 2026-11-26): llama a la puerta y pide algo de electricidad; levantarse animado girando hacia la puerta (sustituye a la Q).
 - [ ] Modelos de personaje (usuario, 2026-11-26): el jugador, electricista con ropa de trabajo (primero manos y antebrazos al levantarse); el vecino, señor de mediana edad visto solo en parte. MPFB2 instalado con 8 paquetes CC0 de MakeHuman (2026-11-26); se descartó todo asset cuyos archivos dicen AGPL o CC-BY aunque el paquete diga CC0. Animación a mano en Blender. No hay mono de trabajo: modelarlo.
 - [ ] Run 2: apagón, linterna como mecánica, caja de plomos (modelarla) y fusible, en el piso en espejo.
