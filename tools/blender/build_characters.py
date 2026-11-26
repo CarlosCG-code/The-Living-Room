@@ -1,4 +1,4 @@
-"""Personajes del hito 4b con MPFB2, solo con assets CC0 de MakeHuman (specs/hito4b.md D4).
+"""Personajes del hito 4b con MPFB2 (el jugador no tiene cuerpo: usuario, 2026-11-26), solo con assets CC0 de MakeHuman (specs/hito4b.md D4).
 
 Uso (sin --factory-startup: MPFB2 es una extensión de las preferencias del usuario):
     blender -b --python-expr "ROOT = r'<proyecto>'; exec(open(ROOT + '/tools/blender/build_characters.py').read())"
@@ -26,18 +26,6 @@ def _age(years: float) -> float:
 
 
 CHARACTERS = {
-    # El electricista: mono de trabajo y camiseta, sin marcas (D4; el uniforme con el nombre es una pista).
-    "player": {
-        "phenotype": {"gender": 1.0, "age": _age(40), "muscle": 0.62, "weight": 0.55, "proportions": 0.6,
-                      "height": 0.55, "cupsize": 0.5, "firmness": 0.5,
-                      "race": {"asian": 0.0, "caucasian": 1.0, "african": 0.0}},
-        "skin": "middleage_caucasian_male.mhmat",
-        "hair": "short02.mhclo",
-        "eyebrows": "eyebrow001.mhclo",
-        "clothes": ["male_worksuit01.mhclo", "toigo_ankle_boots_male.mhclo"],
-        # Mono gastado de color azul marino apagado: el azul claro nuevo parecía de disfraz.
-        "tint": {"male_worksuit01": (0.30, 0.34, 0.42, 0.9)},
-    },
     # El vecino del 8.º: un señor cualquiera de unos 55 años, con jersey de lana.
     "neighbor": {
         "phenotype": {"gender": 1.0, "age": _age(58), "muscle": 0.42, "weight": 0.64, "proportions": 0.45,

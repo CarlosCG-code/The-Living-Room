@@ -8,7 +8,8 @@
 - En la run 1 llama un **vecino**, un señor de mediana edad, que pide algo de electricidad: en la época del juego no hay repartidores (2026-11-26).
 - Sin zoom out: tras los golpes y un segundo de silencio, el jugador se levanta **girando hacia la puerta del salón**, en un solo movimiento lo más realista posible (2026-11-26).
 - Desde la run 2 se levanta cuando quiere (2026-11-26).
-- Personajes con MPFB2, solo con assets CC0, animados a mano en Blender: el jugador, electricista con ropa de trabajo; el vecino, un señor cualquiera de mediana edad (2026-11-26).
+- **El jugador no tiene cuerpo:** todo se cuenta con la cámara, con animaciones al levantarse y al andar (2026-11-26; sustituye a los brazos del paso 3 y al «sin balanceo de cámara» de hito4a D6).
+- El vecino, un señor cualquiera de mediana edad, se hace con MPFB2, solo con assets CC0, y se anima a mano en Blender (2026-11-26).
 - **La casa está en espejo desde la run 2** y lo sigue después del apagón; tras cambiar el plomo, el jugador vuelve a la tele y sigue jugando hasta el *Reiniciar* (2026-11-26).
 - **Subtítulos sí; la voz del vecino se decide más adelante** (2026-11-26).
 - **Playtest: las ~5 personas juegan desde cero** (2026-11-26).
@@ -18,7 +19,7 @@
 **Términos:**
 - **Secuencia:** el evento que dispara un *Reiniciar* (el vecino, el apagón). Se divide en **pasos** con nombre.
 - **Plomos:** fusibles de porcelana de las casas antiguas españolas, enroscados en la **caja de plomos**.
-- **Brazos:** el modelo del jugador en primera persona: manos, antebrazos y mangas.
+- **Cabeza:** el nodo que mueve la cámara de pie; las animaciones lo desplazan sin tocar la cápsula del jugador.
 - **Ancla:** el sitio y el giro desde donde se reproduce una animación (el sofá, la rendija, la caja de plomos).
 - **†:** dato del motor que se confirma al implementar (con context7 o probándolo); si no coincide, se corrige esta especificación antes de seguir.
 
@@ -55,31 +56,29 @@ Fuera de 4b: la llamada de la señora y la escalera (hito 5); el *Reiniciar* de 
 3. Un segundo de silencio y empieza `stand_to_door` (D3).
 4. Si en 40 s no abre la puerta de entrada, vuelven a llamar, 2 dB más fuerte cada vez, hasta 6 dB. No hay derrota: solo insiste.
 
-**D3 — Levantarse: animación en Blender.** Los brazos y la cabeza se animan en `art_source/characters/player.blend` y se exportan a glTF con `tools/blender/export_character.py`.
+**D3 — Levantarse: animación de la cámara.** Sin cuerpo, el realismo está en cómo se mueve la vista (usuario, 2026-11-26). Las animaciones son recursos `Animation` de Godot con interpolación cúbica, en `data/camera_anims.tres`, que escribe `tools/make_camera_anims.gd` a partir de una tabla de fotogramas clave (instante, posición, giro, FOV). Así se ajustan como texto y el FOV se anima sin trucos.
 - **`stand`** (~2,5 s): la única subida que se pule a fondo.
-  - El cuerpo se echa adelante, la vista baja y las manos empujan en el asiento.
-  - Sube con esfuerzo, sin velocidad constante.
-  - Se pasa un poco, se recoloca y se balancea hasta quedar quieto.
-- **`stand_to_door`** (~3,5 s): primero la cabeza se vuelve hacia la puerta del salón y se para un instante, como quien duda; después sigue con la misma `stand`, girada en la raíz hacia la puerta.
-- **`sit`:** se queda la transición de cámara de 0,5 s de hito4a D7. Desde la run 2 te sientas muchas veces, y 2,5 s cada vez cansa (§9, P14).
-- **Anclas:** `FirstPersonRig.play(anim, anchor)`. `stand*` usa `SeatAnchor`. Antes de empezar, la cámara va en 0,3 s desde donde esté hasta el primer fotograma.
-- **Salida:** la última pose tiene los ojos a 1,6 m y sin inclinación lateral. El control pasa al `Player` con `Player.stand_at`, que ya existe.
-- **FOV:** el de sentado (`GameCamera`) pasa al de pie (70°) en código, a la vez que la subida: es la vista que se abre al levantarse, no un zoom (§9, P15). El glTF no anima el FOV †.
-- **Sonido:** una tabla `CUES` en `first_person_rig.gd` (instante → sonido): crujido del sofá, la tela y el paso al apoyar el pie (CC0). El glTF no lleva audio.
-- **Espejo:** el rig no se refleja: es el mismo jugador diestro. Solo su ancla pasa por `MirrorMath.mirror_transform`, con una base de determinante +1. La escala −1 se descarta: invierte la luz (hito2 D14) y la imagen de la cámara.
+  - La vista se echa adelante y baja, como quien se apoya para impulsarse.
+  - Sube con esfuerzo, sin velocidad constante, con un pequeño tirón al despegar del asiento.
+  - Se pasa un poco, se recoloca y se balancea hasta quedar quieta.
+- **`stand_to_door`** (~3,5 s): primero la cabeza se vuelve hacia la puerta del salón y se para un instante, como quien duda; después sigue con la misma `stand`, girada hacia la puerta.
+- **`sit`:** se queda la transición de cámara de 0,5 s de hito4a D7 (§9, P14).
+- **Anclas:** `CameraMotion.play(anim, anchor)`. `stand*` usa `SeatAnchor`. Antes de empezar, la cámara va en 0,3 s desde donde esté hasta el primer fotograma.
+- **Salida:** la última pose tiene los ojos a 1,6 m, sin inclinación lateral y con el FOV de pie (70°). El control pasa al `Player` con `Player.stand_at`, que ya existe. El FOV de sentado al de pie es parte de la animación: la vista que se abre al levantarse, no un zoom (§9, P15).
+- **Sonido:** pistas de método en la propia animación: crujido del sofá, la tela y el paso al apoyar el pie (CC0).
+- **Espejo:** la animación se reproduce sobre el ancla reflejada (`MirrorMath.mirror_transform`, determinante +1); los giros a un lado pasan al otro solos.
 - Se ajusta con capturas del juego, cuadro a cuadro, y lo aprueba el usuario jugándolo (parada 1).
-- Descartado: animar la subida solo con tweens. Sin manos que empujen ni peso, se nota artificial.
 
-**D4 — Personajes (MPFB2, solo CC0).**
-- **El jugador:** solo **brazos**, manos con el paquete *Hands 01* y mangas de camisa de trabajo remangadas, sin marcas. Sin sombra, porque la linterna va en la cámara y unos brazos sueltos la pintarían en todo el cono. El cuerpo y las piernas, si los pide el playtest.
-- **El vecino:** hombre de unos 55 años, piel *Skins 02*, con prendas CC0 de los paquetes instalados. El esfuerzo va a la cara y a la mano, que es lo que se ve por la rendija. Sin boca animada: sin voz por ahora (P1), y la cara queda en sombra o se ve de lado. La cabeza sigue al jugador con `LookAtModifier3D` †, con límites de unos 50° de giro y 25° de cabeceo.
-- **Tubería** (`export_character.py`):
-  - rig `game_engine` de MPFB2, que tiene dedos;
-  - piel horneada a texturas de 2048 px, porque el material procedural no pasa a glTF;
-  - se borra la piel bajo la ropa y, en el jugador, todo lo que queda por encima del codo;
-  - acciones con los mismos nombres que en `play()`;
-  - salida a `assets/models/characters/`;
-  - presupuesto: ~20 000 triángulos por personaje †, medido en el benchmark.
+**D3b — Andar con la cámara viva** (usuario, 2026-11-26; cambia hito4a D6, que no tenía balanceo). En `player.gd`, sobre la cabeza, sin tocar la cápsula:
+- **Al andar:** la vista baja ~1,5 cm en cada pisada, al compás de los pasos que ya suenan (`STRIDE`), con un vaivén lateral de ~0,8 cm cada dos pasos y una inclinación de ~0,4°. Va por la distancia andada: parado no se mueve.
+- **Al pararse:** se asienta en ~0,4 s, con un último medio paso.
+- **Quieto:** respiración muy leve, ~0,4 cm cada 4 s.
+- **Ajuste «Movimiento de cámara»** en Controles, 0-100 %, por defecto 100 %: a 0 no hay balanceo ni respiración, por si marea (§9, P16).
+
+**D4 — El vecino (MPFB2, solo CC0).**
+- Hombre de unos 58 años, piel `old_caucasian_male`, jersey de lana pardo, pantalón gris y botines (hecho en el paso 3: `tools/blender/build_characters.py` y `export_character.py`, ~41 000 triángulos, a medir en el benchmark).
+- El esfuerzo va a la cara y a la mano, que es lo que se ve por la rendija. Sin boca animada: sin voz por ahora (P1), y la cara queda en sombra o se ve de lado. La cabeza sigue al jugador con `LookAtModifier3D` †, con límites de unos 50° de giro y 25° de cabeceo.
+- Animaciones en su `.blend` (reposo y la mano que entra a coger los plomos), exportadas en el mismo glTF.
 - Cada asset de MakeHuman usado va a `ASSETS.md` con su paquete y su licencia.
 
 **D5 — La puerta de entrada y el vecino.**
@@ -90,7 +89,7 @@ Fuera de 4b: la llamada de la señora y la escalera (hito 5); el *Reiniciar* de 
   - «¿No tendrás unos de sobra? En el taller tendrás, tú de esto sabes.»
   - Al dárselos: «Gracias. Ya te los devuelvo.» No los devuelve.
 - **Qué hace el jugador** (P9): ir al taller, abrir la caja de herramientas y coger los plomos (D7). Después vuelve, apunta a la rendija y hace clic:
-  - la mano del vecino entra por la rendija (su animación) y tus plomos van hacia ella con un tween;
+  - la mano del vecino entra por la rendija (su animación); los plomos aparecen delante de la cámara y van hacia su mano con un tween;
   - el vecino se aparta y se oyen sus pasos bajando la escalera;
   - la luz del rellano se apaga y la puerta se cierra sola despacio (`creep`), con la llave echada. Si el jugador está en el recorrido, espera a que se aparte.
   - Paso `free`.
@@ -105,7 +104,7 @@ Fuera de 4b: la llamada de la señora y la escalera (hito 5); el *Reiniciar* de 
 - En la run 1 solo funciona en la build de pruebas, como ahora.
 - De pie, la tele sigue produciendo, salvo con secuencia (GDD §12).
 
-**D7 — Lo que llevas en la mano.** Un solo hueco y sin intercambio: los plomos (run 1) o el repuesto (run 2), nunca a la vez. Se ve en la mano derecha, abajo a la derecha, con un balanceo ligero al andar hecho en código; también en espejo. No se guarda: si se carga, se vuelve a coger.
+**D7 — Lo que llevas.** Un solo hueco y sin intercambio: los plomos (run 1) o el repuesto (run 2), nunca a la vez. Sin manos no se ve: al cogerlo sale una línea abajo («Llevas los plomos», con `tr()`) y la retícula crece donde se puede usar. No se guarda: si se carga, se vuelve a coger.
 
 **D8 — El espejo y el apagón.**
 - **Variante del piso:** una función pura, `Sequence.flat_variant(run_index, sequence, step) -> {mirror, dark}`:
@@ -122,7 +121,7 @@ Fuera de 4b: la llamada de la señora y la escalera (hito 5); el *Reiniciar* de 
   2. Estás sentado a oscuras: Q levanta y F enciende la linterna, la única luz. No gasta pilas.
   3. **Caja de plomos**, en el trastero (`fuse_box_zone`, ya en el plano): cuadro de madera con plomos de porcelana, uno fundido, modelado en Blender.
   4. **La caja de herramientas está vacía:** el vecino se llevó los plomos. El repuesto está en un cajón de la cocina (P3).
-  5. Con el repuesto en la mano, clic en el plomo fundido: tus manos en pose de agarre, desenroscan uno y enroscan el otro con un tween. La luz vuelve con un golpe seco y el zumbido. La tele se enciende sola. Paso `fixed`.
+  5. Con el repuesto en la mano, clic en el plomo fundido: la cámara se acerca a la caja, el plomo fundido se desenrosca solo y entra el nuevo, con el sonido de la porcelana. La luz vuelve con un golpe seco y el zumbido. La tele se enciende sola. Paso `fixed`.
   6. Al sentarse se abre la Carga y empieza la run 3, en la misma casa en espejo. Su *Reiniciar* enseña «continuará» hasta el hito 5.
 
 **D9 — Interactuables.** Lista cerrada, en los dos pisos:
@@ -190,9 +189,9 @@ core/user_settings.gd            cambiar  (invertir eje Y, subtítulos)
 autoload/game.gd                 cambiar  (sequence_done, finish_sequence, find_clue, player_pose)
 autoload/event_bus.gd            cambiar  (sequence_cue, clue_found)
 presentation/main.gd             cambiar  (variante desde el estado, recarga, stand_up, aviso, pose)
-presentation/player/player.gd    cambiar  (use/can_use, Esc de pie, eje Y, mano)
-presentation/player/first_person_rig.gd  crear  (brazos, anclas, CUES, paso al Player)
-presentation/player/held_item.gd crear
+presentation/player/player.gd    cambiar  (use/can_use, Esc de pie, eje Y, cabeza que se mueve al andar)
+presentation/player/camera_motion.gd  crear  (animaciones de la cámara, anclas, paso al Player)
+tools/make_camera_anims.gd       crear    (escribe data/camera_anims.tres)
 presentation/ui/tv_game_ui.gd    cambiar  (sin Carga en _restart; open_carga; reentrada)
 presentation/ui/main_menu_ui.gd  cambiar  (botón Pistas, filas nuevas, pausa en SubViewport)
 presentation/ui/clue_view.gd     crear
@@ -246,9 +245,9 @@ var player_pose: Callable
 signal sequence_cue(id: StringName)   # knock, silence_over, stair_light_off…
 signal clue_found(id: StringName)
 
-# presentation/player/first_person_rig.gd
+# presentation/player/camera_motion.gd
 signal finished(anim: StringName)
-func play(anim: StringName, anchor: Transform3D) -> void
+func play(anim: StringName, anchor: Transform3D) -> void   # stand, stand_to_door
 
 # interactuables (puerta, cajón, interruptor, grifo, radio, caja de plomos, pista, rendija)
 func can_use(player: Player) -> bool
@@ -259,9 +258,9 @@ func use(player: Player) -> void
 
 1. **Copia de seguridad** (hecha el 2026-11-26).
 2. **Secuencias y guardado v5** (D1, D11): `Sequence`, `RunState` v5, `Economy`, `Game` y `tv_game_ui`. Tests primero.
-3. **Personajes** (D4): brazos del jugador y vecino, con `export_character.py`. Renders en Blender para revisarlos.
-4. **Animaciones** (D3): `stand`, `stand_to_door` y la mano del vecino, y `FirstPersonRig`. Capturas del juego, cuadro a cuadro.
-5. **La llamada y la puerta** (D2, D5, D7, D15): cadena, rellano, vecino, plomos, subtítulos y la recarga en espejo al sentarse.
+3. **Personajes** (D4): el vecino, con `export_character.py`. Renders en Blender para revisarlos. Hecho el 2026-11-26.
+4. **La cámara** (D3, D3b): `stand`, `stand_to_door`, el balanceo al andar y la respiración, con `CameraMotion` y el ajuste. Capturas del juego, cuadro a cuadro.
+5. **La llamada y la puerta** (D2, D4, D5, D7, D15): con las animaciones del vecino; cadena, rellano, vecino, plomos, subtítulos y la recarga en espejo al sentarse.
    - **Parada 1:** el usuario juega desde el final de la run 1 hasta empezar la run 2 en espejo.
 6. **Run 2 y apagón** (D6, D8, D9, D16): Q, interactuables, la geometría de los dos pisos con su horneado, el apagón, la caja de plomos y la vuelta de la luz.
    - **Parada 2:** el usuario juega el apagón entero.
@@ -329,3 +328,4 @@ func use(player: Player) -> void
 | P13 | ¿Huecos en «Pistas» para las que faltan? | No: dirían cuántas hay y convertirían la exploración en una lista. |
 | P14 | ¿Sentarse con animación? | No: se queda la transición de 0,5 s, porque te sientas muchas veces. El realismo va a levantarse. |
 | P15 | ¿Vale que la vista se abra al levantarse (el FOV de sentado pasa al de pie)? | Sí: no es un zoom out, es lo que ve alguien que se pone de pie, y sin eso habría un salto. |
+| P16 | ¿Balanceo de la cámara al andar con ajuste para quien se maree? | Sí: «Movimiento de cámara» 0-100 % en Controles, al 100 % por defecto. |
