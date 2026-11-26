@@ -32,6 +32,9 @@ var _carga: CargaScreen
 
 func _ready() -> void:
 	_osd.restart_pressed.connect(_restart)
+	EventBus.sequence_cue.connect(func(id: StringName) -> void:
+		if id == &"finished":
+			open_carga())
 	_osd.skill_pressed.connect(func(skill: StringName) -> void: Game.use_skill(skill))
 	_factory.package_pressed.connect(_open_package)
 	_factory.generator_shown.connect(func(id: StringName) -> void:
@@ -128,6 +131,10 @@ func _start_playing() -> void:
 	_menu.hide()
 	# Run recién empezada con Carga sin gastar: se salió del juego en la carta o en la pantalla de Carga.
 	var state := Game.economy.state
+	if Game.in_sequence():  # se cargó a mitad de una secuencia: empieza de nuevo, sin señal
+		_static.show()
+		Game.running = true
+		return
 	if state.run_index > 1 and state.energy_produced_run == 0.0 and _carga.can_buy_any():
 		_carga.open()
 		return
@@ -141,8 +148,8 @@ func _start_playing() -> void:
 func _change_channel(then: Callable) -> void:
 	_static.show()
 	await get_tree().create_timer(CHANNEL_CHANGE).timeout
+	_static.hide()  # antes de then: una secuencia cargada vuelve a dejar la tele sin señal
 	then.call()
-	_static.hide()
 
 
 # Salir pasa por el cierre normal: Game guarda la partida antes de cerrar.
@@ -210,9 +217,20 @@ func _restart() -> void:
 	_close_shop()
 	if Game.restart():
 		Game.set_holding(false)
+		if Game.in_sequence():  # la tele se queda sin señal y la Carga espera a que acabe (specs/hito4b.md D1)
+			await _end_of_broadcast()
+			_static.show()
+			return
 		Game.running = false
 		await _end_of_broadcast()
 		_carga.open()
+
+
+## Al acabar una secuencia (sentado): la Carga, y con ella la run nueva.
+func open_carga() -> void:
+	_static.hide()
+	Game.running = false
+	_carga.open()
 
 
 ## Carta de «fin de la emisión» con un tono de prueba que desafina, antes de la pantalla de Carga.

@@ -374,6 +374,23 @@ func test_restart_keeps_carga_and_perks() -> void:
 	assert_true(eco.has_perk(&"p1"))
 
 
+func test_restart_starts_sequence_and_keeps_evidence() -> void:
+	eco.state.evidence.append(&"uniform")
+	_restart_with(1000)
+	assert_eq(eco.state.run_index, 2)
+	assert_eq(eco.state.sequence, Sequence.NEIGHBOR, "tras la run 1, el vecino")
+	assert_eq(eco.state.step, &"knock")
+	assert_eq(eco.state.evidence, [&"uniform"] as Array[StringName], "la Evidencia pasa de run")
+	eco.state.sequence = &""
+	eco.state.step = &""
+	_restart_with(1000)
+	assert_eq(eco.state.sequence, Sequence.BLACKOUT, "tras la run 2, el apagón")
+	assert_eq(eco.state.step, &"dark")
+	eco.state.sequence = &""
+	_restart_with(1000)
+	assert_eq(eco.state.sequence, &"", "tras la run 3, nada (hito 5)")
+
+
 func test_perks_any_order_and_need_carga() -> void:
 	config.perks = [_perk(&"p1", 2, PerkDef.Kind.CLICK_MULT, 2.0), _perk(&"p2", 1, PerkDef.Kind.CARGA_BONUS)]
 	eco.state.carga = 3

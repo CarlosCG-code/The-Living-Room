@@ -104,7 +104,8 @@ func _build() -> void:
 	_section("Compras")
 	_row([["Comprar todo lo visible", _buy_all], ["+10 de cada máquina", _add_machines]])
 	_section("Runs y Carga")
-	_row([["Reiniciar ya", _restart_now], ["+5 Carga", func() -> void: Game.economy.state.carga += 5]])
+	_row([["Reiniciar ya", _restart_now], ["+5 Carga", func() -> void: Game.economy.state.carga += 5],
+		["Siguiente paso de la secuencia", _next_step]])
 	_row([["Todas las permanentes", _all_perks], ["Quitar permanentes", _no_perks]])
 	_section("Eventos y cintas")
 	var events: Array = []
@@ -217,6 +218,12 @@ func _restart_now() -> void:
 		Game.restart()
 
 
+## Da por hecho el paso de la secuencia en curso (specs/hito4b.md D17).
+func _next_step() -> void:
+	var done := {&"knock": &"handed_over", &"dark": &"fuse_fixed", &"free": &"sat", &"fixed": &"sat"}
+	Game.sequence_done(done.get(Game.economy.state.step, &""))
+
+
 func _set_run(value) -> void:
 	var run := int(value)
 	Game.economy.state.run_index = run
@@ -231,6 +238,7 @@ func _start_run(value) -> void:
 	eco.state = RunState.new_run(eco.config, run, RandomNumberGenerator.new())
 	eco.state.carga = old.carga
 	eco.state.perks = old.perks.duplicate()
+	eco.state.evidence = old.evidence.duplicate()
 	eco.packages().clear()
 	for id in old.perks:
 		eco._grant_start(eco.config.find_perk(id))

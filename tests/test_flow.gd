@@ -151,14 +151,22 @@ func test_restart_card_then_carga_then_run_2() -> void:
 	_rich(eco.config.threshold * 1.2)
 	ui._osd.restart_pressed.emit()
 	await wait_process_frames(2)
-	assert_false(Game.running, "durante la carta la partida está parada")
+	assert_true(Game.in_sequence(), "tras la run 1 llama el vecino (specs/hito4b.md D1)")
 	assert_eq(eco.state.run_index, 2)
 	assert_eq(eco.state.carga, 3)
 	var clicks := eco.state.manual_clicks
 	_action(&"tv_click")
 	assert_eq(eco.state.manual_clicks, clicks, "durante la carta no se clica")
 	await wait_seconds(EndOfBroadcast.DURATION + 0.3)
-	assert_true(ui.is_restarting(), "tras la carta, la pantalla de Carga")
+	assert_false(ui.is_restarting(), "la Carga espera a que acabe la secuencia")
+	assert_true(ui._static.visible, "la tele se queda sin señal")
+	_action(&"tv_click")
+	assert_eq(eco.state.manual_clicks, clicks, "sin señal no se clica")
+	Game.sequence_done(&"handed_over")
+	Game.sequence_done(&"sat")
+	await wait_process_frames(1)
+	assert_true(ui.is_restarting(), "al sentarse tras el vecino, la pantalla de Carga")
+	assert_false(ui._static.visible)
 	assert_true(Game.buy_perk(&"pulse"))
 	ui._carga.start_requested.emit()
 	assert_true(Game.running)
@@ -202,3 +210,15 @@ func test_the_frame_shows_through_the_snow_and_the_picture_comes_back() -> void:
 	assert_eq(times[0], ui.FRAME_COUNT)
 	assert_false(ui._static.visible)
 	assert_false(is_instance_valid(frame))
+
+
+func test_load_mid_sequence_repeats_it_without_carga() -> void:
+	eco.state = RunState.new_run(eco.config, 2, RandomNumberGenerator.new())
+	eco.state.carga = 3
+	eco.state.sequence = Sequence.NEIGHBOR
+	eco.state.step = &"knock"
+	eco._recalc()
+	await _start_playing()
+	assert_false(ui.is_restarting(), "no se salta la secuencia")
+	assert_true(ui._static.visible)
+	assert_true(Game.running, "el reloj corre: los golpes llegan")

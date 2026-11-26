@@ -1,7 +1,7 @@
 class_name RunState
 extends RefCounted
 
-const VERSION := 4
+const VERSION := 5
 
 var run_index: int = 1
 var energy: float = 0.0
@@ -22,6 +22,16 @@ var events_caught: int = 0
 var package_bar: float = 0.0
 ## Temporizadores en segundos: efectos activos y enfriamientos de habilidades (nombre -> s).
 var timers: Dictionary = {}
+## Secuencia de transición en curso y paso de reentrada (specs/hito4b.md D1); vacíos si no hay.
+var sequence: StringName = &""
+var step: StringName = &""
+## Pistas halladas: pasan de una run a la siguiente y se vacían en una partida nueva (D10).
+var evidence: Array[StringName] = []
+## Dónde estaba el jugador de pie (D11). Sentado, el resto no cuenta.
+var standing := false
+var player_pos := Vector3.ZERO
+var player_yaw := 0.0
+var player_pitch := 0.0
 
 
 static func new_run(config: EconomyConfig, p_run_index: int, rng: RandomNumberGenerator) -> RunState:
@@ -56,6 +66,11 @@ func to_dict() -> Dictionary:
 		"package_bar": package_bar,
 		"timers": timers.duplicate(),
 		"perks": Array(perks).map(func(p: StringName) -> String: return String(p)),
+		"sequence": String(sequence),
+		"step": String(step),
+		"evidence": Array(evidence).map(func(c: StringName) -> String: return String(c)),
+		"player": {"standing": standing, "pos": [player_pos.x, player_pos.y, player_pos.z], "yaw": player_yaw,
+			"pitch": player_pitch},
 	}
 
 
@@ -69,6 +84,8 @@ static func from_dict(d: Dictionary, config: EconomyConfig, warnings: PackedStri
 		d = migrate_v2(d)
 	if int(d["version"]) == 3:
 		d = migrate_v3(d)
+	if int(d["version"]) == 4:
+		d = migrate_v4(d)
 	if int(d["version"]) != VERSION:
 		return null
 	for key in ["run_index", "energy", "energy_produced_run", "play_time"]:
@@ -89,6 +106,9 @@ static func from_dict(d: Dictionary, config: EconomyConfig, warnings: PackedStri
 	for item in perks_in:
 		if not _is_id(item):
 			return null
+	var evidence_in = d.get("evidence")
+	if not _is_id(d.get("sequence")) or not _is_id(d.get("step")) or typeof(evidence_in) != TYPE_ARRAY:
+		return null
 	if typeof(gens) != TYPE_DICTIONARY or typeof(ups) != TYPE_ARRAY or typeof(ev) != TYPE_DICTIONARY:
 		return null
 	if not _is_num(ev.get("next_in")) or not _is_num(ev.get("left")) or not _is_id(ev.get("id")):
@@ -139,7 +159,35 @@ static func from_dict(d: Dictionary, config: EconomyConfig, warnings: PackedStri
 			continue
 		if not state.upgrades.has(id):
 			state.upgrades.append(id)
+	state.sequence = StringName(d["sequence"])
+	state.step = StringName(d["step"])
+	var known := state.step == Sequence.first_step(state.sequence) or Sequence.next(state.sequence, state.step, &"sat") == &""
+	if state.sequence == &"" or state.step == &"" or not known:
+		if state.sequence != &"" or state.step != &"":
+			warnings.append("unknown sequence: %s/%s" % [state.sequence, state.step])
+		state.sequence = &""
+		state.step = &""
+	for item in evidence_in:
+		if _is_id(item) and not state.evidence.has(StringName(item)):
+			state.evidence.append(StringName(item))
+	_read_player(d.get("player"), state)
 	return state
+
+
+## Un jugador mal guardado empieza sentado.
+static func _read_player(p: Variant, state: RunState) -> void:
+	if typeof(p) != TYPE_DICTIONARY or typeof(p.get("standing")) != TYPE_BOOL or not p["standing"]:
+		return
+	var pos = p.get("pos")
+	if typeof(pos) != TYPE_ARRAY or pos.size() != 3 or not _is_num(p.get("yaw")) or not _is_num(p.get("pitch")):
+		return
+	for v in pos:
+		if not _is_num(v):
+			return
+	state.standing = true
+	state.player_pos = Vector3(float(pos[0]), float(pos[1]), float(pos[2]))
+	state.player_yaw = float(p["yaw"])
+	state.player_pitch = float(p["pitch"])
 
 
 ## v1 → v2: el bloque "interference" pasa a ser "event" (la interferencia es un evento más).
@@ -197,6 +245,17 @@ static func migrate_v3(d: Dictionary) -> Dictionary:
 	out["package_bar"] = 0.0
 	out["timers"] = {}
 	out["version"] = 4
+	return out
+
+
+## v4 → v5: secuencias, Evidencia y posición del jugador (specs/hito4b.md D11). Nadie estaba en una secuencia.
+static func migrate_v4(d: Dictionary) -> Dictionary:
+	var out := d.duplicate(true)
+	out["sequence"] = ""
+	out["step"] = ""
+	out["evidence"] = []
+	out["player"] = {"standing": false, "pos": [0.0, 0.0, 0.0], "yaw": 0.0, "pitch": 0.0}
+	out["version"] = 5
 	return out
 
 

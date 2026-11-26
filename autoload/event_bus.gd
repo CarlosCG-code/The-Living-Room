@@ -15,3 +15,6 @@ signal fear_event(def: FearEventDef, place: StringName)
 ## Los zumbidos de la tele y de la casa se cortan: el preludio de un sonido (specs/hito3.md D6).
 @warning_ignore("unused_signal")
 signal house_silence(seconds: float)
+## Momento de una secuencia (specs/hito4b.md D1): knock, stand, el nombre del paso nuevo, o finished.
+@warning_ignore("unused_signal")
+signal sequence_cue(id: StringName)

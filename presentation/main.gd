@@ -152,6 +152,7 @@ func _ready() -> void:
 				bench.cameras.append(room.get_capture_camera(v))
 		add_child(bench)
 	Game.senses = _sense
+	EventBus.sequence_cue.connect(_on_sequence_cue)
 	tree_exiting.connect(func() -> void:
 		Game.running = false
 		Game.senses = Callable())
@@ -219,12 +220,22 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	# Q, solo en la build de pruebas: en la normal, levantarse llega con el vecino (specs/hito4a.md D7, P2).
 	if (event as InputEventKey).physical_keycode == KEY_Q and OS.is_debug_build() and not _player.active and _ui.is_idle():
-		var seat: Transform3D = _room.get_anchor(&"SeatAnchor").global_transform
-		_stand(Transform3D(seat.basis, Vector3(seat.origin.x, 0.0, seat.origin.z) - seat.basis.z * STAND_OFFSET))
+		_stand_from_seat()
 		get_viewport().set_input_as_handled()
 	elif event.is_action_pressed("flashlight") and _player.active:
 		_flashlight_on = not _flashlight_on
 		mixer.set_flashlight_on(_flashlight_on)
+
+
+func _stand_from_seat() -> void:
+	var seat: Transform3D = _room.get_anchor(&"SeatAnchor").global_transform
+	_stand(Transform3D(seat.basis, Vector3(seat.origin.x, 0.0, seat.origin.z) - seat.basis.z * STAND_OFFSET))
+
+
+# shortcut: levantarse con la transición de 0,5 s hasta que exista FirstPersonRig (specs/hito4b.md D3, paso 4).
+func _on_sequence_cue(id: StringName) -> void:
+	if id == &"stand" and not _player.active:
+		_stand_from_seat()
 
 
 func _stand(t: Transform3D) -> void:
@@ -236,6 +247,8 @@ func _stand(t: Transform3D) -> void:
 
 ## Clic en el sofá o Esc de pie: se sienta; con Esc, además, la pausa de la tele (no hay pausa propia de pie).
 func _sit_down() -> void:
+	if Game.economy.state.step == &"knock":  # con el vecino en la puerta no se vuelve al sofá (specs/hito4b.md D5)
+		return
 	var paused := Input.is_action_pressed("ui_cancel")
 	_player.sit()
 	_flashlight_on = false  # sentado no alumbra la tele: al levantarse se vuelve a encender con F
@@ -244,6 +257,8 @@ func _sit_down() -> void:
 	_transition(_player.camera, _camera)
 	if paused:
 		_ui.open_pause()
+	else:
+		Game.sequence_done(&"sat")
 
 
 # La cámara viaja de una pose a la otra en TRANSITION segundos; mientras, el jugador no se mueve.

@@ -12,11 +12,14 @@ var running := false
 var director: EventDirector
 ## (s: DirectorState) -> void: lo que el director sabe de la escena. Lo pone main.gd y lo retira al salir.
 var senses: Callable
+## (s: RunState) -> void: pone standing y la posición del jugador antes de guardar (specs/hito4b.md D11). Lo pone main.gd.
+var player_pose: Callable
 
 var _saves := SaveSystem.new()
 var _holding := false
 var _directed: RunState  # la run que lleva el director: con otra (reinicio, partida nueva) empieza de cero
 var _since_save := 0.0
+var _sequence := Sequence.new()  # tiempos de la secuencia en curso: no se guardan, el paso empieza de nuevo al cargar
 var _window_applied := []  # [modo, resolución] aplicados por última vez
 # TLR_NO_SAVE=1 (tests y verify.sh): no se toca la partida real. Va en una variable de entorno porque GUT rechaza argumentos que no conoce.
 # Con GUT tampoco, aunque falte la variable.
@@ -94,6 +97,10 @@ func has_progress() -> bool:
 func tick(delta: float) -> void:
 	if not running:
 		return
+	if in_sequence():  # ni producción ni director: la casa calla durante el evento (specs/hito4b.md D1)
+		for cue in _sequence.tick(delta, economy.state.sequence, economy.state.step):
+			EventBus.sequence_cue.emit(cue)
+		return
 	economy.tick(delta, _holding)
 	_tick_director(delta)
 	_since_save += delta
@@ -122,16 +129,16 @@ func _on_fear_event(def: FearEventDef, place: StringName) -> void:
 
 ## Clic a mano: Energía ganada (0 si no cuenta).
 func click() -> float:
-	return economy.click() if running else 0.0
+	return economy.click() if _playing() else 0.0
 
 
 # Con la partida parada (menú, pausa, carta, Carga) no se clica, ni se usan habilidades ni se abren cintas.
 func use_skill(skill: StringName) -> bool:
-	return running and economy.use_skill(skill)
+	return _playing() and economy.use_skill(skill)
 
 
 func open_package(i: int) -> float:
-	return economy.open_package(i) if running else 0.0
+	return economy.open_package(i) if _playing() else 0.0
 
 
 func buy_perk(id: StringName) -> bool:
@@ -147,11 +154,47 @@ func buy(id: StringName) -> bool:
 
 
 func catch_event() -> bool:
-	return running and economy.catch_event()
+	return _playing() and economy.catch_event()
 
 
 func restart() -> bool:
 	return economy.restart()
+
+
+func _playing() -> bool:
+	return running and not in_sequence()
+
+
+func in_sequence() -> bool:
+	return economy.state.sequence != &""
+
+
+## La única entrada a las secuencias: door_opened, handed_over, fuse_fixed o sat (sentarse).
+func sequence_done(done: StringName) -> void:
+	var s := economy.state
+	if s.sequence == &"":
+		return
+	if done == &"door_opened":
+		_sequence.door_opened()
+		return
+	var next := Sequence.next(s.sequence, s.step, done)
+	if next == s.step:
+		return
+	if next == &"":
+		finish_sequence()
+		return
+	s.step = next
+	_sequence = Sequence.new()
+	EventBus.sequence_cue.emit(next)
+	_save()
+
+
+func finish_sequence() -> void:
+	economy.state.sequence = &""
+	economy.state.step = &""
+	_sequence = Sequence.new()
+	_save()
+	EventBus.sequence_cue.emit(&"finished")
 
 
 func _notification(what: int) -> void:
@@ -163,11 +206,16 @@ func _notification(what: int) -> void:
 
 
 func _on_restarted(run_index: int) -> void:
+	_sequence = Sequence.new()
 	EventBus.run_restarted.emit(run_index)
 	_save()
 
 
 func _save() -> void:
 	_since_save = 0.0
+	var s := economy.state
+	s.standing = false
+	if player_pose.is_valid() and (s.sequence == &"" or Sequence.resumes_standing(s.step)):
+		player_pose.call(s)
 	if not _no_save:
 		_saves.save_run(economy.state)

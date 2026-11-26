@@ -220,9 +220,14 @@ func restart() -> bool:
 		return false
 	var carga := state.carga + carga_if_restarted()
 	var perks := state.perks.duplicate()
+	var evidence := state.evidence.duplicate()
+	var finished := state.run_index
 	state = RunState.new_run(config, state.run_index + 1, _rng)
 	state.carga = carga
 	state.perks = perks
+	state.evidence = evidence
+	state.sequence = Sequence.after_restart(finished)
+	state.step = Sequence.first_step(state.sequence)
 	_packages.clear()
 	_streak = 0
 	_income_ema = 0.0  # las cintas y eventos de la run nueva no valen según el final de la anterior

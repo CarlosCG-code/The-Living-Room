@@ -108,7 +108,7 @@ func test_missing_or_newer_version_is_unreadable() -> void:
 	d.erase("version")
 	assert_null(RunState.from_dict(d, config, PackedStringArray()))
 	d = _valid_dict()
-	d["version"] = 5
+	d["version"] = 6
 	assert_null(RunState.from_dict(d, config, PackedStringArray()))
 
 
@@ -132,7 +132,7 @@ func test_migrates_v1_active_interference() -> void:
 	assert_not_null(s)
 	assert_eq(s.event_id, &"interference")
 	assert_almost_eq(s.event_left, 3.0, 0.0001)
-	assert_eq(int(s.to_dict()["version"]), 4)
+	assert_eq(int(s.to_dict()["version"]), 5)
 
 
 func test_migrates_v1_idle_interference() -> void:
@@ -211,3 +211,76 @@ func test_migrates_v3_removes_what_refunded_perks_gave() -> void:
 	d["generators"] = {"antenna": 12}
 	var s := RunState.from_dict(d, config, PackedStringArray())
 	assert_eq(s.generators[&"antenna"], 2, "se quitan las 10 que daba Tu memoria")
+
+
+func test_v5_round_trip() -> void:
+	var s := RunState.new()
+	s.run_index = 2
+	s.sequence = Sequence.NEIGHBOR
+	s.step = &"free"
+	s.evidence.append(&"uniform")
+	s.standing = true
+	s.player_pos = Vector3(1.5, 0.0, -2.0)
+	s.player_yaw = 0.7
+	s.player_pitch = -0.2
+	var w := PackedStringArray()
+	var back := RunState.from_dict(JSON.parse_string(JSON.stringify(s.to_dict())), config, w)
+	assert_eq(back.sequence, Sequence.NEIGHBOR)
+	assert_eq(back.step, &"free")
+	assert_eq(back.evidence, [&"uniform"] as Array[StringName])
+	assert_true(back.standing)
+	assert_almost_eq(back.player_pos, Vector3(1.5, 0.0, -2.0), Vector3.ONE * 0.0001)
+	assert_almost_eq(back.player_yaw, 0.7, 0.0001)
+	assert_eq(w.size(), 0)
+
+
+func test_migrates_v4() -> void:
+	var s := RunState.from_dict(_valid_dict(), config, PackedStringArray())
+	assert_not_null(s)
+	assert_eq(s.sequence, &"")
+	assert_eq(s.evidence.size(), 0)
+	assert_false(s.standing, "un v4 empieza sentado")
+	assert_eq(int(s.to_dict()["version"]), 5)
+
+
+func _v5() -> Dictionary:
+	return RunState.migrate_v4(_valid_dict())
+
+
+func test_unknown_sequence_or_step_is_dropped() -> void:
+	for pair in [["ghost", "knock"], ["neighbor", "fixed"], ["blackout", "free"], ["", "free"], ["neighbor", ""]]:
+		var d := _v5()
+		d["sequence"] = pair[0]
+		d["step"] = pair[1]
+		var w := PackedStringArray()
+		var s := RunState.from_dict(d, config, w)
+		assert_not_null(s)
+		assert_eq(s.sequence, &"", str(pair))
+		assert_eq(s.step, &"", str(pair))
+		assert_eq(w.size(), 1, "avisa: %s" % str(pair))
+
+
+func test_bad_sequence_types_are_unreadable() -> void:
+	var d := _v5()
+	d["sequence"] = 3
+	assert_null(RunState.from_dict(d, config, PackedStringArray()))
+	d = _v5()
+	d["evidence"] = "uniform"
+	assert_null(RunState.from_dict(d, config, PackedStringArray()))
+
+
+func test_bad_player_starts_seated() -> void:
+	for p in [null, "x", {"standing": true}, {"standing": true, "pos": [1, 2], "yaw": 0, "pitch": 0},
+			{"standing": true, "pos": [1, "a", 3], "yaw": 0, "pitch": 0}, {"standing": 1, "pos": [0, 0, 0], "yaw": 0, "pitch": 0}]:
+		var d := _v5()
+		d["player"] = p
+		var s := RunState.from_dict(d, config, PackedStringArray())
+		assert_not_null(s, str(p))
+		assert_false(s.standing, str(p))
+
+
+func test_evidence_skips_junk_and_duplicates() -> void:
+	var d := _v5()
+	d["evidence"] = ["uniform", 4, "uniform", "keys"]
+	var s := RunState.from_dict(d, config, PackedStringArray())
+	assert_eq(s.evidence, [&"uniform", &"keys"] as Array[StringName])

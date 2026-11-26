@@ -229,9 +229,11 @@ class_name Sequence extends RefCounted
 static func after_restart(finished_run: int) -> StringName
 static func first_step(sequence: StringName) -> StringName
 static func next(sequence: StringName, step: StringName, done: StringName) -> StringName  # &"" = se acabó
-static func reentrable(step: StringName) -> bool
+static func resumes_standing(step: StringName) -> bool              # free y fixed: se carga de pie
 static func flat_variant(run_index: int, sequence: StringName, step: StringName) -> Dictionary  # {mirror, dark}
 func tick(delta: float, sequence: StringName, step: StringName) -> Array[StringName]          # cues de este tick
+static func knock_boost_db(n: int) -> float
+func door_opened() -> void                     # Game.sequence_done(&"door_opened"): ya no vuelven a llamar
 
 # autoload/game.gd
 func in_sequence() -> bool
