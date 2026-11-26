@@ -88,8 +88,8 @@ Fuera de 4b: la llamada de la señora y la escalera (hito 5); el *Reiniciar* de 
   - «Perdona que llame tan tarde… Se me han fundido los plomos.»
   - «¿No tendrás unos de sobra? En el taller tendrás, tú de esto sabes.»
   - Al dárselos: «Gracias. Ya te los devuelvo.» No los devuelve.
-- **Qué hace el jugador** (P9): ir al taller, abrir la caja de herramientas y coger los plomos (D7). Después vuelve, apunta a la rendija y hace clic:
-  - la mano del vecino entra por la rendija (su animación); los plomos aparecen delante de la cámara y van hacia su mano con un tween;
+- **Qué hace el jugador** (P9): ir al taller, abrir la caja de herramientas, examinar los plomos y cogerlos (D7, D10). Después vuelve, saca los plomos con la tecla 1 y hace clic en la rendija:
+  - la mano del vecino entra por la rendija (su animación) y los plomos, que tenías delante, van hacia ella con un tween;
   - el vecino se aparta y se oyen sus pasos bajando la escalera;
   - la luz del rellano se apaga y la puerta se cierra sola despacio (`creep`), con la llave echada. Si el jugador está en el recorrido, espera a que se aparte.
   - Paso `free`.
@@ -104,7 +104,11 @@ Fuera de 4b: la llamada de la señora y la escalera (hito 5); el *Reiniciar* de 
 - En la run 1 solo funciona en la build de pruebas, como ahora.
 - De pie, la tele sigue produciendo, salvo con secuencia (GDD §12).
 
-**D7 — Lo que llevas.** Un solo hueco y sin intercambio: los plomos (run 1) o el repuesto (run 2), nunca a la vez. Sin manos no se ve: al cogerlo sale una línea abajo («Llevas los plomos», con `tr()`) y la retícula crece donde se puede usar. No se guarda: si se carga, se vuelve a coger.
+**D7 — Lo que llevas (usuario, 2026-11-26).**
+- **Coger:** al examinar algo que se puede llevar (D10), sale la opción «Coger». Se guarda en la **tecla 1** y un subtítulo dice «Llevas los plomos» (`tr()`).
+- **Sacar:** la tecla 1 lo saca y queda delante de la cámara, abajo a la derecha, con el balanceo de D3b; otra vez 1 o Esc lo guarda. Con él fuera, el clic lo usa donde sirve (la rendija, el hueco de la caja de plomos) y la retícula crece ahí.
+- Un solo hueco en 4b: los plomos (run 1) o el repuesto (run 2), nunca a la vez. La tecla es una acción del mapa de entrada (`item_1`), para poder añadir más huecos después.
+- No se guarda: si se carga, se vuelve a coger.
 
 **D8 — El espejo y el apagón.**
 - **Variante del piso:** una función pura, `Sequence.flat_variant(run_index, sequence, step) -> {mirror, dark}`:
@@ -121,7 +125,11 @@ Fuera de 4b: la llamada de la señora y la escalera (hito 5); el *Reiniciar* de 
   2. Estás sentado a oscuras: Q levanta y F enciende la linterna, la única luz. No gasta pilas.
   3. **Caja de plomos**, en el trastero (`fuse_box_zone`, ya en el plano): cuadro de madera con plomos de porcelana, uno fundido, modelado en Blender.
   4. **La caja de herramientas está vacía:** el vecino se llevó los plomos. El repuesto está en un cajón de la cocina (P3).
-  5. Con el repuesto en la mano, clic en el plomo fundido: la cámara se acerca a la caja, el plomo fundido se desenrosca solo y entra el nuevo, con el sonido de la porcelana. La luz vuelve con un golpe seco y el zumbido. La tele se enciende sola. Paso `fixed`.
+  5. **Cambiar el plomo (usuario, 2026-11-26):** clic en la caja: la cámara se acerca y se queda delante de ella, con la retícula libre por la caja (como sentado ante la tele); Esc o clic derecho para salir.
+     - Clic en el plomo fundido (tiene la marca negra del fogonazo; con la linterna se ve): se desenrosca solo, con el chirrido de la porcelana, y queda fuera. Los buenos no se mueven: suena un roce y nada más.
+     - Tecla 1: sale el repuesto. Clic en el hueco donde estaba el otro: se enrosca solo.
+     - La luz vuelve con un golpe seco y el zumbido. La tele se enciende sola. Paso `fixed`.
+     - Sin repuesto, el hueco no hace nada y un subtítulo lo dice (D16).
   6. Al sentarse se abre la Carga y empieza la run 3, en la misma casa en espejo. Su *Reiniciar* enseña «continuará» hasta el hito 5.
 
 **D9 — Interactuables.** Lista cerrada, en los dos pisos:
@@ -137,10 +145,11 @@ Fuera de 4b: la llamada de la señora y la escalera (hito 5); el *Reiniciar* de 
 
 ### Fase 3 — Evidencia, guardado y lo demás
 
-**D10 — Evidencia.**
-- **Datos:** `narrative/clue_def.gd` (`ClueDef`: id, `name_key`, `text_key` y `node`, el nombre del objeto del piso) y las pistas en `data/clues.tres`.
+**D10 — Examinar objetos y Evidencia** (usuario, 2026-11-26: muchos objetos se pueden examinar).
+- **Datos:** `narrative/inspectable_def.gd` (`InspectableDef`: id, `node`, el nombre del objeto del piso, `name_key`, `text_key`, `evidence: bool` si es pista y `takeable: bool` si se puede coger) y la lista en `data/inspectables.tres`.
+- **Qué se examina en 4b:** las 6 pistas, los plomos, el repuesto y 15-20 objetos pequeños repartidos por las habitaciones (un reloj, un mando, una taza, un cenicero, libros, una radio…). La lista la propone Claude en el paso 7 y la aprueba el usuario.
 - **Estado:** `RunState.evidence`. `Game.find_clue(id) -> bool` lo añade en `core/` y `EventBus.clue_found(id)` lo avisa.
-- **Examinar:** clic en la pista. El objeto se acerca a la cámara sin girarlo y su texto sale abajo (en espejo, al revés, como los demás textos). La primera vez suma, con un sonido suave. Clic o Esc lo devuelve a su sitio.
+- **Examinar:** clic en el objeto. Se acerca a la cámara y se gira arrastrando el ratón; su texto sale abajo (en espejo, al revés, como los demás textos). Si es pista, la primera vez suma, con un sonido suave. Si se puede coger, sale «Coger» (D7). Clic derecho o Esc lo devuelve a su sitio.
 - **Registro:** botón «Pistas» en la pausa, con el nombre de las halladas y sin huecos para las que faltan (P13).
 - **Pistas** (GDD §7; textos en P5):
   - el uniforme con el nombre de la empresa, en el armario del recibidor;
@@ -187,6 +196,7 @@ core/sequence.gd                 crear    (Sequence: after_restart, next, flat_v
 core/economy.gd                  cambiar  (restart copia evidence y pone la secuencia)
 core/user_settings.gd            cambiar  (invertir eje Y, subtítulos)
 autoload/game.gd                 cambiar  (sequence_done, finish_sequence, find_clue, player_pose)
+presentation/player/inventory.gd crear    (hueco de la tecla 1: coger, sacar, usar)
 autoload/event_bus.gd            cambiar  (sequence_cue, clue_found)
 presentation/main.gd             cambiar  (variante desde el estado, recarga, stand_up, aviso, pose)
 presentation/player/player.gd    cambiar  (use/can_use, Esc de pie, eje Y, cabeza que se mueve al andar)
@@ -194,7 +204,7 @@ presentation/player/camera_motion.gd  crear  (animaciones de la cámara, anclas,
 tools/make_camera_anims.gd       crear    (escribe data/camera_anims.tres)
 presentation/ui/tv_game_ui.gd    cambiar  (sin Carga en _restart; open_carga; reentrada)
 presentation/ui/main_menu_ui.gd  cambiar  (botón Pistas, filas nuevas, pausa en SubViewport)
-presentation/ui/clue_view.gd     crear
+presentation/ui/inspect_view.gd  crear    (examinar, girar, Coger)
 presentation/ui/subtitles.gd     crear
 presentation/ui/photo_warning.gd crear
 presentation/graphics/light_mixer.gd    cambiar  (set_light_on)
@@ -207,11 +217,11 @@ world/player_flat/door.gd, door_math.gd, flat.gd  cambiar
 tools/blender/furnish_flat.py, build_flat.py  cambiar  (piezas separadas, interruptores, caja de plomos, rellano)
 tools/blender/export_character.py crear
 assets/models/living_room/flat.gltf, flat_mirror.gltf y la GI del salón (normal y espejo)  regenerar
-narrative/clue_def.gd            crear    (carpeta nueva)
-data/clues.tres                  crear
+narrative/inspectable_def.gd     crear    (carpeta nueva)
+data/inspectables.tres           crear
 art_source/characters/*.blend    crear    (carpeta nueva)
 assets/models/characters/        crear    (carpeta nueva)
-project.godot                    cambiar  (acción stand_up)
+project.godot                    cambiar  (acciones stand_up e item_1)
 locale/strings.csv               cambiar
 tools/dev_cheats.gd, tools/verify.sh (22 scripts de test)  cambiar
 tests/test_sequence.gd           crear
@@ -290,7 +300,7 @@ func use(player: Player) -> void
 - `test_door_math.gd`: `max_open` y `step_linear`.
 - `test_light_mixer.gd`: `set_light_on` y el parpadeo sobre una lámpara apagada.
 - `test_tv_screen_math.gd`: raycast → UV con la tele en el piso en espejo.
-- `test_flat.gd`: cada interactuable existe y queda en su sitio en los dos pisos.
+- `test_flat.gd`: cada interactuable y cada objeto de `inspectables.tres` existe y queda en su sitio en los dos pisos.
 - `test_user_settings.gd`, `test_main_menu_ui.gd` y `test_dev_cheats.gd`: las filas y trucos nuevos.
 - Evidencia: suma una sola vez, se conserva tras *Reiniciar* y se vacía en una partida nueva.
 - `verify.sh` pasa y la build exportada arranca sin el addon de capturas.

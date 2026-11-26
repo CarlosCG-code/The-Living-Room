@@ -2,7 +2,7 @@
 
 Lo que falta para terminar *The Living Room*, en el orden en que se hará. Se actualiza en el mismo commit que cierra o abre algo. El porqué de cada cosa está en `GAME_DESIGN.md` (§11, el plan) y en `specs/`.
 
-**Estado (2026-11-26):** hitos 0, 1, 2, 3 y 4a cerrados. En marcha: **hito 4b** (corte vertical), paso 4 de `specs/hito4b.md` (la cámara: levantarse, andar y respirar).
+**Estado (2026-11-26):** hitos 0, 1, 2, 3 y 4a cerrados. En marcha: **hito 4b** (corte vertical), paso 4 de `specs/hito4b.md` (la cámara: levantarse, andar y respirar). Decidido (2026-11-26): muchos objetos se examinan; lo que se coge va a la tecla 1; el plomo se cambia a mano en la caja.
 
 ## Espera una respuesta del usuario
 
