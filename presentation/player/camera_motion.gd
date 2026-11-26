@@ -17,9 +17,8 @@ const DOOR_FOV_TIME := 2.0  # la vista se abre despacio desde que empieza el gir
 const SOUNDS := {
 	&"sofa": [preload("res://assets/audio/room/sofa_rise_1.ogg"), preload("res://assets/audio/room/sofa_rise_2.ogg"),
 			preload("res://assets/audio/room/sofa_rise_3.ogg")],  # uno al azar (usuario, 2026-11-26)
-	&"step": [preload("res://assets/audio/flat/floor_step_1.ogg")],
 }
-const SOUND_DB := {&"sofa": -30.0, &"step": -6.0}  # los muelles, muy bajos: sonaban demasiado (usuario, 2026-11-26)
+const SOUND_DB := {&"sofa": -22.0}  # ajustado de oído por el usuario (2026-11-26)
 
 var busy := false
 var camera := Camera3D.new()
