@@ -123,7 +123,7 @@ Fuente: `COPYRIGHT.txt` de https://github.com/godotengine/godot/blob/4.7.2-stabl
 
 | Archivo | Fuente (URL) | Autor | Licencia | Fecha |
 |---|---|---|---|---|
-| `assets/audio/room/sofa_rise_a.ogg`, `_b.ogg` y `_c.ogg` (muelles del sofá al levantarse, uno al azar; tramos 8,8-10,1 s, 5,9-7,0 s y 1,5-2,4 s, en mono, cortados con Blender) | https://freesound.org/people/felixdembinski/sounds/663821/ («Squeeky Sofa 2.wav», vista previa HQ en `.ogg`; SHA-256 `84dfc82002b790fdbe1616ec01fe61f933f704c3d32997181063e516e6dd6365`) | felixdembinski | CC0 1.0 | 2026-11-26 |
+| `assets/audio/room/sofa_rise_1.ogg`, `_2.ogg` y `_3.ogg` (levantarse del sofá, uno al azar; tramos 0,6-2,4 s, 2,4-4,6 s y 12,2-13,8 s, en mono, cortados con Blender) | https://freesound.org/people/frenchiefitz/sounds/644397/ («Getting up and down from couch.m4a», vista previa HQ en `.ogg`; SHA-256 `89aba391b430b46f4afeb0ad21d3c4ff5b9ec11fc5fbacc3e3547a4f94590db3`) | frenchiefitz | CC0 1.0 | 2026-11-26 |
 
 ### Personajes (hito 4b paso 3, 2026-11-26)
 
