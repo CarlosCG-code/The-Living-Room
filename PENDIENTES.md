@@ -2,7 +2,7 @@
 
 Lo que falta para terminar *The Living Room*, en el orden en que se hará. Se actualiza en el mismo commit que cierra o abre algo. El porqué de cada cosa está en `GAME_DESIGN.md` (§11, el plan) y en `specs/`.
 
-**Estado (2026-11-26):** hitos 0, 1, 2, 3 y 4a cerrados. En marcha: **hito 4b** (corte vertical), paso 4 de `specs/hito4b.md` (la cámara: levantarse, andar y respirar). Decidido (2026-11-26): muchos objetos se examinan; lo que se coge se usa solo (el vecino lo coge al pedirlo; en la caja, clic en el roto y clic en el hueco).
+**Estado (2026-11-26):** hitos 0, 1, 2, 3 y 4a cerrados. En marcha: **hito 4b** (corte vertical), paso 5 de `specs/hito4b.md` (la llamada y la puerta). Decidido (2026-11-26): muchos objetos se examinan; lo que se coge se usa solo (el vecino lo coge al pedirlo; en la caja, clic en el roto y clic en el hueco).
 
 ## Espera una respuesta del usuario
 
@@ -30,6 +30,7 @@ Lo que falta para terminar *The Living Room*, en el orden en que se hará. Se ac
 - [x] Especificación v2 aprobada (`specs/hito4b.md`, 2026-11-26).
 - [x] Paso 2: secuencias y guardado v5 (2026-11-26). Hasta el paso 4, levantarse con el vecino usa la transición de 0,5 s y el paso se completa con el truco F1 «Siguiente paso de la secuencia».
 - [x] Paso 3: el vecino, de unos 58 años con jersey de lana (41 000 triángulos), con `build_characters.py` y `export_character.py` (2026-11-26). **El jugador no tiene cuerpo** (usuario, 2026-11-26): se cuenta con la cámara, que se anima al levantarse y al andar; cambia hito4a D6.
+- [x] Paso 4: la cámara (2026-11-26): levantarse con animación (`data/camera_anims.tres`, de `tools/make_camera_anims.gd`), girando hacia la puerta con el vecino; balanceo al andar y respiración con el ajuste «Movimiento de cámara». Capturas con `tools/shoot_motion.gd`. **Falta que el usuario lo pruebe.**
 - [ ] Vecino (no repartidor: no existen en la época; usuario, 2026-11-26): llama a la puerta y pide algo de electricidad; levantarse animado girando hacia la puerta (sustituye a la Q).
 - [ ] Modelos de personaje (usuario, 2026-11-26): el jugador, electricista con ropa de trabajo (primero manos y antebrazos al levantarse); el vecino, señor de mediana edad visto solo en parte. MPFB2 instalado con 8 paquetes CC0 de MakeHuman (2026-11-26); se descartó todo asset cuyos archivos dicen AGPL o CC-BY aunque el paquete diga CC0. Animación a mano en Blender. No hay mono de trabajo: modelarlo.
 - [ ] Run 2: apagón, linterna como mecánica, caja de plomos (modelarla) y fusible, en el piso en espejo.

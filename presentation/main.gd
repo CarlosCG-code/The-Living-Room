@@ -28,6 +28,7 @@ var _room: Node3D
 var _film_grain: CanvasLayer
 var _camera: Camera3D
 var _player: Player
+var _motion := CameraMotion.new()
 var _ui: Node
 var _flicker: LightFlicker
 var _light := 1.0
@@ -61,6 +62,7 @@ func _ready() -> void:
 	_camera = camera
 	_player = PLAYER.instantiate()
 	add_child(_player)
+	add_child(_motion)
 	_player.setup(flat.get_layout(), flat.mirrored)
 	_player.sit_requested.connect(_sit_down)
 
@@ -219,7 +221,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	if not (event is InputEventKey and event.pressed and not event.echo):
 		return
 	# Q, solo en la build de pruebas: en la normal, levantarse llega con el vecino (specs/hito4a.md D7, P2).
-	if (event as InputEventKey).physical_keycode == KEY_Q and OS.is_debug_build() and not _player.active and _ui.is_idle():
+	if (event as InputEventKey).physical_keycode == KEY_Q and OS.is_debug_build() and not _player.active and not _motion.busy and _ui.is_idle():
 		_stand_from_seat()
 		get_viewport().set_input_as_handled()
 	elif event.is_action_pressed("flashlight") and _player.active:
@@ -227,15 +229,27 @@ func _unhandled_input(event: InputEvent) -> void:
 		mixer.set_flashlight_on(_flashlight_on)
 
 
-func _stand_from_seat() -> void:
+## Levantarse del sofá con la animación de la cámara (specs/hito4b.md D3); to_door: girando hacia la puerta del salón.
+func _stand_from_seat(to_door := false) -> void:
 	var seat: Transform3D = _room.get_anchor(&"SeatAnchor").global_transform
-	_stand(Transform3D(seat.basis, Vector3(seat.origin.x, 0.0, seat.origin.z) - seat.basis.z * STAND_OFFSET))
+	var forward := Vector3(-seat.basis.z.x, 0.0, -seat.basis.z.z)
+	var heading := atan2(-forward.x, -forward.z)
+	var anchor := Transform3D(Basis(Vector3.UP, heading), Vector3(seat.origin.x, 0.0, seat.origin.z))  # sin reflejo
+	var yaw := 0.0
+	if to_door:
+		var to: Vector3 = _flat.get_place(&"door_living") - anchor.origin
+		yaw = wrapf(atan2(-to.x, -to.z) - heading, -PI, PI)
+	Game.set_holding(false)
+	_motion.play(&"stand", anchor, _camera, yaw)
+	await _motion.finished
+	var cam := _motion.camera.global_transform
+	_player.stand_at(Transform3D(cam.basis, Vector3(cam.origin.x, 0.0, cam.origin.z)))
+	_camera.get_flashlight().reparent(_player.camera, false)
 
 
-# shortcut: levantarse con la transición de 0,5 s hasta que exista FirstPersonRig (specs/hito4b.md D3, paso 4).
 func _on_sequence_cue(id: StringName) -> void:
-	if id == &"stand" and not _player.active:
-		_stand_from_seat()
+	if id == &"stand" and not _player.active and not _motion.busy:
+		_stand_from_seat(true)
 
 
 func _stand(t: Transform3D) -> void:

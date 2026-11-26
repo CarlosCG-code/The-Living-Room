@@ -68,6 +68,7 @@ UI_VSYNC,VSync: %s
 UI_MAX_FPS,Límite de FPS: %s
 UI_UNLIMITED,sin límite
 UI_EFFECTS,Intensidad de efectos: %d %%
+UI_CAMERA_MOTION,Movimiento de cámara: %d %%
 UI_BRIGHTNESS,Brillo: %d %%
 UI_AUTO,auto
 UI_FILM_GRAIN,Grano y viñeta: %s

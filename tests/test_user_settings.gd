@@ -143,3 +143,16 @@ func test_next_quality_wraps() -> void:
 	assert_eq(s.quality, &"low")
 	s.next_quality(-1)
 	assert_eq(s.quality, &"ultra")
+
+
+func test_camera_motion_round_trip_and_clamp() -> void:
+	var s := UserSettings.new()
+	assert_eq(s.camera_motion, 1.0, "al 100 % por defecto (specs/hito4b.md D3b)")
+	s.camera_motion = 0.4
+	s.save_to(PATH)
+	assert_almost_eq(UserSettings.load_from(PATH).camera_motion, 0.4, 0.0001)
+	var cfg := ConfigFile.new()
+	cfg.load(PATH)
+	cfg.set_value("settings", "camera_motion", 3.0)
+	cfg.save(PATH)
+	assert_eq(UserSettings.load_from(PATH).camera_motion, 1.0)

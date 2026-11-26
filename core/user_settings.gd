@@ -41,6 +41,8 @@ var crt := 1.0
 var mouse_sensitivity := 0.0012
 ## Parpadeos, bajada de las luces y efectos de pantalla, 0–1 (specs/hito3.md D9).
 var effects_intensity := 1.0
+## Balanceo de la cámara al andar y respiración, 0–1 (specs/hito4b.md D3b); a 0, nada, por si marea.
+var camera_motion := 1.0
 
 
 ## Lee el archivo; si falta o es ilegible, devuelve los valores por defecto. Corrige valores fuera de rango.
@@ -69,6 +71,7 @@ static func load_from(path: String) -> UserSettings:
 	s.mouse_sensitivity = clampf(_num(cfg.get_value(SECTION, "mouse_sensitivity", s.mouse_sensitivity), s.mouse_sensitivity),
 			SENSITIVITY_MIN, SENSITIVITY_MAX)
 	s.effects_intensity = clampf(_num(cfg.get_value(SECTION, "effects_intensity", s.effects_intensity), s.effects_intensity), 0.0, 1.0)
+	s.camera_motion = clampf(_num(cfg.get_value(SECTION, "camera_motion", s.camera_motion), s.camera_motion), 0.0, 1.0)
 	return s
 
 
@@ -88,6 +91,7 @@ func save_to(path: String) -> bool:
 	cfg.set_value(SECTION, "crt", crt)
 	cfg.set_value(SECTION, "mouse_sensitivity", mouse_sensitivity)
 	cfg.set_value(SECTION, "effects_intensity", effects_intensity)
+	cfg.set_value(SECTION, "camera_motion", camera_motion)
 	return cfg.save(path) == OK
 
 

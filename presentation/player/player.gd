@@ -25,6 +25,9 @@ var _stride_left := STRIDE * 0.5
 var _step_end := 0.0
 var _last_clip := -1
 var _steps_to_creak := 4
+var _steps := 0.0  # pasos andados, para el balanceo (CameraBob)
+var _bob_amp := 0.0
+var _breath := 0.0
 
 @onready var _head: Node3D = $Head
 @onready var camera: Camera3D = $Head/Camera3D
@@ -110,10 +113,24 @@ func _physics_process(delta: float) -> void:
 	move_and_slide()
 	_update_zone()
 	_footsteps(Vector2(velocity.x, velocity.z).length() * delta)
+	_bob(delta)
 	if _grabbed and _grabbed.global_position.distance_to(global_position) > REACH + 0.6:
 		_let_go()  # se alejó demasiado
 	var aimed := _aimed()
 	_crosshair.highlight = _grabbed != null or _door_of(aimed) != null or _is_sofa(aimed)
+
+
+# La vista sube y baja con los pasos y respira quieta (specs/hito4b.md D3b), solo en la cámara: la cápsula no se mueve.
+func _bob(delta: float) -> void:
+	var speed := Vector2(velocity.x, velocity.z).length()
+	if _bob_amp < 0.05 and speed < 0.01:
+		_steps = 0.0  # al echar a andar, la primera pisada cae con su sonido (media zancada)
+	_steps += speed * delta / STRIDE
+	_bob_amp = lerpf(_bob_amp, clampf(speed / SPEED, 0.0, 1.0), 1.0 - exp(-delta * 6.0))
+	_breath += delta
+	var o := CameraBob.offset(_steps, _bob_amp, _breath) * Game.settings.camera_motion
+	camera.position = Vector3(o.x, o.y, 0.0)
+	camera.rotation.z = o.z
 
 
 func _update_zone() -> void:

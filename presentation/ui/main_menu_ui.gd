@@ -19,10 +19,10 @@ const PAGES := {
 	"UI_PAGE_DISPLAY": ["window_mode", "resolution", "vsync", "max_fps", "brightness"],
 	"UI_PAGE_GRAPHICS": ["quality", "film_grain", "crt", "effects_intensity"],
 	"UI_PAGE_AUDIO": ["volume", "volume_tv", "volume_room"],
-	"UI_PAGE_CONTROLS": ["mouse_sensitivity"],
+	"UI_PAGE_CONTROLS": ["mouse_sensitivity", "camera_motion"],
 }
 
-const REPEATABLE: Array[String] = ["brightness", "volume", "volume_tv", "volume_room", "mouse_sensitivity", "effects_intensity"]
+const REPEATABLE: Array[String] = ["brightness", "volume", "volume_tv", "volume_room", "mouse_sensitivity", "effects_intensity", "camera_motion"]
 
 var _main: VBoxContainer
 var _options: VBoxContainer  # lista de apartados
@@ -176,7 +176,7 @@ func _change(key: String, step: int, wrap := false) -> void:
 			s.brightness = _step(s.brightness, step, UserSettings.BRIGHTNESS_MIN, UserSettings.BRIGHTNESS_MAX, wrap)
 		"film_grain":
 			s.film_grain = not s.film_grain
-		"volume", "volume_tv", "volume_room", "effects_intensity":
+		"volume", "volume_tv", "volume_room", "effects_intensity", "camera_motion":
 			s.set(key, _step(s.get(key), step, 0.0, 1.0, wrap))
 		"mouse_sensitivity":
 			var next := s.mouse_sensitivity + step * UserSettings.SENSITIVITY_STEP
@@ -220,6 +220,7 @@ func _refresh() -> void:
 	(_rows["crt"] as Button).text = tr("UI_CRT") % tr(crt_name)
 	(_rows["effects_intensity"] as Button).text = tr("UI_EFFECTS") % percent.call(s.effects_intensity)
 	(_rows["mouse_sensitivity"] as Button).text = tr("UI_SENSITIVITY") % s.sensitivity_level()
+	(_rows["camera_motion"] as Button).text = tr("UI_CAMERA_MOTION") % percent.call(s.camera_motion)
 
 
 func _nearest_crt(v: float) -> float:
