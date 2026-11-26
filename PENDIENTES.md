@@ -2,7 +2,7 @@
 
 Lo que falta para terminar *The Living Room*, en el orden en que se hará. Se actualiza en el mismo commit que cierra o abre algo. El porqué de cada cosa está en `GAME_DESIGN.md` (§11, el plan) y en `specs/`.
 
-**Estado (2026-11-26):** hitos 0, 1, 2 y 4a cerrados. En marcha: **hito 3**, falta la prueba de la run 1 entera.
+**Estado (2026-11-26):** hitos 0, 1, 2, 3 y 4a cerrados. Siguiente: **hito 4b** (corte vertical), empezando por su especificación.
 
 ## Espera una respuesta del usuario
 
@@ -17,13 +17,13 @@ Lo que falta para terminar *The Living Room*, en el orden en que se hará. Se ac
 - [ ] Zoom out al pulsar *Reiniciar*, antes de que llamen a la puerta: ¿sí o no? (4b; hoy, no)
 - [x] Copia de seguridad: `tools/backup.sh <hito>` la deja en otro disco, por hito y fecha, y la comprueba (2026-11-24).
 
-## Hito 3 — Audio de la run 1 y director de eventos
+## Hito 3 — Audio de la run 1 y director de eventos (cerrado, 2026-11-26)
 
 - [x] 1. Director de eventos, sin sonido.
 - [x] 2. Luces que bajan con la producción y ajuste «Intensidad de efectos».
 - [x] 3. Sonidos, preludio y fotograma de la tele; prueba de 10 minutos aprobada (2026-11-26).
 - [x] 4. Benchmark en los 4 presets (2026-11-26: todos con margen; cifras fuera del repositorio) y documentación: umbral de la run 1 en el GDD §4 y estado de `specs/hito2.md`.
-- [ ] 5. **Prueba del usuario: la run 1 entera.**
+- [x] 5. Prueba del usuario: la run 1 entera, aprobada (2026-11-26).
 
 ## Hito 4b — Corte vertical
 

@@ -1,6 +1,6 @@
 # Especificación — Hito 3: audio de la run 1 y director de eventos
 
-> Estado: **v3 aprobada por el usuario (2026-11-24); pasos 1 a 4 hechos y parada 1 aprobada (2026-11-26); falta la prueba de la run 1 entera**. Lo que cambió al construirlo, en §9. v2 tras la revisión EGM (`reviews/hito3/egm_report.md`); la v3 quita el zoom out y no se ha vuelto a revisar.
+> Estado: **v3 aprobada por el usuario (2026-11-24); **cerrado** (usuario, 2026-11-26): pasos 1 a 5 hechos, run 1 entera aprobada, `VERIFY OK`**. Lo que cambió al construirlo, en §9. v2 tras la revisión EGM (`reviews/hito3/egm_report.md`); la v3 quita el zoom out y no se ha vuelto a revisar.
 >
 > Fuentes: `GAME_DESIGN.md` §3-§6, §11 (hito 3) y §12; `CLAUDE.md`; `specs/hito2.md` (D2, D10, D12), `specs/hito4a.md` (D12, D13), `specs/incremental.md` §3 y §4.
 
