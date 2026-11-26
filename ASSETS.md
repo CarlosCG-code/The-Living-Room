@@ -119,6 +119,17 @@ Fuente: `COPYRIGHT.txt` de https://github.com/godotengine/godot/blob/4.7.2-stabl
 | `assets/audio/house/wardrobe_2.ogg` (puerta del armario); recorte 14-18,6 s, filtrado, en mono y con el nivel igualado | https://freesound.org/people/myristica/sounds/836316/ («Carey Nutman. ZOOM H4.  squeaking hinge. wardrobe door», vista previa HQ en `.ogg`; SHA-256 `fc1acba913f37ca08f48de3d704b989a7b2aeb82104be50e30d32937055c6417`) | myristica | CC0 1.0 | 2026-11-25 |
 | `assets/audio/house/creak_1.ogg` y `creak_2.ogg` (una puerta cruje) | recortes 8,5-12 y 18,5-20,65 s de `assets/audio/flat/door_creak.ogg` (arriba) | ChristopherJngs | CC0 1.0 | 2026-11-24 |
 
+### Personajes (hito 4b paso 3, 2026-11-26)
+
+Hechos con MPFB2 2.0.18 (extensión de Blender, GPL-3.0, solo herramienta) con `tools/blender/build_characters.py` y exportados con `export_character.py` a `assets/models/characters/` (`player_arms.gltf`, `neighbor.gltf` y `textures/`). Se instalaron solo assets cuyos archivos dicen CC0; los que dicen AGPL o CC-BY se descartaron (specs/hito4b.md §8). Claude retiñó el mono, el jersey, el pelo canoso y el iris por código (sin IA generativa).
+
+| Archivo | Fuente (URL) | Autor | Licencia | Fecha |
+|---|---|---|---|---|
+| Malla base, rig `game_engine`, pieles `middleage_caucasian_male` y `old_caucasian_male`, ojos `low-poly` y `brown`, cejas `eyebrow001` y `eyebrow006`, pestañas `eyelashes01`, dientes `teeth_base`, pelo `short02` y `short04`, mono `male_worksuit01` | https://static.makehumancommunity.org/assets/assetpacks/makehuman_system_assets.html (`makehuman_system_assets_cc0.zip`) y los datos de MPFB2 (https://extensions.blender.org/add-ons/mpfb/) | Data Collection AB, Joel Palmius, Jonas Hauquier (MakeHuman Community) | CC0 1.0 (en cada archivo: «explicitly released as CC0 in september 2020») | 2026-11-26 |
+| Botines `toigo_ankle_boots_male` | https://static.makehumancommunity.org/assets/assetpacks/shoes01.html (`shoes01_cc0.zip`) | MargaretToigo | CC0 1.0 | 2026-11-26 |
+| Jersey `toigo_fisherman_sweater` | https://static.makehumancommunity.org/assets/assetpacks/shirts01.html (`shirts01_cc0.zip`) | MargaretToigo | CC0 1.0 | 2026-11-26 |
+| Pantalón `toigo_wool_pants` | https://static.makehumancommunity.org/assets/assetpacks/pants01.html (`pants01_cc0.zip`) | MargaretToigo | CC0 1.0 | 2026-11-26 |
+
 ### Piso amueblado (hito 4a paso 5, 2026-11-21)
 
 Modelos CC0 de Poly Haven (descargados con `tools/fetch_polyhaven.py`, 1k):

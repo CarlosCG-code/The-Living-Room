@@ -33,3 +33,6 @@ __pycache__/
 /art_source/cma/
 /art_source/sketchfab/
 /art_source/blenderkit/
+
+# Personajes: se regeneran con tools/blender/build_characters.py
+/art_source/characters/
