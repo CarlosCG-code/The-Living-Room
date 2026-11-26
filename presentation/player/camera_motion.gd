@@ -19,7 +19,7 @@ const SOUNDS := {
 			preload("res://assets/audio/room/sofa_rise_c.ogg")],  # uno al azar (usuario, 2026-11-26)
 	&"step": [preload("res://assets/audio/flat/floor_step_1.ogg")],
 }
-const SOUND_DB := {&"sofa": -32.0, &"step": -6.0}  # los muelles, muy bajos: sonaban demasiado (usuario, 2026-11-26)
+const SOUND_DB := {&"sofa": -38.0, &"step": -6.0}  # los muelles, muy bajos: sonaban demasiado (usuario, 2026-11-26)
 
 var busy := false
 var camera := Camera3D.new()
