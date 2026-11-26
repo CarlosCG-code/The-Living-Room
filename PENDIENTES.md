@@ -2,14 +2,14 @@
 
 Lo que falta para terminar *The Living Room*, en el orden en que se hará. Se actualiza en el mismo commit que cierra o abre algo. El porqué de cada cosa está en `GAME_DESIGN.md` (§11, el plan) y en `specs/`.
 
-**Estado (2026-11-25):** hitos 0, 1 y 4a cerrados; el 2 hecho, falta cerrarlo en el papel. En marcha: **hito 3**, en la parada 1.
+**Estado (2026-11-26):** hitos 0, 1 y 4a cerrados; el 2 hecho, falta cerrarlo en el papel. En marcha: **hito 3**, paso 4 (parada 1 aprobada).
 
 ## Espera una respuesta del usuario
 
-- [ ] **Parada 1 del hito 3:** 10 minutos desde la mitad de la run 1; sonidos aprobados (2026-11-24); ¿valen las cosas que se mueven, los sonidos desde su habitación (también al acercarse), las luces y el ritmo?
+- [x] **Parada 1 del hito 3:** luces, cosas que se mueven y ritmo aprobados (usuario, 2026-11-26).
 - [x] Sonidos de ambiente elegidos por el usuario (2026-11-25): grifo del baño y armario del dormitorio, hechos. Los demás propuestos, descartados por ahora.
 - [x] Despertador del dormitorio: esfera a la vista (2026-11-25).
-- [ ] Eco de pasos y puertas: ligero, hecho (2026-11-25); ¿más o menos?
+- [x] Eco de pasos y puertas: ligero, se queda así (usuario, 2026-11-26).
 - [x] Lluvia del salón: se queda como está; es el modelo de realismo para los demás sonidos (usuario, 2026-11-25).
 - [ ] Dar por cerrado el hito 2 (todo aprobado sobre la marcha; `specs/hito2.md` dice que falta la parada).
 - [x] Textos en el piso en espejo: al revés, como todo lo demás (usuario, 2026-11-24).
@@ -21,7 +21,7 @@ Lo que falta para terminar *The Living Room*, en el orden en que se hará. Se ac
 
 - [x] 1. Director de eventos, sin sonido.
 - [x] 2. Luces que bajan con la producción y ajuste «Intensidad de efectos».
-- [ ] 3. Sonidos, preludio y fotograma de la tele: hechos. Falta la **prueba del usuario: 10 minutos.**
+- [x] 3. Sonidos, preludio y fotograma de la tele; prueba de 10 minutos aprobada (2026-11-26).
 - [ ] 4. Benchmark y documentación (de paso: umbral de la run 1 en el GDD §4 y estado de `specs/hito2.md`).
 - [ ] 5. **Prueba del usuario: la run 1 entera.**
 
