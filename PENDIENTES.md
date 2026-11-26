@@ -29,7 +29,7 @@ Lo que falta para terminar *The Living Room*, en el orden en que se hará. Se ac
 
 - [ ] Especificación, con las preguntas de arriba.
 - [ ] Vecino (no repartidor: no existen en la época; usuario, 2026-11-26): llama a la puerta y pide algo de electricidad; levantarse animado girando hacia la puerta (sustituye a la Q).
-- [ ] Modelos de personaje (usuario, 2026-11-26): el jugador, electricista con ropa de trabajo (primero manos y antebrazos al levantarse); el vecino, señor de mediana edad visto solo en parte. Propuesta: MakeHuman/MPFB2 (CC0) y animación a mano en Blender; falta el sí del usuario a instalar MPFB2.
+- [ ] Modelos de personaje (usuario, 2026-11-26): el jugador, electricista con ropa de trabajo (primero manos y antebrazos al levantarse); el vecino, señor de mediana edad visto solo en parte. MPFB2 instalado con 8 paquetes CC0 de MakeHuman (2026-11-26); se descartó todo asset cuyos archivos dicen AGPL o CC-BY aunque el paquete diga CC0. Animación a mano en Blender. No hay mono de trabajo: modelarlo.
 - [ ] Run 2: apagón, linterna como mecánica, caja de plomos (modelarla) y fusible, en el piso en espejo.
 - [ ] Cosas interactuables (usuario, 2026-11-25): fusibles e inventario pequeño para la run 2; grifos, puertas de armarios, cajones, interruptores y la radio; coger objetos, solo si aporta miedo.
 - [x] Piso en espejo al día con el normal (2026-11-24); normales, ciudad, lluvia, puertas y tele (salvo la imagen de la pantalla) también reflejadas; comparado en las 21 zonas; desde ahora se cambian los dos a la vez.
