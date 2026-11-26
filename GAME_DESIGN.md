@@ -172,7 +172,7 @@ Cada hito empieza con su **especificación de implementación** (archivos, pasos
 - Mando opcional (hito 7).
 - Minutos de diálogo de la confesión (antes del hito 6).
 - Jumpscare 2 (hito 6).
-- Si desde la run 2 el jugador puede levantarse cuando quiera, para ver también los cambios que quedan fuera de cuadro sentado (§5): propuesta, sí (hito 4b).
+- ~~Si desde la run 2 el jugador puede levantarse cuando quiera~~ **Decidido:** sí, para ver también los cambios que quedan fuera de cuadro sentado (§5) (usuario, 2026-11-26; hito 4b).
 
 ## 13. Riesgos y mitigaciones
 

@@ -13,7 +13,7 @@ Lo que falta para terminar *The Living Room*, en el orden en que se hará. Se ac
 - [x] Lluvia del salón: se queda como está; es el modelo de realismo para los demás sonidos (usuario, 2026-11-25).
 - [x] Hito 2 cerrado (usuario, 2026-11-26).
 - [x] Textos en el piso en espejo: al revés, como todo lo demás (usuario, 2026-11-24).
-- [ ] Desde la run 2, ¿levantarse cuando se quiera? (GDD §12; 4b)
+- [x] Desde la run 2 se puede levantar cuando quiera (usuario, 2026-11-26; 4b).
 - [ ] Zoom out al pulsar *Reiniciar*, antes de que llamen a la puerta: ¿sí o no? (4b; hoy, no)
 - [x] Copia de seguridad: `tools/backup.sh <hito>` la deja en otro disco, por hito y fecha, y la comprueba (2026-11-24).
 
