@@ -4,10 +4,10 @@ extends GutTest
 
 
 func test_still_only_breathes() -> void:
-	var o := CameraBob.offset(0.0, 0.0, 1.0)
+	var o := CameraBob.offset(0.0, 0.0, CameraBob.BREATH_PERIOD / 4.0)
 	assert_eq(o.x, 0.0)
 	assert_eq(o.z, 0.0)
-	assert_almost_eq(o.y, CameraBob.BREATH_Y, 0.0001, "a 1 s de 4, la respiración en lo alto")
+	assert_almost_eq(o.y, CameraBob.BREATH_Y, 0.0001, "a un cuarto del ciclo, la respiración en lo alto")
 
 
 func test_lowest_on_each_footstep() -> void:

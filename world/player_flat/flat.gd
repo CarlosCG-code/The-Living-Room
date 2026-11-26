@@ -164,6 +164,16 @@ func get_place(id: StringName) -> Vector3:
 	return Vector3(-p.x if mirrored else p.x, p.y, p.z)
 
 
+## Centro del hueco de una puerta, a la altura de los ojos, con el espejo ya resuelto.
+func get_door_center(id: StringName) -> Vector3:
+	for conn in LAYOUT.connections:
+		if conn.id == id:
+			var c := conn.hinge + conn.direction * conn.width / 2.0
+			return Vector3(-c.x if mirrored else c.x, 1.6, c.z)
+	push_error("Puerta desconocida: %s" % id)
+	return Vector3.ZERO
+
+
 ## Zona de un lugar; &"" en los del salón, que suenan aunque el jugador esté allí.
 func get_place_zone(id: StringName) -> StringName:
 	if LIVING_PLACES.has(id):

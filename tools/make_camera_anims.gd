@@ -18,7 +18,7 @@ const STAND := [
 	[2.50, Vector3(0.0, 1.60, -0.60), Vector3(0.0, 0.0, 0.0)],      # de pie, quieto
 ]
 # [instante, sonido]
-const STAND_CUES := [[0.70, &"sofa"], [1.95, &"step"]]
+const STAND_CUES := [[1.95, &"step"]]  # el crujido del sofá, cuando haya uno (el de la puerta no vale: usuario, 2026-11-26)
 
 
 func _init() -> void:

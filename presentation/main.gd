@@ -237,7 +237,8 @@ func _stand_from_seat(to_door := false) -> void:
 	var anchor := Transform3D(Basis(Vector3.UP, heading), Vector3(seat.origin.x, 0.0, seat.origin.z))  # sin reflejo
 	var yaw := 0.0
 	if to_door:
-		var to: Vector3 = _flat.get_place(&"door_living") - anchor.origin
+		# Desde donde quedará de pie (0,6 m más adelante): mirada desde el sofá, se pasaba de la puerta.
+		var to: Vector3 = _flat.get_door_center(&"door_living") - anchor * Vector3(0.0, 0.0, -STAND_OFFSET)
 		yaw = wrapf(atan2(-to.x, -to.z) - heading, -PI, PI)
 	Game.set_holding(false)
 	_motion.play(&"stand", anchor, _camera, yaw)
