@@ -14,7 +14,7 @@ Lo que falta para terminar *The Living Room*, en el orden en que se hará. Se ac
 - [x] Hito 2 cerrado (usuario, 2026-11-26).
 - [x] Textos en el piso en espejo: al revés, como todo lo demás (usuario, 2026-11-24).
 - [x] Desde la run 2 se puede levantar cuando quiera (usuario, 2026-11-26; 4b).
-- [ ] Zoom out al pulsar *Reiniciar*, antes de que llamen a la puerta: ¿sí o no? (4b; hoy, no)
+- [x] Sin zoom out: tras los golpes y un segundo de silencio, te levantas girando hacia la puerta del salón, en un solo movimiento y lo más realista posible (usuario, 2026-11-26; 4b).
 - [x] Copia de seguridad: `tools/backup.sh <hito>` la deja en otro disco, por hito y fecha, y la comprueba (2026-11-24).
 
 ## Hito 3 — Audio de la run 1 y director de eventos (cerrado, 2026-11-26)
