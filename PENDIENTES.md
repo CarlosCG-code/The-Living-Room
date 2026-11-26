@@ -2,7 +2,7 @@
 
 Lo que falta para terminar *The Living Room*, en el orden en que se hará. Se actualiza en el mismo commit que cierra o abre algo. El porqué de cada cosa está en `GAME_DESIGN.md` (§11, el plan) y en `specs/`.
 
-**Estado (2026-11-26):** hitos 0, 1 y 4a cerrados; el 2 hecho, falta cerrarlo en el papel. En marcha: **hito 3**, paso 4 (parada 1 aprobada).
+**Estado (2026-11-26):** hitos 0, 1 y 4a cerrados; el 2 hecho, falta cerrarlo en el papel. En marcha: **hito 3**, falta la prueba de la run 1 entera.
 
 ## Espera una respuesta del usuario
 
@@ -22,7 +22,7 @@ Lo que falta para terminar *The Living Room*, en el orden en que se hará. Se ac
 - [x] 1. Director de eventos, sin sonido.
 - [x] 2. Luces que bajan con la producción y ajuste «Intensidad de efectos».
 - [x] 3. Sonidos, preludio y fotograma de la tele; prueba de 10 minutos aprobada (2026-11-26).
-- [ ] 4. Benchmark y documentación (de paso: umbral de la run 1 en el GDD §4 y estado de `specs/hito2.md`).
+- [x] 4. Benchmark en los 4 presets (2026-11-26: todos con margen; cifras fuera del repositorio) y documentación: umbral de la run 1 en el GDD §4 y estado de `specs/hito2.md`.
 - [ ] 5. **Prueba del usuario: la run 1 entera.**
 
 ## Hito 4b — Corte vertical
