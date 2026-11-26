@@ -2,7 +2,7 @@
 
 Lo que falta para terminar *The Living Room*, en el orden en que se hará. Se actualiza en el mismo commit que cierra o abre algo. El porqué de cada cosa está en `GAME_DESIGN.md` (§11, el plan) y en `specs/`.
 
-**Estado (2026-11-26):** hitos 0, 1 y 4a cerrados; el 2 hecho, falta cerrarlo en el papel. En marcha: **hito 3**, falta la prueba de la run 1 entera.
+**Estado (2026-11-26):** hitos 0, 1, 2 y 4a cerrados. En marcha: **hito 3**, falta la prueba de la run 1 entera.
 
 ## Espera una respuesta del usuario
 
@@ -11,7 +11,7 @@ Lo que falta para terminar *The Living Room*, en el orden en que se hará. Se ac
 - [x] Despertador del dormitorio: esfera a la vista (2026-11-25).
 - [x] Eco de pasos y puertas: ligero, se queda así (usuario, 2026-11-26).
 - [x] Lluvia del salón: se queda como está; es el modelo de realismo para los demás sonidos (usuario, 2026-11-25).
-- [ ] Dar por cerrado el hito 2 (todo aprobado sobre la marcha; `specs/hito2.md` dice que falta la parada).
+- [x] Hito 2 cerrado (usuario, 2026-11-26).
 - [x] Textos en el piso en espejo: al revés, como todo lo demás (usuario, 2026-11-24).
 - [ ] Desde la run 2, ¿levantarse cuando se quiera? (GDD §12; 4b)
 - [ ] Zoom out al pulsar *Reiniciar*, antes de que llamen a la puerta: ¿sí o no? (4b; hoy, no)
