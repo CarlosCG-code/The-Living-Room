@@ -9,17 +9,19 @@ extends RefCounted
 #   como cualquiera que está de pie.
 # Sin nodos: player.gd la avanza en _physics_process y aplica position y rotation a la cámara.
 
-const STEP_DROP := 0.028  # m que baja la cabeza al apoyar el pie
-const STEP_SIDE := 0.016  # m de vaivén lateral, de un pie al otro
-const STEP_ROLL := 0.010  # rad (~0,6°) de ladeo hacia el pie que apoya
-const STEP_NOD := 0.012  # rad (~0,7°) de cabezada con el golpe del talón
+# Algo más suave a petición del usuario (2026-11-26): menos bajada y un golpe menos seco (exponente 2, no 3).
+const STEP_DROP := 0.022  # m que baja la cabeza al apoyar el pie
+const STEP_SHARPNESS := 2.0  # más alto, golpe más estrecho y seco
+const STEP_SIDE := 0.013  # m de vaivén lateral, de un pie al otro
+const STEP_ROLL := 0.007  # rad (~0,4°) de ladeo hacia el pie que apoya
+const STEP_NOD := 0.007  # rad (~0,4°) de cabezada con el golpe del talón
 const BREATH_RISE := 0.008  # m que sube el pecho al inspirar
 const BREATH_PITCH := 0.004  # rad: la cabeza sube un poco con él
 const BREATH_PERIOD := 4.2  # s, unas 14 respiraciones por minuto
 const BREATH_IN := 0.4  # parte del ciclo que dura la inspiración
 const SWAY := 0.004  # m de balanceo postural, de lado y adelante-atrás
 const SPRING := 16.0  # rad/s
-const DAMPING := 0.55  # < 1: rebota un poco al asentarse
+const DAMPING := 0.7  # < 1: rebota un poco al asentarse
 
 var position := Vector3.ZERO
 var pitch := 0.0
@@ -45,7 +47,7 @@ func update(delta: float, speed: float, full_speed: float, stride: float) -> voi
 
 ## La pose a la que tiende la cámara: (x, y, z) en metros y (cabeceo, ladeo) en radianes. Pura, para los tests.
 static func target_pose(steps: float, amp: float, t: float) -> Array:
-	var contact := pow(0.5 - 0.5 * cos(TAU * steps), 3.0)  # 1 al apoyar: un pico estrecho, el golpe, y cresta larga
+	var contact := pow(0.5 - 0.5 * cos(TAU * steps), STEP_SHARPNESS)  # 1 al apoyar: el golpe, estrecho; cresta larga
 	var side := sin(PI * steps)  # un ciclo cada dos pasos
 	var breath := breath_curve(fmod(t, BREATH_PERIOD) / BREATH_PERIOD)
 	var still := 1.0 - amp

@@ -15,9 +15,11 @@ const DOOR_TURN := 0.7
 const DOOR_PAUSE := 0.3
 const DOOR_FOV_TIME := 2.0  # la vista se abre despacio desde que empieza el giro hasta media subida (usuario, 2026-11-26)
 const SOUNDS := {
-	&"sofa": preload("res://assets/audio/room/sofa_rise.ogg"),
-	&"step": preload("res://assets/audio/flat/floor_step_1.ogg"),
+	&"sofa": [preload("res://assets/audio/room/sofa_rise_a.ogg"), preload("res://assets/audio/room/sofa_rise_b.ogg"),
+			preload("res://assets/audio/room/sofa_rise_c.ogg")],  # uno al azar (usuario, 2026-11-26)
+	&"step": [preload("res://assets/audio/flat/floor_step_1.ogg")],
 }
+const SOUND_DB := {&"sofa": -20.0, &"step": -6.0}  # los muelles, muy bajos: sonaban demasiado (usuario, 2026-11-26)
 
 var busy := false
 var camera := Camera3D.new()
@@ -40,7 +42,6 @@ func _init() -> void:
 	_yaw.add_child(_tilt)
 	_tilt.add_child(camera)
 	_sound.bus = &"Room"
-	_sound.volume_db = -6.0
 	_yaw.add_child(_sound)
 	_anim.add_animation_library(&"camera", LIBRARY)
 	add_child(_anim)
@@ -92,5 +93,6 @@ func _blend_from(from: Camera3D) -> void:
 
 
 func _cue(id: StringName) -> void:
-	_sound.stream = SOUNDS[id]
+	_sound.stream = (SOUNDS[id] as Array).pick_random()
+	_sound.volume_db = SOUND_DB[id]
 	_sound.play()

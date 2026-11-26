@@ -12,6 +12,9 @@ const OFF_DB := -80.0
 const FADE := 120.0  # dB/s, como el zumbido de la tele
 ## Tope al acercarse: como un portazo del piso a un metro. Con el de Godot (3 dB) una cuchara sonaba igual a 6 m que a 1 m.
 const MAX_DB := 12.0
+## Los golpes del vecino en la puerta de entrada (specs/hito4b.md D2); cada llamada, más fuerte (Sequence.knock_boost_db).
+const KNOCKS: Array[AudioStream] = [preload("res://assets/audio/house/knocks_1.ogg"), preload("res://assets/audio/house/knocks_2.ogg")]
+const KNOCK_DB := 8.0
 ## Tic tac: de qué malla del piso sale. Uno por habitación: en el salón, el de pie (también está el de repisa) y en el
 ## dormitorio, el despertador (también el de bolsillo).
 const CLOCKS := {"vintage_grandfather_clock_01*HourHand": preload("res://assets/audio/house/clock_grandfather.ogg"),
@@ -25,6 +28,8 @@ var _flat: Node3D
 var _event: DirectionalSound
 var _hum: DirectionalSound
 var _silence_left := 0.0
+var _door: DirectionalSound  # aparte de _event: un suceso del director no puede tapar la llamada
+var _knocks := 0
 
 
 func setup(flat: Node3D) -> void:
@@ -38,6 +43,11 @@ func setup(flat: Node3D) -> void:
 	_hum.level = OFF_DB
 	add_child(_hum)
 	_hum.global_position = flat.get_place(&"wall")
+	_door = DirectionalSound.new(flat.sound_loss)
+	_door.unit_size = 5.0
+	_door.max_db = MAX_DB
+	add_child(_door)
+	_door.global_position = flat.get_place(&"door_front")
 	var ambience := AudioStreamPlayer.new()
 	ambience.stream = AMBIENCE
 	ambience.bus = &"House"
@@ -52,6 +62,8 @@ func setup(flat: Node3D) -> void:
 	for window: Vector3 in flat.get_windows():
 		_add_loop(RAIN, window, RAIN_DB, 1.2).attenuation_filter_cutoff_hz = 3500.0  # de lejos, más sorda
 	EventBus.fear_event.connect(_on_fear_event)
+	EventBus.sequence_cue.connect(_on_sequence_cue)
+	EventBus.run_restarted.connect(func(_run: int) -> void: _knocks = 0)
 	EventBus.house_silence.connect(func(seconds: float) -> void: _silence_left = seconds)
 
 
@@ -79,6 +91,15 @@ func _on_fear_event(def: FearEventDef, place: StringName) -> void:
 	var tween := create_tween()
 	tween.tween_callback(prop.fall if prop else _flat.stir.bind(place, length)).set_delay(wait - lead)
 	tween.tween_callback(_event.start).set_delay(lead)
+
+
+func _on_sequence_cue(id: StringName) -> void:
+	if id != &"knock":
+		return
+	_knocks += 1
+	_door.stream = KNOCKS[(_knocks - 1) % KNOCKS.size()]
+	_door.level = KNOCK_DB + Sequence.knock_boost_db(_knocks)
+	_door.start()
 
 
 func _add_loop(stream: AudioStream, at: Vector3, level: float, unit: float) -> DirectionalSound:

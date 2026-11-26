@@ -13,8 +13,8 @@ func test_footstep_is_the_lowest_point() -> void:
 	var mid: Vector3 = CameraBob.target_pose(1.0, 1.0, 0.0)[0]
 	assert_almost_eq(at_contact.y, -CameraBob.STEP_DROP, 0.0001, "al apoyar el pie, abajo del todo")
 	assert_almost_eq(mid.y, 0.0, 0.0001, "entre pisadas, arriba")
-	assert_gt((CameraBob.target_pose(0.75, 1.0, 0.0)[0] as Vector3).y, -CameraBob.STEP_DROP * 0.2,
-			"el golpe es estrecho: a un cuarto de paso ya casi ha subido")
+	assert_gt((CameraBob.target_pose(0.75, 1.0, 0.0)[0] as Vector3).y, -CameraBob.STEP_DROP * 0.3,
+			"el golpe es más estrecho que un vaivén: a un cuarto de paso ya ha subido casi todo")
 
 
 func test_sways_toward_each_foot() -> void:
